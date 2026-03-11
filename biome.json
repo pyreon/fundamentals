@@ -1,0 +1,14 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "extends": ["@vitus-labs/tools-lint/biome"],
+  "linter": {
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "off"
+      }
+    }
+  },
+  "files": {
+    "ignore": ["node_modules", "lib", "dist", "*.d.ts"]
+  }
+}

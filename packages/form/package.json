@@ -1,0 +1,32 @@
+{
+  "name": "@pyreon/form",
+  "version": "0.0.1",
+  "description": "Signal-based form management for Pyreon",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "import": "./lib/index.js",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "vl_rolldown_build",
+    "dev": "vl_rolldown_build-watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@pyreon/core": ">=0.0.1",
+    "@pyreon/reactivity": ">=0.0.1"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.8.3",
+    "@pyreon/core": "file:../../../pyreon/packages/core",
+    "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity",
+    "@pyreon/runtime-dom": "file:../../../pyreon/packages/runtime-dom"
+  }
+}

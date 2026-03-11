@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build output
+lib/
+dist/
+
+# lockfiles
+bun.lock
+
+# editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.*
+
+# test
+coverage/
+
+# misc
+*.tsbuildinfo

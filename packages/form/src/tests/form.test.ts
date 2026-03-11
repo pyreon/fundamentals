@@ -1,0 +1,839 @@
+import { h } from '@pyreon/core'
+import { mount } from '@pyreon/runtime-dom'
+import { useForm, useFieldArray } from '../index'
+import type { FormState } from '../index'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
+  let result: T | undefined
+  const el = document.createElement('div')
+  document.body.appendChild(el)
+  const unmount = mount(
+    h(
+      () => {
+        result = fn()
+        return null
+      },
+      null,
+    ),
+    el,
+  )
+  return {
+    result: result!,
+    unmount: () => {
+      unmount()
+      el.remove()
+    },
+  }
+}
+
+interface LoginForm {
+  email: string
+  password: string
+}
+
+// ─── useForm ─────────────────────────────────────────────────────────────────
+
+describe('useForm', () => {
+  it('initializes with correct values', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { email: 'test@test.com', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    expect(form.fields.email.value()).toBe('test@test.com')
+    expect(form.fields.password.value()).toBe('')
+    expect(form.isValid()).toBe(true)
+    expect(form.isDirty()).toBe(false)
+    expect(form.isSubmitting()).toBe(false)
+    expect(form.submitCount()).toBe(0)
+    unmount()
+  })
+
+  it('setValue updates field value and marks dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.email.setValue('hello@world.com')
+    expect(form.fields.email.value()).toBe('hello@world.com')
+    expect(form.fields.email.dirty()).toBe(true)
+    expect(form.isDirty()).toBe(true)
+    unmount()
+  })
+
+  it('setTouched marks field as touched', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    expect(form.fields.email.touched()).toBe(false)
+    form.fields.email.setTouched()
+    expect(form.fields.email.touched()).toBe(true)
+    unmount()
+  })
+
+  it('field-level validation on blur', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+      }),
+    )
+
+    // No error initially
+    expect(form.fields.email.error()).toBeUndefined()
+
+    // Trigger blur
+    form.fields.email.setTouched()
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(form.fields.email.error()).toBe('Required')
+    expect(form.isValid()).toBe(false)
+
+    // Fix the value
+    form.fields.email.setValue('test@test.com')
+    form.fields.email.setTouched()
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(form.fields.email.error()).toBeUndefined()
+    expect(form.isValid()).toBe(true)
+    unmount()
+  })
+
+  it('field-level validation on change', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+        validateOn: 'change',
+      }),
+    )
+
+    // Error should be set immediately via effect
+    await new Promise((r) => setTimeout(r, 0))
+    expect(form.fields.email.error()).toBe('Required')
+
+    form.fields.email.setValue('hello')
+    await new Promise((r) => setTimeout(r, 0))
+    expect(form.fields.email.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('handleSubmit validates and calls onSubmit when valid', async () => {
+    let submitted: LoginForm | undefined
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'a@b.com', password: '12345678' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+          password: (v) => (v.length < 8 ? 'Too short' : undefined),
+        },
+        onSubmit: (values) => {
+          submitted = values
+        },
+      }),
+    )
+
+    await form.handleSubmit()
+    expect(submitted).toEqual({ email: 'a@b.com', password: '12345678' })
+    expect(form.submitCount()).toBe(1)
+    unmount()
+  })
+
+  it('handleSubmit does not call onSubmit when invalid', async () => {
+    let called = false
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {
+          called = true
+        },
+      }),
+    )
+
+    await form.handleSubmit()
+    expect(called).toBe(false)
+    expect(form.submitCount()).toBe(1)
+    expect(form.fields.email.error()).toBe('Required')
+    expect(form.fields.email.touched()).toBe(true)
+    unmount()
+  })
+
+  it('handleSubmit sets isSubmitting during async onSubmit', async () => {
+    const states: boolean[] = []
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'a@b.com', password: '12345678' },
+        onSubmit: async () => {
+          states.push(form.isSubmitting())
+          await new Promise((r) => setTimeout(r, 10))
+        },
+      }),
+    )
+
+    const submitPromise = form.handleSubmit()
+    // Should not be submitting yet at this exact moment (microtask)
+    await submitPromise
+    expect(states[0]).toBe(true)
+    expect(form.isSubmitting()).toBe(false)
+    unmount()
+  })
+
+  it('schema validation runs after field validators', async () => {
+    let submitted = false
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { password: '12345678', confirmPassword: '12345679' },
+        schema: (values) => {
+          const errors: Partial<
+            Record<'password' | 'confirmPassword', string>
+          > = {}
+          if (values.password !== values.confirmPassword) {
+            errors.confirmPassword = 'Passwords must match'
+          }
+          return errors
+        },
+        onSubmit: () => {
+          submitted = true
+        },
+      }),
+    )
+
+    await form.handleSubmit()
+    expect(submitted).toBe(false)
+    expect(form.fields.confirmPassword.error()).toBe('Passwords must match')
+
+    // Fix the value
+    form.fields.confirmPassword.setValue('12345678')
+    await form.handleSubmit()
+    expect(submitted).toBe(true)
+    unmount()
+  })
+
+  it('values() returns all current values', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'a@b.com', password: 'secret' },
+        onSubmit: () => {},
+      }),
+    )
+
+    expect(form.values()).toEqual({ email: 'a@b.com', password: 'secret' })
+    form.fields.email.setValue('new@email.com')
+    expect(form.values()).toEqual({ email: 'new@email.com', password: 'secret' })
+    unmount()
+  })
+
+  it('errors() returns all current errors', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+          password: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    await form.validate()
+    expect(form.errors()).toEqual({
+      email: 'Required',
+      password: 'Required',
+    })
+    unmount()
+  })
+
+  it('reset() restores initial values and clears state', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.email.setValue('changed')
+    form.fields.email.setTouched()
+    await form.handleSubmit()
+
+    form.reset()
+    expect(form.fields.email.value()).toBe('')
+    expect(form.fields.email.error()).toBeUndefined()
+    expect(form.fields.email.touched()).toBe(false)
+    expect(form.fields.email.dirty()).toBe(false)
+    expect(form.submitCount()).toBe(0)
+    unmount()
+  })
+
+  it('validate() returns true when all valid', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'test@test.com', password: '12345678' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(true)
+    unmount()
+  })
+
+  it('async validators work', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { username: 'taken' },
+        validators: {
+          username: async (v) => {
+            await new Promise((r) => setTimeout(r, 5))
+            return v === 'taken' ? 'Already taken' : undefined
+          },
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(false)
+    expect(form.fields.username.error()).toBe('Already taken')
+    unmount()
+  })
+
+  it('setting value back to initial clears dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'original', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.email.setValue('changed')
+    expect(form.fields.email.dirty()).toBe(true)
+
+    form.fields.email.setValue('original')
+    expect(form.fields.email.dirty()).toBe(false)
+    expect(form.isDirty()).toBe(false)
+    unmount()
+  })
+
+  it('cross-field validation — validators receive all form values', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { password: 'abc123', confirmPassword: 'different' },
+        validators: {
+          confirmPassword: (value, allValues) =>
+            value !== allValues.password ? 'Passwords must match' : undefined,
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(false)
+    expect(form.fields.confirmPassword.error()).toBe('Passwords must match')
+
+    form.fields.confirmPassword.setValue('abc123')
+    const valid2 = await form.validate()
+    expect(valid2).toBe(true)
+    expect(form.fields.confirmPassword.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('register() returns value signal and event handlers', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    const props = form.register('email')
+    expect(props.value).toBe(form.fields.email.value)
+    expect(typeof props.onInput).toBe('function')
+    expect(typeof props.onBlur).toBe('function')
+    unmount()
+  })
+
+  it('register() onInput updates field value', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    const props = form.register('email')
+    const fakeEvent = { target: { value: 'test@test.com' } } as unknown as Event
+    props.onInput(fakeEvent)
+
+    expect(form.fields.email.value()).toBe('test@test.com')
+    expect(form.fields.email.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('register() onBlur marks field as touched and validates', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+      }),
+    )
+
+    const props = form.register('email')
+    props.onBlur()
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(form.fields.email.touched()).toBe(true)
+    expect(form.fields.email.error()).toBe('Required')
+    unmount()
+  })
+
+  it('setFieldError sets a single field error', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.setFieldError('email', 'Server error: email taken')
+    expect(form.fields.email.error()).toBe('Server error: email taken')
+    expect(form.isValid()).toBe(false)
+
+    form.setFieldError('email', undefined)
+    expect(form.fields.email.error()).toBeUndefined()
+    expect(form.isValid()).toBe(true)
+    unmount()
+  })
+
+  it('setErrors sets multiple field errors at once', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.setErrors({
+      email: 'Invalid email',
+      password: 'Too weak',
+    })
+    expect(form.fields.email.error()).toBe('Invalid email')
+    expect(form.fields.password.error()).toBe('Too weak')
+    expect(form.isValid()).toBe(false)
+    unmount()
+  })
+
+  it('debounceMs delays validation', async () => {
+    let callCount = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => {
+            callCount++
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+        debounceMs: 50,
+      }),
+    )
+
+    // Trigger multiple rapid blurs
+    form.fields.name.setTouched()
+    form.fields.name.setTouched()
+    form.fields.name.setTouched()
+
+    // Should not have validated yet
+    await new Promise((r) => setTimeout(r, 10))
+    expect(callCount).toBe(0)
+
+    // After debounce period, should have validated once
+    await new Promise((r) => setTimeout(r, 60))
+    expect(callCount).toBe(1)
+    expect(form.fields.name.error()).toBe('Required')
+    unmount()
+  })
+
+  it('validate() bypasses debounce for immediate validation', async () => {
+    let callCount = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => {
+            callCount++
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+        debounceMs: 500,
+      }),
+    )
+
+    // Direct validate() should run immediately regardless of debounce
+    const valid = await form.validate()
+    expect(valid).toBe(false)
+    expect(callCount).toBe(1)
+    unmount()
+  })
+
+  it('setFieldValue sets a field value from the form level', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.setFieldValue('email', 'new@email.com')
+    expect(form.fields.email.value()).toBe('new@email.com')
+    expect(form.fields.email.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('clearErrors clears all field errors', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        validators: {
+          email: (v) => (!v ? 'Required' : undefined),
+          password: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    await form.validate()
+    expect(form.isValid()).toBe(false)
+
+    form.clearErrors()
+    expect(form.fields.email.error()).toBeUndefined()
+    expect(form.fields.password.error()).toBeUndefined()
+    expect(form.isValid()).toBe(true)
+    unmount()
+  })
+
+  it('resetField resets a single field without affecting others', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.email.setValue('changed')
+    form.fields.password.setValue('changed')
+    form.fields.email.setTouched()
+
+    form.resetField('email')
+    expect(form.fields.email.value()).toBe('')
+    expect(form.fields.email.dirty()).toBe(false)
+    expect(form.fields.email.touched()).toBe(false)
+    // Password should be unaffected
+    expect(form.fields.password.value()).toBe('changed')
+    expect(form.fields.password.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('isValidating tracks async validation state', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: async (v) => {
+            await new Promise((r) => setTimeout(r, 20))
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    expect(form.isValidating()).toBe(false)
+    const validatePromise = form.validate()
+    expect(form.isValidating()).toBe(true)
+    await validatePromise
+    expect(form.isValidating()).toBe(false)
+    unmount()
+  })
+
+  it('handleSubmit calls preventDefault on event', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'a@b.com', password: '12345678' },
+        onSubmit: () => {},
+      }),
+    )
+
+    let preventDefaultCalled = false
+    const fakeEvent = {
+      preventDefault: () => { preventDefaultCalled = true },
+    } as unknown as Event
+
+    await form.handleSubmit(fakeEvent)
+    expect(preventDefaultCalled).toBe(true)
+    unmount()
+  })
+
+  it('register() with checkbox type uses checked property', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { remember: false },
+        onSubmit: () => {},
+      }),
+    )
+
+    const props = form.register('remember', { type: 'checkbox' })
+    expect(props.checked).toBeDefined()
+    expect(props.checked!()).toBe(false)
+
+    // Simulate checkbox change
+    const fakeEvent = { target: { checked: true, value: 'on' } } as unknown as Event
+    props.onInput(fakeEvent)
+
+    expect(form.fields.remember.value()).toBe(true)
+    expect(props.checked!()).toBe(true)
+    unmount()
+  })
+
+  it('register() returns same props for repeated calls (memoized)', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      }),
+    )
+
+    const first = form.register('email')
+    const second = form.register('email')
+    expect(first).toBe(second)
+    unmount()
+  })
+
+  it('submitError captures onSubmit errors', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm<LoginForm>({
+        initialValues: { email: 'a@b.com', password: '12345678' },
+        onSubmit: async () => {
+          throw new Error('Server error')
+        },
+      }),
+    )
+
+    expect(form.submitError()).toBeUndefined()
+    await form.handleSubmit().catch(() => {})
+    expect(form.submitError()).toBeInstanceOf(Error)
+    expect((form.submitError() as Error).message).toBe('Server error')
+
+    // Reset clears submitError
+    form.reset()
+    expect(form.submitError()).toBeUndefined()
+    unmount()
+  })
+
+  it('dirty detection works for object field values', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { address: { city: 'NYC', zip: '10001' } },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Same structure = not dirty
+    form.fields.address.setValue({ city: 'NYC', zip: '10001' })
+    expect(form.fields.address.dirty()).toBe(false)
+
+    // Different structure = dirty
+    form.fields.address.setValue({ city: 'LA', zip: '90001' })
+    expect(form.fields.address.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('dirty detection works for array field values', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { tags: ['a', 'b'] },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Same array = not dirty
+    form.fields.tags.setValue(['a', 'b'])
+    expect(form.fields.tags.dirty()).toBe(false)
+
+    // Different array = dirty
+    form.fields.tags.setValue(['a', 'b', 'c'])
+    expect(form.fields.tags.dirty()).toBe(true)
+    unmount()
+  })
+})
+
+// ─── useFieldArray ───────────────────────────────────────────────────────────
+
+describe('useFieldArray', () => {
+  it('initializes with provided values', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    expect(arr.length()).toBe(3)
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+    unmount()
+  })
+
+  it('initializes empty by default', () => {
+    const { result: arr, unmount } = mountWith(() => useFieldArray<string>())
+
+    expect(arr.length()).toBe(0)
+    expect(arr.values()).toEqual([])
+    unmount()
+  })
+
+  it('append adds to end', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a']),
+    )
+
+    arr.append('b')
+    expect(arr.values()).toEqual(['a', 'b'])
+    expect(arr.length()).toBe(2)
+    unmount()
+  })
+
+  it('prepend adds to start', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['b']),
+    )
+
+    arr.prepend('a')
+    expect(arr.values()).toEqual(['a', 'b'])
+    unmount()
+  })
+
+  it('insert at index', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'c']),
+    )
+
+    arr.insert(1, 'b')
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+    unmount()
+  })
+
+  it('remove by index', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    arr.remove(1)
+    expect(arr.values()).toEqual(['a', 'c'])
+    unmount()
+  })
+
+  it('move reorders items', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    arr.move(0, 2)
+    expect(arr.values()).toEqual(['b', 'c', 'a'])
+    unmount()
+  })
+
+  it('swap exchanges items', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    arr.swap(0, 2)
+    expect(arr.values()).toEqual(['c', 'b', 'a'])
+    unmount()
+  })
+
+  it('replace replaces all items', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b']),
+    )
+
+    arr.replace(['x', 'y', 'z'])
+    expect(arr.values()).toEqual(['x', 'y', 'z'])
+    expect(arr.length()).toBe(3)
+    unmount()
+  })
+
+  it('items have stable keys', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b']),
+    )
+
+    const keysBefore = arr.items().map((i) => i.key)
+    arr.append('c')
+    const keysAfter = arr.items().map((i) => i.key)
+
+    // First two keys should be preserved
+    expect(keysAfter[0]).toBe(keysBefore[0])
+    expect(keysAfter[1]).toBe(keysBefore[1])
+    // New item gets a new key
+    expect(keysAfter[2]).not.toBe(keysBefore[0])
+    expect(keysAfter[2]).not.toBe(keysBefore[1])
+    unmount()
+  })
+
+  it('individual item values are reactive signals', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b']),
+    )
+
+    const item = arr.items()[0]!
+    expect(item.value()).toBe('a')
+    item.value.set('updated')
+    expect(item.value()).toBe('updated')
+    unmount()
+  })
+
+  it('update modifies value at index', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    arr.update(1, 'updated')
+    expect(arr.values()).toEqual(['a', 'updated', 'c'])
+
+    // Key should be preserved
+    const item = arr.items()[1]!
+    expect(item.value()).toBe('updated')
+    unmount()
+  })
+})

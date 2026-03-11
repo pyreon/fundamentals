@@ -1,0 +1,10 @@
+{
+  "extends": "@vitus-labs/tools-typescript/lib",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "@pyreon/core",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "customConditions": ["bun"]
+  },
+  "exclude": ["node_modules", "lib", "dist"]
+}
