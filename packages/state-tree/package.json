@@ -1,0 +1,30 @@
+{
+  "name": "@pyreon/state-tree",
+  "version": "0.0.1",
+  "description": "Structured reactive state tree — composable models with snapshots, patches, and middleware",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "import": "./lib/index.js",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "vl_rolldown_build",
+    "dev": "vl_rolldown_build-watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@pyreon/reactivity": ">=0.0.1"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.8.3",
+    "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity"
+  }
+}
