@@ -1,0 +1,83 @@
+import type { SchemaValidateFn, ValidateFn, ValidationError } from '@pyreon/form'
+import type { ValidationIssue } from './types'
+import { issuesToRecord } from './utils'
+
+/**
+ * Minimal Zod-compatible interfaces so we don't require zod as a hard dep.
+ * These match Zod v3's public API surface.
+ */
+interface ZodIssue {
+  path: (string | number)[]
+  message: string
+}
+
+interface ZodSafeParseResult<T> {
+  success: boolean
+  data?: T
+  error?: { issues: ZodIssue[] }
+}
+
+interface ZodSchema<T = unknown> {
+  safeParse(data: unknown): ZodSafeParseResult<T>
+  safeParseAsync(data: unknown): Promise<ZodSafeParseResult<T>>
+}
+
+function zodIssuesToGeneric(issues: ZodIssue[]): ValidationIssue[] {
+  return issues.map((issue) => ({
+    path: issue.path.join('.'),
+    message: issue.message,
+  }))
+}
+
+/**
+ * Create a form-level schema validator from a Zod schema.
+ * Supports both sync and async Zod schemas (uses `safeParseAsync`).
+ *
+ * @example
+ * import { z } from 'zod'
+ * import { zodSchema } from '@pyreon/validation/zod'
+ *
+ * const schema = z.object({
+ *   email: z.string().email(),
+ *   password: z.string().min(8),
+ * })
+ *
+ * const form = useForm({
+ *   initialValues: { email: '', password: '' },
+ *   schema: zodSchema(schema),
+ *   onSubmit: (values) => { ... },
+ * })
+ */
+export function zodSchema<TValues extends Record<string, unknown>>(
+  schema: ZodSchema<TValues>,
+): SchemaValidateFn<TValues> {
+  return async (values: TValues) => {
+    const result = await schema.safeParseAsync(values)
+    if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
+    return issuesToRecord<TValues>(zodIssuesToGeneric(result.error!.issues))
+  }
+}
+
+/**
+ * Create a single-field validator from a Zod schema.
+ * Supports both sync and async Zod refinements.
+ *
+ * @example
+ * import { z } from 'zod'
+ * import { zodField } from '@pyreon/validation/zod'
+ *
+ * const form = useForm({
+ *   initialValues: { email: '' },
+ *   validators: {
+ *     email: zodField(z.string().email('Invalid email')),
+ *   },
+ *   onSubmit: (values) => { ... },
+ * })
+ */
+export function zodField<T>(schema: ZodSchema<T>): ValidateFn<T> {
+  return async (value: T) => {
+    const result = await schema.safeParseAsync(value)
+    if (result.success) return undefined
+    return result.error!.issues[0]?.message
+  }
+}

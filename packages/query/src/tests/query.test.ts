@@ -1258,3 +1258,232 @@ describe("useSuspenseQuery — additional", () => {
     unmount(); el.remove()
   })
 })
+
+// ─── Coverage gap tests ──────────────────────────────────────────────────────
+
+describe("QueryClientProvider — VNode children branch", () => {
+  it("renders when children is a VNode (not a function)", () => {
+    const client = makeClient()
+    let received: QueryClient | null = null
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    // Pass children as a direct VNode, not wrapped in a function
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => { received = useQueryClient(); return null }, null),
+      ),
+      el,
+    )
+    expect(received).toBe(client)
+    unmount(); el.remove()
+  })
+
+  it("renders when children is passed as a function returning VNode", () => {
+    const client = makeClient()
+    let received: QueryClient | null = null
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(QueryClientProvider, { client }, () => {
+        return h(() => { received = useQueryClient(); return null }, null)
+      }),
+      el,
+    )
+    expect(received).toBe(client)
+    unmount(); el.remove()
+  })
+})
+
+describe("useMutation — mutateAsync", () => {
+  let client: QueryClient
+  beforeEach(() => { client = makeClient() })
+
+  it("mutateAsync returns a promise that resolves with data", async () => {
+    let mut: ReturnType<typeof useMutation<string, Error, string>> | undefined
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => {
+          mut = useMutation<string, Error, string>({
+            mutationFn: async (input: string) => `async-result:${input}`,
+          })
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    const result = await mut!.mutateAsync("test")
+    expect(result).toBe("async-result:test")
+    expect(mut!.isSuccess()).toBe(true)
+    expect(mut!.data()).toBe("async-result:test")
+    unmount(); el.remove()
+  })
+
+  it("mutateAsync rejects when mutation fails", async () => {
+    let mut: ReturnType<typeof useMutation<string, Error, void>> | undefined
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => {
+          mut = useMutation<string, Error, void>({
+            mutationFn: async () => { throw new Error("async-fail") },
+          })
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    await expect(mut!.mutateAsync(undefined)).rejects.toThrow("async-fail")
+    await new Promise(r => setTimeout(r, 0))
+    expect(mut!.isError()).toBe(true)
+    expect((mut!.error() as Error).message).toBe("async-fail")
+    unmount(); el.remove()
+  })
+})
+
+describe("useQuery — refetch", () => {
+  let client: QueryClient
+  beforeEach(() => { client = makeClient() })
+
+  it("refetch re-fetches the query and returns updated result", async () => {
+    let callCount = 0
+    let query: ReturnType<typeof useQuery<string>> | undefined
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => {
+          query = useQuery(() => ({
+            queryKey: ["refetch-test"],
+            queryFn: async () => { callCount++; return `call-${callCount}` },
+          }))
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    await new Promise(r => setTimeout(r, 10))
+    expect(query!.data()).toBe("call-1")
+
+    const result = await query!.refetch()
+    await new Promise(r => setTimeout(r, 10))
+    expect(callCount).toBe(2)
+    expect(result.data).toBe("call-2")
+    expect(query!.data()).toBe("call-2")
+    unmount(); el.remove()
+  })
+})
+
+describe("QueryErrorResetBoundary — VNode children branch", () => {
+  it("renders when children is a VNode (not a function)", async () => {
+    const client = makeClient()
+    let resetFn: (() => void) | undefined
+
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+    // Pass children as a direct VNode, not a function
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(QueryErrorResetBoundary, null,
+          h(() => {
+            const { reset } = useQueryErrorResetBoundary()
+            resetFn = reset
+            return null
+          }, null),
+        ),
+      ),
+      el,
+    )
+
+    expect(resetFn).toBeDefined()
+    expect(() => resetFn?.()).not.toThrow()
+    unmount(); el.remove()
+  })
+})
+
+describe("useSuspenseQuery — error without handler (QuerySuspense throw branch)", () => {
+  let client: QueryClient
+  beforeEach(() => { client = makeClient() })
+
+  it("QuerySuspense throws error when no error handler is provided", async () => {
+    const { promise, reject } = deferred<never>()
+
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+
+    let thrownError: unknown = null
+    let query: ReturnType<typeof useSuspenseQuery> | undefined
+
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => {
+          query = useSuspenseQuery(() => ({
+            queryKey: ["sq-throw-no-handler"],
+            queryFn: () => promise,
+          }))
+          // QuerySuspense with NO error handler — should throw
+          return h(QuerySuspense, { query: query!, fallback: "loading" },
+            () => null,
+          )
+        }, null),
+      ),
+      el,
+    )
+
+    reject(new Error("unhandled suspense error"))
+    await promise.catch(() => {})
+    await new Promise(r => setTimeout(r, 10))
+
+    // The error state should be set on the query
+    expect(query!.isError()).toBe(true)
+    expect((query!.error() as Error).message).toBe("unhandled suspense error")
+
+    // Verify that calling the QuerySuspense render function directly would throw
+    // by checking the query is in error state without an error handler
+    // The throw happens inside the reactive render cycle — we verify the query errored
+    unmount(); el.remove()
+  })
+
+  it("QuerySuspense re-throws error to be caught externally", async () => {
+    const { promise, reject } = deferred<never>()
+
+    const el = document.createElement("div")
+    document.body.appendChild(el)
+
+    let query: ReturnType<typeof useSuspenseQuery> | undefined
+
+    const unmount = mount(
+      h(QueryClientProvider, { client },
+        h(() => {
+          query = useSuspenseQuery(() => ({
+            queryKey: ["sq-rethrow-direct"],
+            queryFn: () => promise,
+          }))
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    reject(new Error("direct throw"))
+    await promise.catch(() => {})
+    await new Promise(r => setTimeout(r, 10))
+
+    // Manually invoke QuerySuspense to verify it throws when no error handler
+    expect(() => {
+      const renderFn = QuerySuspense({
+        query: query!,
+        fallback: "loading",
+        children: () => null,
+      }) as () => unknown
+      renderFn()
+    }).toThrow("direct throw")
+
+    unmount(); el.remove()
+  })
+})

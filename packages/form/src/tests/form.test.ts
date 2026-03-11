@@ -836,4 +836,395 @@ describe('useFieldArray', () => {
     expect(item.value()).toBe('updated')
     unmount()
   })
+
+  it('update with invalid (out-of-bounds) index is a no-op', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b']),
+    )
+
+    arr.update(99, 'nope')
+    expect(arr.values()).toEqual(['a', 'b'])
+
+    arr.update(-1, 'nope')
+    expect(arr.values()).toEqual(['a', 'b'])
+    unmount()
+  })
+
+  it('move with invalid from index does not insert undefined', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    // splice(99,1) returns [] so item is undefined → splice(to,0) is a no-op
+    arr.move(99, 0)
+    // The array should still have 3 items (the splice removed nothing, guard prevented insert)
+    // Actually splice removes nothing and returns [], item is undefined so nothing inserted
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+    unmount()
+  })
+
+  it('swap with one invalid index is a no-op', () => {
+    const { result: arr, unmount } = mountWith(() =>
+      useFieldArray(['a', 'b', 'c']),
+    )
+
+    // indexA out of bounds
+    arr.swap(99, 0)
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+
+    // indexB out of bounds
+    arr.swap(0, 99)
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+
+    // Both out of bounds
+    arr.swap(99, 100)
+    expect(arr.values()).toEqual(['a', 'b', 'c'])
+    unmount()
+  })
+})
+
+// ─── structuredEqual (via dirty tracking) ────────────────────────────────────
+
+describe('structuredEqual coverage via dirty tracking', () => {
+  it('arrays with different lengths are detected as dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { items: ['a', 'b'] as string[] },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Longer array
+    form.fields.items.setValue(['a', 'b', 'c'])
+    expect(form.fields.items.dirty()).toBe(true)
+
+    // Shorter array
+    form.fields.items.setValue(['a'])
+    expect(form.fields.items.dirty()).toBe(true)
+
+    // Same length same elements — not dirty
+    form.fields.items.setValue(['a', 'b'])
+    expect(form.fields.items.dirty()).toBe(false)
+    unmount()
+  })
+
+  it('arrays with same length but different elements are detected as dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { items: ['a', 'b', 'c'] as string[] },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.items.setValue(['a', 'b', 'x'])
+    expect(form.fields.items.dirty()).toBe(true)
+
+    form.fields.items.setValue(['x', 'b', 'c'])
+    expect(form.fields.items.dirty()).toBe(true)
+
+    // Restoring original clears dirty
+    form.fields.items.setValue(['a', 'b', 'c'])
+    expect(form.fields.items.dirty()).toBe(false)
+    unmount()
+  })
+
+  it('objects with different number of keys are detected as dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { meta: { x: 1, y: 2 } as Record<string, number> },
+        onSubmit: () => {},
+      }),
+    )
+
+    // More keys
+    form.fields.meta.setValue({ x: 1, y: 2, z: 3 })
+    expect(form.fields.meta.dirty()).toBe(true)
+
+    // Fewer keys
+    form.fields.meta.setValue({ x: 1 })
+    expect(form.fields.meta.dirty()).toBe(true)
+
+    // Same keys same values — not dirty
+    form.fields.meta.setValue({ x: 1, y: 2 })
+    expect(form.fields.meta.dirty()).toBe(false)
+    unmount()
+  })
+
+  it('objects with same key count but different values are detected as dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { meta: { x: 1, y: 2 } as Record<string, number> },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.meta.setValue({ x: 1, y: 999 })
+    expect(form.fields.meta.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('null vs object is detected as dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { data: { a: 1 } as Record<string, number> | null },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.data.setValue(null)
+    expect(form.fields.data.dirty()).toBe(true)
+    unmount()
+  })
+})
+
+// ─── validateOn: 'submit' ───────────────────────────────────────────────────
+
+describe('validateOn: submit', () => {
+  it('does not validate on blur', async () => {
+    let validatorCalls = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => {
+            validatorCalls++
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+        validateOn: 'submit',
+      }),
+    )
+
+    // Blur should NOT trigger validation
+    form.fields.name.setTouched()
+    await new Promise((r) => setTimeout(r, 10))
+    expect(validatorCalls).toBe(0)
+    expect(form.fields.name.error()).toBeUndefined()
+
+    // setValue should NOT trigger validation
+    form.fields.name.setValue('hello')
+    await new Promise((r) => setTimeout(r, 10))
+    expect(validatorCalls).toBe(0)
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('validates only when handleSubmit is called', async () => {
+    let submitted = false
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {
+          submitted = true
+        },
+        validateOn: 'submit',
+      }),
+    )
+
+    // No validation until submit
+    form.fields.name.setTouched()
+    await new Promise((r) => setTimeout(r, 10))
+    expect(form.fields.name.error()).toBeUndefined()
+
+    // Submit triggers validation
+    await form.handleSubmit()
+    expect(submitted).toBe(false)
+    expect(form.fields.name.error()).toBe('Required')
+
+    // Fix and resubmit
+    form.fields.name.setValue('hello')
+    await form.handleSubmit()
+    expect(submitted).toBe(true)
+    unmount()
+  })
+})
+
+// ─── debounceMs for field validation ─────────────────────────────────────────
+
+describe('debounceMs field validation', () => {
+  it('debounced validation on change mode', async () => {
+    let callCount = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => {
+            callCount++
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+        validateOn: 'change',
+        debounceMs: 50,
+      }),
+    )
+
+    // Change should trigger debounced validation
+    form.fields.name.setValue('a')
+    form.fields.name.setValue('ab')
+    form.fields.name.setValue('abc')
+
+    // Not yet validated
+    await new Promise((r) => setTimeout(r, 10))
+    expect(callCount).toBe(0)
+
+    // After debounce, should validate
+    await new Promise((r) => setTimeout(r, 80))
+    expect(callCount).toBeGreaterThanOrEqual(1)
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('debounced validation resolves after timer fires', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+        debounceMs: 30,
+      }),
+    )
+
+    form.fields.name.setTouched()
+
+    // Before debounce fires
+    await new Promise((r) => setTimeout(r, 5))
+    expect(form.fields.name.error()).toBeUndefined()
+
+    // After debounce fires
+    await new Promise((r) => setTimeout(r, 50))
+    expect(form.fields.name.error()).toBe('Required')
+    unmount()
+  })
+
+  it('reset clears pending debounce timers', async () => {
+    let callCount = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (v) => {
+            callCount++
+            return !v ? 'Required' : undefined
+          },
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+        debounceMs: 50,
+      }),
+    )
+
+    form.fields.name.setTouched()
+    // Reset before debounce fires
+    form.reset()
+
+    await new Promise((r) => setTimeout(r, 80))
+    // Validator should not have been called since timer was cleared
+    expect(callCount).toBe(0)
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
+})
+
+// ─── Edge case: nonexistent field names ──────────────────────────────────────
+
+describe('useForm nonexistent field operations', () => {
+  it('setFieldValue with nonexistent field is a no-op', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice' },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Should not throw
+    form.setFieldValue('nonexistent' as any, 'value')
+    expect(form.fields.name.value()).toBe('Alice')
+    unmount()
+  })
+
+  it('setFieldError with nonexistent field is a no-op', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.setFieldError('nonexistent' as any, 'error')
+    expect(form.isValid()).toBe(true)
+    unmount()
+  })
+
+  it('resetField with nonexistent field is a no-op', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice' },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.resetField('nonexistent' as any)
+    expect(form.fields.name.value()).toBe('Alice')
+    unmount()
+  })
+})
+
+// ─── Edge case: structuredEqual mixed types ──────────────────────────────────
+
+describe('dirty detection with mixed types', () => {
+  it('number vs string is dirty', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { value: 0 as any },
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.value.setValue('0' as any)
+    expect(form.fields.value.dirty()).toBe(true)
+    unmount()
+  })
+})
+
+// ─── Edge case: debounceMs + validateOn: 'change' ───────────────────────────
+
+describe('debounceMs with validateOn change', () => {
+  it('debounces validation on change', async () => {
+    let callCount = 0
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: async (v) => {
+            callCount++
+            return v.length < 3 ? 'Too short' : undefined
+          },
+        },
+        validateOn: 'change',
+        debounceMs: 50,
+        onSubmit: () => {},
+      }),
+    )
+
+    form.fields.name.setValue('a')
+    form.fields.name.setValue('ab')
+    form.fields.name.setValue('abc')
+
+    // None should have fired yet
+    expect(callCount).toBe(0)
+
+    await new Promise((r) => setTimeout(r, 80))
+    // Only the last one should have fired after debounce
+    expect(callCount).toBe(1)
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
 })

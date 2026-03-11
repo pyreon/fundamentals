@@ -324,3 +324,59 @@ describe("flexRender", () => {
     expect(flexRender({} as unknown, {})).toBeNull()
   })
 })
+
+// ─── onStateChange with non-function updater ─────────────────────────────────
+
+describe("useTable — onStateChange with direct state object", () => {
+  it("handles a non-function updater (plain state object) passed to onStateChange", () => {
+    const { result: table, unmount } = mountWithTable(() =>
+      useTable(() => ({
+        data: defaultData,
+        columns: defaultColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+      })),
+    )
+
+    // Grab the current full state, then call onStateChange with a direct
+    // state object (not an updater function) to exercise the else-branch.
+    const currentState = table().getState()
+    const newState = {
+      ...currentState,
+      sorting: [{ id: "name", desc: true }],
+    }
+
+    // Access the resolved onStateChange and invoke it with a plain object
+    table().options.onStateChange(newState as any)
+
+    // The table should now reflect the new sorting state
+    expect(table().getState().sorting).toEqual([{ id: "name", desc: true }])
+    unmount()
+  })
+
+  it("propagates non-function updater to user-provided onStateChange callback", () => {
+    const stateChanges: unknown[] = []
+
+    const { result: table, unmount } = mountWithTable(() =>
+      useTable(() => ({
+        data: defaultData,
+        columns: defaultColumns,
+        getCoreRowModel: getCoreRowModel(),
+        onStateChange: (updater) => {
+          stateChanges.push(updater)
+        },
+      })),
+    )
+
+    const currentState = table().getState()
+    const newState = { ...currentState, columnOrder: ["age", "name"] }
+
+    table().options.onStateChange(newState as any)
+
+    // The user callback should have received the plain state object
+    expect(stateChanges.length).toBeGreaterThanOrEqual(1)
+    const lastChange = stateChanges[stateChanges.length - 1]
+    expect(lastChange).toEqual(expect.objectContaining({ columnOrder: ["age", "name"] }))
+    unmount()
+  })
+})

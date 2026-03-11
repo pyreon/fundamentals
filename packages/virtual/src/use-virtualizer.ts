@@ -71,15 +71,7 @@ export function useVirtualizer<
   const totalSize = signal(0)
   const isScrolling = signal(false)
 
-  const instance = new Virtualizer<TScrollElement, TItemElement>({
-    ...resolvedOptions,
-    onChange: (inst, sync) => {
-      virtualItems.set(inst.getVirtualItems())
-      totalSize.set(inst.getTotalSize())
-      isScrolling.set(inst.isScrolling)
-      resolvedOptions.onChange?.(inst, sync)
-    },
-  })
+  const instance = new Virtualizer<TScrollElement, TItemElement>(resolvedOptions)
 
   // Track reactive options: when signals inside options() change, update the virtualizer.
   const effectCleanup = effect(() => {

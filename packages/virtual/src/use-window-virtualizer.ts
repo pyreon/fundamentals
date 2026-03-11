@@ -58,15 +58,7 @@ export function useWindowVirtualizer<TItemElement extends Element>(
     ...options(),
   }
 
-  const instance = new Virtualizer<Window, TItemElement>({
-    ...resolvedOptions,
-    onChange: (inst, sync) => {
-      virtualItems.set(inst.getVirtualItems())
-      totalSize.set(inst.getTotalSize())
-      isScrolling.set(inst.isScrolling)
-      resolvedOptions.onChange?.(inst, sync)
-    },
-  })
+  const instance = new Virtualizer<Window, TItemElement>(resolvedOptions)
 
   const effectCleanup = effect(() => {
     const userOpts = options()
