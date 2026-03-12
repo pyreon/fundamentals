@@ -179,6 +179,22 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
 
         try {
           const result = original(...args)
+
+          // Handle async actions: if the result is a thenable, wait for
+          // resolution before calling after/onError callbacks.
+          if (result != null && typeof (result as any).then === "function") {
+            return (result as Promise<unknown>).then(
+              (resolved) => {
+                for (const cb of afterCbs) cb(resolved)
+                return resolved
+              },
+              (err) => {
+                for (const cb of errorCbs) cb(err)
+                throw err
+              },
+            )
+          }
+
           for (const cb of afterCbs) cb(result)
           return result
         } catch (err) {

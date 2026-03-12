@@ -1,6 +1,6 @@
 import { h } from '@pyreon/core'
 import { mount } from '@pyreon/runtime-dom'
-import { useForm, useFieldArray } from '../index'
+import { useForm, useFieldArray, useField, useWatch, useFormState, FormProvider, useFormContext } from '../index'
 import type { FormState } from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1355,5 +1355,296 @@ describe('debounceMs with validateOn change', () => {
     expect(callCount).toBe(1)
     expect(form.fields.name.error()).toBeUndefined()
     unmount()
+  })
+})
+
+// ─── useField ────────────────────────────────────────────────────────────────
+
+describe('useField', () => {
+  it('extracts a single field from a form', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '', password: '' },
+        onSubmit: () => {},
+      })
+      const field = useField(form, 'email')
+      return { form, field }
+    })
+
+    expect(result.field.value()).toBe('')
+    result.field.setValue('test@test.com')
+    expect(result.form.fields.email.value()).toBe('test@test.com')
+    expect(result.field.dirty()).toBe(true)
+    unmount()
+  })
+
+  it('hasError and showError computed correctly', async () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '' },
+        validators: { email: (v) => (!v ? 'Required' : undefined) },
+        onSubmit: () => {},
+      })
+      const field = useField(form, 'email')
+      return { form, field }
+    })
+
+    expect(result.field.hasError()).toBe(false)
+    expect(result.field.showError()).toBe(false)
+
+    // Trigger validation
+    result.field.setTouched()
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(result.field.hasError()).toBe(true)
+    // showError = touched AND hasError
+    expect(result.field.showError()).toBe(true)
+    unmount()
+  })
+
+  it('register() delegates to form.register()', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '' },
+        onSubmit: () => {},
+      })
+      const field = useField(form, 'email')
+      return { form, field }
+    })
+
+    const fieldProps = result.field.register()
+    const formProps = result.form.register('email')
+    // Should be the same memoized object
+    expect(fieldProps).toBe(formProps)
+    unmount()
+  })
+
+  it('register() with checkbox type', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { remember: false },
+        onSubmit: () => {},
+      })
+      const field = useField(form, 'remember')
+      return { form, field }
+    })
+
+    const props = result.field.register({ type: 'checkbox' })
+    expect(props.checked).toBeDefined()
+    expect(props.checked!()).toBe(false)
+    unmount()
+  })
+
+  it('reset delegates to field reset', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { name: 'initial' },
+        onSubmit: () => {},
+      })
+      const field = useField(form, 'name')
+      return { form, field }
+    })
+
+    result.field.setValue('changed')
+    result.field.setTouched()
+    expect(result.field.dirty()).toBe(true)
+    expect(result.field.touched()).toBe(true)
+
+    result.field.reset()
+    expect(result.field.value()).toBe('initial')
+    expect(result.field.dirty()).toBe(false)
+    expect(result.field.touched()).toBe(false)
+    unmount()
+  })
+})
+
+// ─── useWatch ────────────────────────────────────────────────────────────────
+
+describe('useWatch', () => {
+  it('watches a single field value', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: 'a@b.com', password: '' },
+        onSubmit: () => {},
+      })
+      const email = useWatch(form, 'email')
+      return { form, email }
+    })
+
+    expect(result.email()).toBe('a@b.com')
+    result.form.fields.email.setValue('new@email.com')
+    expect(result.email()).toBe('new@email.com')
+    unmount()
+  })
+
+  it('watches multiple fields', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { first: 'John', last: 'Doe' },
+        onSubmit: () => {},
+      })
+      const [first, last] = useWatch(form, ['first', 'last'])
+      return { form, first, last }
+    })
+
+    expect(result.first()).toBe('John')
+    expect(result.last()).toBe('Doe')
+    result.form.fields.first.setValue('Jane')
+    expect(result.first()).toBe('Jane')
+    unmount()
+  })
+
+  it('watches all fields when no name provided', () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: 'a@b.com', name: 'Alice' },
+        onSubmit: () => {},
+      })
+      const all = useWatch(form)
+      return { form, all }
+    })
+
+    expect(result.all()).toEqual({ email: 'a@b.com', name: 'Alice' })
+    result.form.fields.email.setValue('new@email.com')
+    expect(result.all()).toEqual({ email: 'new@email.com', name: 'Alice' })
+    unmount()
+  })
+})
+
+// ─── useFormState ────────────────────────────────────────────────────────────
+
+describe('useFormState', () => {
+  it('returns full form state summary', async () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '', password: '' },
+        validators: { email: (v) => (!v ? 'Required' : undefined) },
+        onSubmit: () => {},
+      })
+      const state = useFormState(form)
+      return { form, state }
+    })
+
+    const s = result.state()
+    expect(s.isSubmitting).toBe(false)
+    expect(s.isValidating).toBe(false)
+    expect(s.isValid).toBe(true)
+    expect(s.isDirty).toBe(false)
+    expect(s.submitCount).toBe(0)
+    expect(s.submitError).toBeUndefined()
+    expect(s.touchedFields).toEqual({})
+    expect(s.dirtyFields).toEqual({})
+    expect(s.errors).toEqual({})
+
+    // Change form state
+    result.form.fields.email.setValue('test')
+    result.form.fields.email.setTouched()
+    await new Promise((r) => setTimeout(r, 0))
+
+    const s2 = result.state()
+    expect(s2.isDirty).toBe(true)
+    expect(s2.dirtyFields).toEqual({ email: true })
+    expect(s2.touchedFields).toEqual({ email: true })
+    unmount()
+  })
+
+  it('works with selector for fine-grained reactivity', async () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '' },
+        validators: { email: (v) => (!v ? 'Required' : undefined) },
+        onSubmit: () => {},
+      })
+      const canSubmit = useFormState(form, (s) => s.isValid && !s.isSubmitting)
+      return { form, canSubmit }
+    })
+
+    expect(result.canSubmit()).toBe(true)
+
+    // Trigger validation to make it invalid
+    await result.form.validate()
+    expect(result.canSubmit()).toBe(false)
+
+    // Fix value
+    result.form.fields.email.setValue('test@test.com')
+    await result.form.validate()
+    expect(result.canSubmit()).toBe(true)
+    unmount()
+  })
+
+  it('tracks errors in summary', async () => {
+    const { result, unmount } = mountWith(() => {
+      const form = useForm({
+        initialValues: { email: '', name: '' },
+        validators: {
+          email: (v) => (!v ? 'Email required' : undefined),
+          name: (v) => (!v ? 'Name required' : undefined),
+        },
+        onSubmit: () => {},
+      })
+      const state = useFormState(form)
+      return { form, state }
+    })
+
+    await result.form.validate()
+    const s = result.state()
+    expect(s.errors).toEqual({ email: 'Email required', name: 'Name required' })
+    expect(s.isValid).toBe(false)
+    unmount()
+  })
+})
+
+// ─── FormProvider / useFormContext ────────────────────────────────────────────
+
+describe('FormProvider / useFormContext', () => {
+  it('provides form through context', () => {
+    let contextForm: FormState<{ email: string }> | undefined
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+
+    const unmount = mount(
+      h(() => {
+        const form = useForm({
+          initialValues: { email: 'context@test.com' },
+          onSubmit: () => {},
+        })
+        return h(FormProvider as any, { form }, () =>
+          h(() => {
+            contextForm = useFormContext<{ email: string }>()
+            return null
+          }, null),
+        )
+      }, null),
+      el,
+    )
+
+    expect(contextForm).toBeDefined()
+    expect(contextForm!.fields.email.value()).toBe('context@test.com')
+    unmount()
+    el.remove()
+  })
+
+  it('throws when useFormContext is called outside FormProvider', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+
+    let error: Error | undefined
+    const unmount = mount(
+      h(() => {
+        try {
+          useFormContext()
+        } catch (e) {
+          error = e as Error
+        }
+        return null
+      }, null),
+      el,
+    )
+
+    expect(error).toBeDefined()
+    expect(error!.message).toContain('useFormContext')
+    expect(error!.message).toContain('FormProvider')
+    unmount()
+    el.remove()
   })
 })

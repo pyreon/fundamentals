@@ -1,13 +1,15 @@
 # Pyreon Fundamentals — Ecosystem Libraries
 
 ## Overview
+
 Ecosystem packages for the Pyreon UI framework. Forms, state management, i18n, TanStack integrations.
 All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 
 ## Package Overview
+
 | Package | Description |
 |---|---|
-| `@pyreon/form` | Signal-based form management — fields, validation, submission, arrays |
+| `@pyreon/form` | Signal-based form management — fields, validation, submission, arrays, context |
 | `@pyreon/validation` | Schema adapters for forms (Zod, Valibot, ArkType) |
 | `@pyreon/query` | Pyreon adapter for TanStack Query |
 | `@pyreon/table` | Pyreon adapter for TanStack Table |
@@ -17,18 +19,22 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/i18n` | Reactive i18n with async namespace loading, plurals, interpolation |
 
 ## Ecosystem Context
+
 This repo depends on the core Pyreon framework at `../pyreon` (linked via `overrides` in root `package.json`):
+
 - `@pyreon/reactivity` — signals, computed, effect, batch
 - `@pyreon/core` — h(), VNode, Fragment, lifecycle, context
 
 The meta-framework at `../zero` (Pyreon Zero) consumes packages from both repos.
 
 ## Workspace Resolution
+
 Each package exports `"bun": "./src/index.ts"` so no build step needed in dev. Root tsconfig has `customConditions: ["bun"]`.
 
 ## Monorepo Conventions
 
 ### Package Structure
+
 ```
 packages/[name]/
   src/
@@ -41,92 +47,102 @@ packages/[name]/
 ```
 
 ### package.json Pattern
+
 ```json
 {
   "name": "@pyreon/[name]",
   "version": "0.0.1",
   "type": "module",
-  "main": "./lib/index.js",
-  "module": "./lib/index.js",
-  "types": "./lib/types/index.d.ts",
   "exports": {
-    ".": {
-      "bun": "./src/index.ts",
-      "import": "./lib/index.js",
-      "types": "./lib/types/index.d.ts"
-    }
+    ".": { "bun": "./src/index.ts", "import": "./lib/index.js", "types": "./lib/types/index.d.ts" }
   },
   "scripts": {
     "build": "vl_rolldown_build",
-    "dev": "vl_rolldown_build-watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   }
 }
 ```
 
-### Peer Dependencies
+### Dependencies
+
 - Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (>=0.0.1)
 - Dev dependencies use `file:` paths to `../../../pyreon/packages/[name]`
 - TanStack packages (`query`, `table`, `virtual`) have `@tanstack/*-core` as direct deps
 
-### Testing
-- Vitest 4 with `happy-dom` environment
-- Test files at `packages/[name]/src/tests/[name].test.ts`
-- Each package has its own `vitest.config.ts` using `createVitestConfig` from `@vitus-labs/tools-vitest`
+### Testing & Linting
 
-### Linting
-- Biome with `@vitus-labs/tools-lint/biome` preset
-- `noNonNullAssertion` disabled
-- Ignores: `node_modules`, `lib`, `dist`, `*.d.ts`
+- Vitest 4 with `happy-dom` environment, `createVitestConfig` from `@vitus-labs/tools-vitest`
+- Biome with `@vitus-labs/tools-lint/biome` preset, `noNonNullAssertion` disabled
 
 ## Key Technical Details
 
 ### @pyreon/store
-- `createStore(id, setup)` — Pinia-style composition stores
-- Setup function receives reactive primitives, returns public API
-- Singleton by ID with `setStoreRegistryProvider()` for SSR isolation
-- Store instance properties: `$id`, `$state`, `$patch`, `$subscribe`, `$onAction`, `$reset`, `$dispose`
-- Plugin system via `addStorePlugin(plugin)` — plugins receive each store on creation
-- `resetStore(id)` / `resetAllStores()` for testing
+
+- `defineStore(id, setup)` — Pinia-style composition stores, singleton by ID
+- Auto-classifies setup returns: signals → `$state`/`$patch`/`$reset`, functions → wrapped actions
+- `$patch(obj|fn)`, `$subscribe(cb, {immediate?})`, `$onAction(cb)` (handles sync + async), `$reset()`, `$dispose()`
+- `addStorePlugin(plugin)`, `setStoreRegistryProvider()` for SSR, `resetStore(id)` / `resetAllStores()`
 
 ### @pyreon/state-tree
-- `model({ state, actions, views })` — structured reactive models
-- `getSnapshot(model)` → typed deep snapshot (recursive `Snapshot<T>` type)
-- `applyPatch(model, patch)` / `onPatch(model, listener)` — JSON patches
-- `addMiddleware(model, fn)` — intercept actions
-- `resetHook(id)` / `resetAllHooks()` for testing singleton hooks
+
+- `model({ state, views, actions })` — structured reactive models with nested composition
+- `ModelDefinition.create(initial?)` / `.asHook(id)` — instances or singleton hooks
+- `getSnapshot(instance)` / `applySnapshot(instance, snapshot)` — typed recursive serialization
+- `onPatch(instance, listener)` / `applyPatch(instance, patch|patches)` — JSON patch record/replay
+- `addMiddleware(instance, fn)` — action interception chain
 
 ### @pyreon/form
-- `createForm({ initialValues, onSubmit, validate? })` — returns reactive form state
-- Field-level and form-level validation
-- Array fields with `push`, `remove`, `move`
-- Integration with `@pyreon/validation` for schema-based validation
+
+- `useForm({ initialValues, onSubmit, validators?, schema?, validateOn?, debounceMs? })` — reactive form state
+- `useField(form, name)` — single-field hook with `hasError`, `showError`, `register()`
+- `useFieldArray(initial?)` — dynamic array fields with stable keys, append/remove/move/swap
+- `useWatch(form, name?)` — reactive field watcher (single, multiple, or all fields)
+- `useFormState(form, selector?)` — computed form state summary (errors, dirty/touched fields)
+- `FormProvider` / `useFormContext()` — context pattern for nested components
 
 ### @pyreon/i18n
-- `createI18n({ locale, messages, loadNamespace? })` — reactive i18n instance
-- `t(key, params?)` — interpolation with `{name}` syntax
-- Pluralization, namespace lazy loading, locale switching
-- `I18nProvider` + `useI18n()` context pattern for component trees
-- `<Trans>` component for JSX interpolation with rich text in translations
-- `parseRichText(template, components)` — programmatic rich text parsing
+
+- `createI18n({ locale, messages, loader?, fallbackLocale?, pluralRules?, onMissingKey? })`
+- `t(key, values?)` — interpolation with `{{name}}`, pluralization with `_one`/`_other` suffixes
+- Namespace lazy loading with deduplication, `addMessages()` for runtime additions
+- `I18nProvider` / `useI18n()` context, `<Trans>` component for rich JSX interpolation
+
+### @pyreon/query
+
+- Full TanStack Query adapter: `useQuery`, `useMutation`, `useInfiniteQuery`, `useQueries`
+- Suspense: `useSuspenseQuery`, `useSuspenseInfiniteQuery`, `QuerySuspense` boundary
+- `useIsFetching`, `useIsMutating`, `QueryErrorResetBoundary`, `useQueryErrorResetBoundary`
+- Fine-grained signals per field (data, error, isFetching independent), reactive options via function getter
+
+### @pyreon/table
+
+- `useTable(options)` — reactive TanStack Table with signal-driven options, auto state sync
+- `flexRender(component, props)` — renders column def templates (strings, functions, VNodes)
+
+### @pyreon/virtual
+
+- `useVirtualizer(options)` — element-scoped with reactive `virtualItems`, `totalSize`, `isScrolling`
+- `useWindowVirtualizer(options)` — window-scoped variant with SSR-safe checks
 
 ### @pyreon/validation
-- Multi-export: `@pyreon/validation/zod`, `@pyreon/validation/valibot`, `@pyreon/validation/arktype`
-- Each adapter wraps schema library into `@pyreon/form`-compatible validator
 
-## Devtools Integration
+- `zodSchema()` / `zodField()` — duck-typed Zod adapter (works with v3 and v4)
+- `valibotSchema(schema, safeParseFn)` / `valibotField()` — Valibot standalone-function style
+- `arktypeSchema()` / `arktypeField()` — ArkType sync adapter
 
-Each stateful package exposes a `/devtools` subpath (`@pyreon/[name]/devtools`) with introspection APIs for tooling and debugging:
+## Devtools
 
-- `@pyreon/store/devtools` — store registry inspection, action logging, state snapshots
-- `@pyreon/state-tree/devtools` — model tree inspection, patch history, snapshot diffing
-- `@pyreon/form/devtools` — form state inspection, field status, validation tracking
-- `@pyreon/i18n/devtools` — locale state, missing key tracking, namespace loading status
+Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`) with WeakRef-based registries for introspection. Tree-shakeable — zero cost unless imported.
 
-These subpaths follow the same export pattern (`bun` / `import` / `types`) and are tree-shakeable in production.
+## CI & Release
+
+- Changesets for fixed versioning (all 8 packages share one version)
+- CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
+- Release via `changesets/action` in GitHub Actions
 
 ## Scripts
+
 ```bash
 bun run build       # Build all packages (rolldown)
 bun run test        # Test all packages (vitest)
@@ -134,6 +150,3 @@ bun run typecheck   # Type check all packages
 bun run lint        # Biome lint
 bun run format      # Biome format
 ```
-
-## Documentation
-Comprehensive docs in `/docs/` covering all 8 packages with installation, quick start, API reference, and patterns.

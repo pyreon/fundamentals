@@ -1,6 +1,6 @@
 import { computed, effect } from "@pyreon/reactivity"
 import type { Patch } from "../index"
-import { addMiddleware, applySnapshot, getSnapshot, model, onPatch, resetAllHooks, resetHook } from "../index"
+import { addMiddleware, applyPatch, applySnapshot, getSnapshot, model, onPatch, resetAllHooks, resetHook } from "../index"
 import { instanceMeta } from "../registry"
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -599,5 +599,71 @@ describe("nested models", () => {
     applySnapshot(app, { profile: { name: "Carol", bio: "new" }, title: "new" })
     expect(app.profile().name()).toBe("Carol")
     expect(app.title()).toBe("new")
+  })
+})
+
+// ─── applyPatch ──────────────────────────────────────────────────────────────
+
+describe("applyPatch", () => {
+  it("applies a single replace patch", () => {
+    const c = Counter.create({ count: 0 })
+    applyPatch(c, { op: "replace", path: "/count", value: 42 })
+    expect(c.count()).toBe(42)
+  })
+
+  it("applies an array of patches", () => {
+    const c = Counter.create({ count: 0 })
+    applyPatch(c, [
+      { op: "replace", path: "/count", value: 1 },
+      { op: "replace", path: "/count", value: 2 },
+      { op: "replace", path: "/count", value: 3 },
+    ])
+    expect(c.count()).toBe(3)
+  })
+
+  it("applies patch to nested model instance", () => {
+    const app = App.create({ profile: { name: "Alice", bio: "" }, title: "old" })
+    applyPatch(app, { op: "replace", path: "/profile/name", value: "Bob" })
+    expect(app.profile().name()).toBe("Bob")
+  })
+
+  it("roundtrips with onPatch — record and replay", () => {
+    const c = Counter.create({ count: 0 })
+    const patches: Patch[] = []
+    onPatch(c, (p) => patches.push({ ...p }))
+
+    c.inc()
+    c.inc()
+    c.add(10)
+    expect(c.count()).toBe(12)
+    expect(patches).toHaveLength(3)
+    // Verify patches contain the final values at each step
+    expect(patches[0]).toEqual({ op: "replace", path: "/count", value: 1 })
+    expect(patches[1]).toEqual({ op: "replace", path: "/count", value: 2 })
+    expect(patches[2]).toEqual({ op: "replace", path: "/count", value: 12 })
+
+    // Replay on a fresh instance
+    const c2 = Counter.create({ count: 0 })
+    applyPatch(c2, patches)
+    expect(c2.count()).toBe(12)
+  })
+
+  it("throws for non-model instance", () => {
+    expect(() => applyPatch({}, { op: "replace", path: "/x", value: 1 })).toThrow("not a model instance")
+  })
+
+  it("throws for empty path", () => {
+    const c = Counter.create({ count: 0 })
+    expect(() => applyPatch(c, { op: "replace", path: "", value: 1 })).toThrow("empty path")
+  })
+
+  it("throws for unknown state key", () => {
+    const c = Counter.create({ count: 0 })
+    expect(() => applyPatch(c, { op: "replace", path: "/nonexistent", value: 1 })).toThrow("unknown state key")
+  })
+
+  it("throws for unsupported op", () => {
+    const c = Counter.create({ count: 0 })
+    expect(() => applyPatch(c, { op: "add" as any, path: "/count", value: 1 })).toThrow('unsupported op "add"')
   })
 })

@@ -9,7 +9,7 @@ export { applySnapshot, getSnapshot } from "./snapshot"
 
 // ─── Patches ─────────────────────────────────────────────────────────────────
 
-export { onPatch } from "./patch"
+export { onPatch, applyPatch } from "./patch"
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 

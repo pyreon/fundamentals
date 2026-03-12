@@ -76,3 +76,65 @@ export function onPatch(instance: object, listener: PatchListener): () => void {
   meta.patchListeners.add(listener)
   return () => meta.patchListeners.delete(listener)
 }
+
+// ─── applyPatch ─────────────────────────────────────────────────────────────
+
+/**
+ * Apply a JSON patch (or array of patches) to a model instance.
+ * Only "replace" operations are supported (matching the patches emitted by `onPatch`).
+ *
+ * Paths use JSON pointer format: `"/count"` for top-level, `"/profile/name"` for nested.
+ * Nested model instances are resolved automatically.
+ *
+ * @example
+ * applyPatch(counter, { op: "replace", path: "/count", value: 10 })
+ *
+ * @example
+ * // Replay patches recorded from onPatch (undo/redo, time-travel)
+ * applyPatch(counter, [
+ *   { op: "replace", path: "/count", value: 1 },
+ *   { op: "replace", path: "/count", value: 2 },
+ * ])
+ */
+export function applyPatch(instance: object, patch: Patch | Patch[]): void {
+  const patches = Array.isArray(patch) ? patch : [patch]
+
+  for (const p of patches) {
+    if (p.op !== "replace") {
+      throw new Error(`[@pyreon/state-tree] applyPatch: unsupported op "${p.op}"`)
+    }
+
+    const segments = p.path.split("/").filter(Boolean)
+    if (segments.length === 0) {
+      throw new Error("[@pyreon/state-tree] applyPatch: empty path")
+    }
+
+    // Walk to the target instance for nested paths
+    let target: object = instance
+    for (let i = 0; i < segments.length - 1; i++) {
+      const meta = instanceMeta.get(target)
+      if (!meta) throw new Error(`[@pyreon/state-tree] applyPatch: not a model instance at "${segments[i]}"`)
+      const sig = (target as Record<string, Signal<unknown>>)[segments[i]!]
+      if (!sig || typeof sig.peek !== "function") {
+        throw new Error(`[@pyreon/state-tree] applyPatch: unknown state key "${segments[i]}"`)
+      }
+      const nested = sig.peek()
+      if (!nested || typeof nested !== "object" || !isModelInstance(nested)) {
+        throw new Error(`[@pyreon/state-tree] applyPatch: "${segments[i]}" is not a nested model instance`)
+      }
+      target = nested as object
+    }
+
+    const lastKey = segments[segments.length - 1]!
+    const meta = instanceMeta.get(target)
+    if (!meta) throw new Error("[@pyreon/state-tree] applyPatch: not a model instance")
+    if (!meta.stateKeys.includes(lastKey)) {
+      throw new Error(`[@pyreon/state-tree] applyPatch: unknown state key "${lastKey}"`)
+    }
+
+    const sig = (target as Record<string, Signal<unknown>>)[lastKey]
+    if (sig && typeof sig.set === "function") {
+      sig.set(p.value)
+    }
+  }
+}

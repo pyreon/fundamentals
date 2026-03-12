@@ -419,6 +419,45 @@ describe("$onAction", () => {
     store.noop()
     expect(callCount).toBe(1)
   })
+
+  test("after callback receives resolved value for async actions", async () => {
+    const useStore = defineStore("action-async", () => {
+      const fetchData = async () => {
+        await new Promise((r) => setTimeout(r, 5))
+        return "resolved-data"
+      }
+      return { fetchData }
+    })
+    const store = useStore()
+    let result: unknown = null
+    store.$onAction(({ after }) => {
+      after((r) => {
+        result = r
+      })
+    })
+    await store.fetchData()
+    expect(result).toBe("resolved-data")
+  })
+
+  test("onError callback fires for async action rejection", async () => {
+    const useStore = defineStore("action-async-error", () => {
+      const failAsync = async () => {
+        await new Promise((r) => setTimeout(r, 5))
+        throw new Error("async boom")
+      }
+      return { failAsync }
+    })
+    const store = useStore()
+    let caughtError: unknown = null
+    store.$onAction(({ onError }) => {
+      onError((err) => {
+        caughtError = err
+      })
+    })
+    await store.failAsync().catch(() => {})
+    expect(caughtError).toBeInstanceOf(Error)
+    expect((caughtError as Error).message).toBe("async boom")
+  })
 })
 
 describe("$reset", () => {

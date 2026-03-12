@@ -1,0 +1,54 @@
+import { createContext, pushContext, popContext, onUnmount, useContext } from '@pyreon/core'
+import type { VNodeChild, VNode, Props } from '@pyreon/core'
+import type { FormState } from './types'
+
+const FormContext = createContext<FormState<Record<string, unknown>> | null>(null)
+
+export interface FormProviderProps<TValues extends Record<string, unknown>> extends Props {
+  form: FormState<TValues>
+  children?: VNodeChild
+}
+
+/**
+ * Provide a form instance to the component tree so nested components
+ * can access it via `useFormContext()`.
+ *
+ * @example
+ * const form = useForm({ initialValues: { email: '' }, onSubmit: ... })
+ *
+ * <FormProvider form={form}>
+ *   <EmailField />
+ *   <SubmitButton />
+ * </FormProvider>
+ */
+export function FormProvider<TValues extends Record<string, unknown>>(
+  props: FormProviderProps<TValues>,
+): VNode {
+  const frame = new Map([[FormContext.id, props.form]])
+  pushContext(frame)
+
+  onUnmount(() => popContext())
+
+  const ch = props.children
+  return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode
+}
+
+/**
+ * Access the form instance from the nearest `FormProvider`.
+ * Must be called within a component tree wrapped by `FormProvider`.
+ *
+ * @example
+ * function EmailField() {
+ *   const form = useFormContext<{ email: string }>()
+ *   return <input {...form.register('email')} />
+ * }
+ */
+export function useFormContext<
+  TValues extends Record<string, unknown> = Record<string, unknown>,
+>(): FormState<TValues> {
+  const form = useContext(FormContext)
+  if (!form) {
+    throw new Error('[@pyreon/form] useFormContext() must be used within a <FormProvider>.')
+  }
+  return form as unknown as FormState<TValues>
+}
