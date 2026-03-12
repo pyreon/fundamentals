@@ -1,0 +1,46 @@
+{
+  "name": "@pyreon/storybook",
+  "version": "0.0.1",
+  "description": "Storybook renderer for Pyreon — mount, render, and interact with Pyreon components in Storybook",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "import": "./lib/index.js",
+      "types": "./lib/types/index.d.ts"
+    },
+    "./preset": {
+      "bun": "./src/preset.ts",
+      "import": "./lib/preset.js",
+      "types": "./lib/types/preset.d.ts"
+    },
+    "./preview": {
+      "bun": "./src/preview.ts",
+      "import": "./lib/preview.js",
+      "types": "./lib/types/preview.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vl_rolldown_build",
+    "dev": "vl_rolldown_build-watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@pyreon/core": ">=0.0.1",
+    "@pyreon/reactivity": ">=0.0.1",
+    "@pyreon/runtime-dom": ">=0.0.1",
+    "storybook": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.8.3",
+    "@pyreon/core": "file:../../../pyreon/packages/core",
+    "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity",
+    "@pyreon/runtime-dom": "file:../../../pyreon/packages/runtime-dom",
+    "storybook": "^8.6.0"
+  }
+}

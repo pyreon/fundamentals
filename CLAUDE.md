@@ -17,6 +17,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/store` | Global state management — Pinia-inspired composition stores |
 | `@pyreon/state-tree` | Structured reactive state tree — models, snapshots, patches, middleware |
 | `@pyreon/i18n` | Reactive i18n with async namespace loading, plurals, interpolation |
+| `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
 
@@ -131,13 +132,22 @@ packages/[name]/
 - `valibotSchema(schema, safeParseFn)` / `valibotField()` — Valibot standalone-function style
 - `arktypeSchema()` / `arktypeField()` — ArkType sync adapter
 
+### @pyreon/storybook
+
+- `renderToCanvas(context, canvasElement)` — core renderer: mounts VNode, cleans up previous, shows errors
+- `defaultRender(component, args)` — default `h(component, args)` when no custom render provided
+- `Meta<TComponent>` / `StoryObj<TMeta>` — typed story definitions with args inference
+- `DecoratorFn<TArgs>` — story decorators wrapping via `(storyFn, context) => VNodeChild`
+- Preset: `framework: "@pyreon/storybook"` in `.storybook/main.ts`
+- Re-exports `h`, `Fragment`, `signal`, `computed`, `effect`, `mount` for story convenience
+
 ## Devtools
 
 Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`) with WeakRef-based registries for introspection. Tree-shakeable — zero cost unless imported.
 
 ## CI & Release
 
-- Changesets for fixed versioning (all 8 packages share one version)
+- Changesets for fixed versioning (all 9 packages share one version)
 - CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
 - Release via `changesets/action` in GitHub Actions
 
