@@ -1,11 +1,12 @@
-name: Release
+name: CI
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [main]
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -57,32 +58,3 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun pm audit --level=high || true
-
-  release:
-    name: Version & Publish
-    needs: [lint, typecheck, test, audit]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      pull-requests: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: oven-sh/setup-bun@735343b667d3e6a283e209bbd4f38be3bb3ef5eb # v2.0.2
-        with:
-          bun-version: latest
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-
-      - name: Create Release PR or Publish
-        id: changesets
-        uses: changesets/action@c8bada60c408975afd1a20b3db81d6eee6789308 # v1.4.9
-        with:
-          version: bun run version-packages
-          publish: bun run release
-          title: "chore: version packages"
-          commit: "chore: version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
