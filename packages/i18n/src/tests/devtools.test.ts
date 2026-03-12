@@ -52,6 +52,24 @@ describe("i18n devtools", () => {
     expect(snapshot!.isLoading).toBe(false)
   })
 
+  test("getI18nSnapshot handles instance with non-function properties", () => {
+    // Register a plain object where properties are NOT functions
+    // This covers the false branches of typeof checks in getI18nSnapshot
+    const plainInstance = {
+      locale: "not-a-function",
+      availableLocales: 42,
+      loadedNamespaces: null,
+      isLoading: undefined,
+    }
+    registerI18n("plain", plainInstance)
+    const snapshot = getI18nSnapshot("plain")
+    expect(snapshot).toBeDefined()
+    expect(snapshot!.locale).toBeUndefined()
+    expect(snapshot!.availableLocales).toEqual([])
+    expect(snapshot!.loadedNamespaces).toEqual([])
+    expect(snapshot!.isLoading).toBe(false)
+  })
+
   test("getI18nSnapshot reflects locale change", () => {
     const i18n = createI18n({ locale: "en", messages: { en: {}, de: {} } })
     registerI18n("app", i18n)
@@ -98,5 +116,45 @@ describe("i18n devtools", () => {
     registerI18n("app", createI18n({ locale: "en" }))
     registerI18n("admin", createI18n({ locale: "en" }))
     expect(getActiveI18nInstances().sort()).toEqual(["admin", "app"])
+  })
+
+  test("getI18nInstance cleans up and returns undefined when WeakRef is dead", () => {
+    const instance = createI18n({ locale: "en" })
+    const originalWeakRef = globalThis.WeakRef
+    let mockDerefResult: object | undefined = instance
+    const MockWeakRef = class {
+      deref() { return mockDerefResult }
+    }
+    globalThis.WeakRef = MockWeakRef as any
+
+    _resetDevtools()
+    registerI18n("mock-instance", instance)
+    expect(getI18nInstance("mock-instance")).toBe(instance)
+
+    // Simulate GC
+    mockDerefResult = undefined
+    expect(getI18nInstance("mock-instance")).toBeUndefined()
+
+    globalThis.WeakRef = originalWeakRef
+  })
+
+  test("getActiveI18nInstances cleans up garbage-collected WeakRefs", () => {
+    const instance = createI18n({ locale: "en" })
+    const originalWeakRef = globalThis.WeakRef
+    let mockDerefResult: object | undefined = instance
+    const MockWeakRef = class {
+      deref() { return mockDerefResult }
+    }
+    globalThis.WeakRef = MockWeakRef as any
+
+    _resetDevtools()
+    registerI18n("gc-instance", instance)
+    expect(getActiveI18nInstances()).toEqual(["gc-instance"])
+
+    // Simulate GC
+    mockDerefResult = undefined
+    expect(getActiveI18nInstances()).toEqual([])
+
+    globalThis.WeakRef = originalWeakRef
   })
 })

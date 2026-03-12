@@ -1,5 +1,8 @@
+import { h } from '@pyreon/core'
+import { mount } from '@pyreon/runtime-dom'
 import { effect } from '@pyreon/reactivity'
 import { createI18n } from '../create-i18n'
+import { I18nProvider, useI18n } from '../context'
 import { interpolate } from '../interpolation'
 import { resolvePluralCategory } from '../pluralization'
 import { parseRichText, Trans } from '../trans'
@@ -569,6 +572,124 @@ describe('createI18n locale switching', () => {
 
     await i18n.loadNamespace('dynamic')
     expect(i18n.t('dynamic:dynamicKey')).toBe('From loader')
+  })
+})
+
+// ─── I18nProvider / useI18n context ──────────────────────────────────────────
+
+describe('I18nProvider / useI18n', () => {
+  it('provides i18n instance to child components via useI18n', () => {
+    const i18n = createI18n({
+      locale: 'en',
+      messages: { en: { hello: 'Hello World' } },
+    })
+
+    let received: ReturnType<typeof useI18n> | undefined
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(I18nProvider, { instance: i18n },
+        h(() => {
+          received = useI18n()
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    expect(received).toBe(i18n)
+    expect(received!.t('hello')).toBe('Hello World')
+    unmount()
+    el.remove()
+  })
+
+  it('renders children passed as a function', () => {
+    const i18n = createI18n({
+      locale: 'en',
+      messages: { en: { key: 'Value' } },
+    })
+
+    let received: ReturnType<typeof useI18n> | undefined
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(I18nProvider, { instance: i18n }, () => {
+        return h(() => {
+          received = useI18n()
+          return null
+        }, null)
+      }),
+      el,
+    )
+
+    expect(received).toBeDefined()
+    expect(received!.t('key')).toBe('Value')
+    unmount()
+    el.remove()
+  })
+
+  it('useI18n throws when called outside I18nProvider', () => {
+    let error: Error | undefined
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+
+    const unmount = mount(
+      h(() => {
+        try {
+          useI18n()
+        } catch (e) {
+          error = e as Error
+        }
+        return null
+      }, null),
+      el,
+    )
+
+    expect(error).toBeDefined()
+    expect(error!.message).toContain('useI18n() must be used within an <I18nProvider>')
+    unmount()
+    el.remove()
+  })
+
+  it('renders direct VNode children (not a function)', () => {
+    const i18n = createI18n({
+      locale: 'en',
+      messages: { en: { test: 'Test value' } },
+    })
+
+    let received: ReturnType<typeof useI18n> | undefined
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const unmount = mount(
+      h(I18nProvider, { instance: i18n },
+        h(() => {
+          received = useI18n()
+          return null
+        }, null),
+      ),
+      el,
+    )
+
+    expect(received).toBeDefined()
+    expect(received!.t('test')).toBe('Test value')
+    unmount()
+    el.remove()
+  })
+})
+
+// ─── Pluralization — Intl.PluralRules unavailable fallback ──────────────────
+
+describe('resolvePluralCategory fallback when Intl is unavailable', () => {
+  it('falls back to basic one/other when Intl is undefined', () => {
+    const originalIntl = globalThis.Intl
+    // @ts-ignore — temporarily remove Intl
+    globalThis.Intl = undefined
+
+    expect(resolvePluralCategory('en', 1)).toBe('one')
+    expect(resolvePluralCategory('en', 0)).toBe('other')
+    expect(resolvePluralCategory('en', 5)).toBe('other')
+
+    globalThis.Intl = originalIntl
   })
 })
 

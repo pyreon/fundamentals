@@ -1,6 +1,7 @@
 import { computed, effect } from "@pyreon/reactivity"
 import type { Patch } from "../index"
 import { addMiddleware, applySnapshot, getSnapshot, model, onPatch, resetAllHooks, resetHook } from "../index"
+import { instanceMeta } from "../registry"
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -342,6 +343,35 @@ describe("addMiddleware", () => {
   })
 })
 
+// ─── patch.ts trackedSignal coverage ─────────────────────────────────────────
+
+describe("trackedSignal extra paths", () => {
+  it("subscribe on a state signal works (trackedSignal.subscribe)", () => {
+    const c = Counter.create()
+    const calls: number[] = []
+    const unsub = c.count.subscribe(() => {
+      calls.push(c.count())
+    })
+    c.inc()
+    expect(calls).toContain(1)
+    unsub()
+    c.inc()
+    // After unsub, no more notifications
+    expect(calls).toHaveLength(1)
+  })
+
+  it("update on a state signal uses the updater function (trackedSignal.update)", () => {
+    const c = Counter.create({ count: 5 })
+    c.count.update((n: number) => n * 2)
+    expect(c.count()).toBe(10)
+  })
+
+  it("peek on a state signal reads without tracking (trackedSignal.peek)", () => {
+    const c = Counter.create({ count: 42 })
+    expect(c.count.peek()).toBe(42)
+  })
+})
+
 // ─── patch.ts snapshotValue coverage ─────────────────────────────────────────
 
 describe("patch snapshotValue", () => {
@@ -403,27 +433,66 @@ describe("patch snapshotValue", () => {
   })
 
   it("snapshotValue returns the object as-is when it has no meta (!meta branch)", () => {
-    // If a non-model object somehow passes isModelInstance (or is passed directly),
-    // the !meta branch returns the object. We test this by setting a plain object
-    // on a signal that previously held a model instance.
+    // To trigger the !meta branch in snapshotValue, we need isModelInstance to return true
+    // for an object that has no actual meta. We do this by temporarily registering a
+    // fake object in instanceMeta, making it pass isModelInstance, then deleting the meta
+    // before the snapshot is taken... Actually, we can register a fake object in instanceMeta
+    // to make isModelInstance true, then set it as a signal value.
     //
-    // We can't directly call snapshotValue, but we can verify the patch value
-    // when a non-model value is set on a signal that doesn't go through snapshotValue.
-    const M = model({
-      state: { data: "initial" as any },
+    // Simpler: register an object in instanceMeta with stateKeys pointing to missing props.
+    const Inner = model({
+      state: { x: 10 },
+    })
+
+    const Outer = model({
+      state: { child: Inner },
       actions: (self) => ({
-        setData: (v: any) => self.data.set(v),
+        replaceChild: (c: any) => self.child.set(c),
       }),
     })
 
-    const m = M.create()
+    const outer = Outer.create()
     const patches: Patch[] = []
-    onPatch(m, (p) => patches.push(p))
+    onPatch(outer, (p) => patches.push(p))
 
-    // Setting a plain object (not a model instance) — isModelInstance returns false,
-    // so snapshotValue is never called; value is emitted as-is
-    m.setData({ foo: "bar" })
-    expect(patches[0]!.value).toEqual({ foo: "bar" })
+    // Create a fake "model instance" — register in instanceMeta so isModelInstance returns true,
+    // but with stateKeys that reference properties that don't exist on the object (!sig branch)
+    const fakeInstance = {} as any
+    instanceMeta.set(fakeInstance, {
+      stateKeys: ["missing"],
+      patchListeners: new Set(),
+      middlewares: [],
+      emitPatch: () => {},
+    })
+
+    outer.replaceChild(fakeInstance)
+    // snapshotValue is called, meta exists, iterates stateKeys ["missing"],
+    // sig = fakeInstance["missing"] = undefined → !sig → continue → returns {}
+    expect(patches[0]!.value).toEqual({})
+  })
+
+  it("snapshotValue handles stateKey with nested model value recursively in patches", () => {
+    // Ensure the recursive path in snapshotValue is covered:
+    // when a stateKey's peek() returns a model instance, it recurses.
+    const Leaf = model({ state: { v: 1 } })
+    const Branch = model({
+      state: { leaf: Leaf, tag: "a" },
+    })
+    const Root = model({
+      state: { branch: Branch },
+      actions: (self) => ({
+        replaceBranch: (b: any) => self.branch.set(b),
+      }),
+    })
+
+    const root = Root.create()
+    const patches: Patch[] = []
+    onPatch(root, (p) => patches.push(p))
+
+    const newBranch = Branch.create({ leaf: { v: 99 }, tag: "b" })
+    root.replaceBranch(newBranch)
+
+    expect(patches[0]!.value).toEqual({ leaf: { v: 99 }, tag: "b" })
   })
 })
 
@@ -439,16 +508,22 @@ describe("middleware edge cases", () => {
 
   it("skips falsy middleware entries (!mw branch)", () => {
     const c = Counter.create()
-    // Add a real middleware, then corrupt the array to have a falsy entry at index 0
+    // Add a real middleware so the array is non-empty
     addMiddleware(c, (call, next) => next(call))
-    // Access internals to inject a falsy entry before the real middleware
-    const { instanceMeta } = require("../registry")
-    const meta = instanceMeta.get(c)
-    // Insert undefined at the beginning of middlewares array
-    meta.middlewares.unshift(undefined)
+    // Inject a falsy entry at the beginning of the middlewares array
+    const meta = instanceMeta.get(c)!
+    meta.middlewares.unshift(undefined as any)
     // Action should still run — the !mw guard falls through to fn(...c.args)
     c.inc()
     expect(c.count()).toBe(1)
+  })
+
+  it("double-unsub is a no-op (indexOf returns -1 branch)", () => {
+    const c = Counter.create()
+    const unsub = addMiddleware(c, (call, next) => next(call))
+    unsub()
+    // Second unsub — middleware already removed, indexOf returns -1
+    expect(() => unsub()).not.toThrow()
   })
 })
 

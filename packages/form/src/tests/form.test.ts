@@ -1194,6 +1194,135 @@ describe('dirty detection with mixed types', () => {
   })
 })
 
+// ─── validate() branch coverage ──────────────────────────────────────────────
+
+describe('validate() branch coverage', () => {
+  it('getErrors returns empty when no errors exist', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'valid', email: 'a@b.com' },
+        validators: {
+          name: (v) => (!v ? 'Required' : undefined),
+          email: (v) => (!v ? 'Required' : undefined),
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Validate with all valid values — errors() should return empty object
+    await form.validate()
+    expect(form.errors()).toEqual({})
+    unmount()
+  })
+
+  it('stale async field-level validation on blur is discarded', async () => {
+    let resolvers: Array<(v: string | undefined) => void> = []
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (_v) => {
+            return new Promise<string | undefined>((resolve) => {
+              resolvers.push(resolve)
+            })
+          },
+        },
+        onSubmit: () => {},
+        validateOn: 'blur',
+      }),
+    )
+
+    // Trigger first blur validation
+    form.fields.name.setTouched()
+    // Trigger second blur validation (bumps version, makes first stale)
+    form.fields.name.setTouched()
+
+    // Resolve the first (stale) result
+    resolvers[0]!('Stale error from blur')
+    await new Promise((r) => setTimeout(r, 0))
+    // Error should NOT be set since it's stale
+    expect(form.fields.name.error()).toBeUndefined()
+
+    // Resolve the second (current) result
+    resolvers[1]!(undefined)
+    await new Promise((r) => setTimeout(r, 0))
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('stale async validation results are discarded during validate()', async () => {
+    let resolvers: Array<(v: string | undefined) => void> = []
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: (_v) => {
+            return new Promise<string | undefined>((resolve) => {
+              resolvers.push(resolve)
+            })
+          },
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    // Start first validation
+    const firstValidate = form.validate()
+    // Start second validation before first resolves — bumps version
+    const secondValidate = form.validate()
+
+    // Resolve the first (stale) validation — should be discarded
+    resolvers[0]!('Stale error')
+    // Resolve the second (current) validation
+    resolvers[1]!(undefined)
+
+    await Promise.all([firstValidate, secondValidate])
+
+    // The stale error should NOT have been applied
+    expect(form.fields.name.error()).toBeUndefined()
+    unmount()
+  })
+
+  it('schema validator with keys having undefined value does not block submit', async () => {
+    let submitted = false
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice', email: 'a@b.com' },
+        schema: (_values) => {
+          // Return an object where some keys have undefined values
+          return { name: undefined, email: undefined } as any
+        },
+        onSubmit: () => {
+          submitted = true
+        },
+      }),
+    )
+
+    await form.handleSubmit()
+    // Schema returned keys but all with undefined values — should pass
+    expect(submitted).toBe(true)
+    unmount()
+  })
+
+  it('fields without validators return undefined in validate()', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice', noValidator: 'test' },
+        validators: {
+          name: (v) => (!v ? 'Required' : undefined),
+          // noValidator field has no validator
+        },
+        onSubmit: () => {},
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(true)
+    expect(form.fields.noValidator.error()).toBeUndefined()
+    unmount()
+  })
+})
+
 // ─── Edge case: debounceMs + validateOn: 'change' ───────────────────────────
 
 describe('debounceMs with validateOn change', () => {
