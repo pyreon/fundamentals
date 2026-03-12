@@ -48,8 +48,8 @@
     "@pyreon/form": "file:../form",
     "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity",
     "@pyreon/runtime-dom": "file:../../../pyreon/packages/runtime-dom",
-    "zod": "^3.24.0",
-    "valibot": "^1.0.0",
-    "arktype": "^2.1.0"
+    "zod": "^4.3.6",
+    "valibot": "^1.2.0",
+    "arktype": "^2.2.0"
   }
 }

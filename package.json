@@ -19,7 +19,7 @@
     "@vitus-labs/tools-typescript": "latest",
     "@vitus-labs/tools-vitest": "latest",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "@pyreon/reactivity": "file:../pyreon/packages/reactivity",

@@ -1,4 +1,4 @@
-{
+    {
   "name": "@pyreon/query",
   "version": "0.0.1",
   "description": "Pyreon adapter for TanStack Query",
