@@ -599,4 +599,25 @@ describe('useWindowVirtualizer', () => {
     expect(virt.virtualItems()).toBeDefined()
     unmount()
   })
+
+  it('handles missing document/window gracefully', () => {
+    const origDoc = globalThis.document
+    const origWin = globalThis.window
+    try {
+      // @ts-ignore — temporarily remove globals to exercise SSR fallback branches
+      delete globalThis.document
+      // @ts-ignore
+      delete globalThis.window
+
+      const { totalSize } = useWindowVirtualizer(() => ({
+        count: 100,
+        estimateSize: () => 50,
+      }))
+
+      expect(totalSize()).toBeGreaterThanOrEqual(0)
+    } finally {
+      globalThis.document = origDoc
+      globalThis.window = origWin
+    }
+  })
 })

@@ -1,4 +1,15 @@
-import { computed, defineStore, resetAllStores, resetStore, setStoreRegistryProvider, signal } from "../index"
+import {
+  type MutationInfo,
+  type OnActionCallback,
+  type SubscribeCallback,
+  addStorePlugin,
+  computed,
+  defineStore,
+  resetAllStores,
+  resetStore,
+  setStoreRegistryProvider,
+  signal,
+} from "../index"
 
 afterEach(() => resetAllStores())
 
@@ -157,5 +168,379 @@ describe("setStoreRegistryProvider", () => {
 
     resetAllStores()
     expect(custom.size).toBe(0)
+  })
+})
+
+// ─── Enhanced Store API Tests ────────────────────────────────────────────────
+
+describe("$id", () => {
+  test("exposes the store id", () => {
+    const useStore = defineStore("my-store", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    expect(store.$id).toBe("my-store")
+  })
+})
+
+describe("$state", () => {
+  test("returns a plain snapshot of all signal values", () => {
+    const useStore = defineStore("state-test", () => ({
+      count: signal(10),
+      name: signal("Alice"),
+      double: computed(() => 20),
+      greet: () => "hello",
+    }))
+    const store = useStore()
+    expect(store.$state).toEqual({ count: 10, name: "Alice" })
+  })
+
+  test("reflects current values after mutation", () => {
+    const useStore = defineStore("state-mut", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    store.count.set(42)
+    expect(store.$state).toEqual({ count: 42 })
+  })
+})
+
+describe("$patch", () => {
+  test("object form: batch-updates multiple signals", () => {
+    const useStore = defineStore("patch-obj", () => ({
+      count: signal(0),
+      name: signal("Bob"),
+    }))
+    const store = useStore()
+    store.$patch({ count: 5, name: "Alice" })
+    expect(store.count()).toBe(5)
+    expect(store.name()).toBe("Alice")
+  })
+
+  test("function form: receives signals for manual updates", () => {
+    const useStore = defineStore("patch-fn", () => ({
+      count: signal(0),
+      name: signal("Bob"),
+    }))
+    const store = useStore()
+    store.$patch((state) => {
+      state.count.set(10)
+      state.name.set("Charlie")
+    })
+    expect(store.count()).toBe(10)
+    expect(store.name()).toBe("Charlie")
+  })
+
+  test("emits single subscribe notification with type 'patch'", () => {
+    const useStore = defineStore("patch-notify", () => ({
+      count: signal(0),
+      name: signal("Bob"),
+    }))
+    const store = useStore()
+    const mutations: MutationInfo[] = []
+    store.$subscribe((mutation) => {
+      mutations.push(mutation)
+    })
+    store.$patch({ count: 5, name: "Alice" })
+    expect(mutations).toHaveLength(1)
+    expect(mutations[0].type).toBe("patch")
+    expect(mutations[0].events).toHaveLength(2)
+  })
+
+  test("ignores keys that are not signals", () => {
+    const useStore = defineStore("patch-ignore", () => ({
+      count: signal(0),
+      greet: () => "hello",
+    }))
+    const store = useStore()
+    // Should not throw
+    store.$patch({ count: 5, greet: "nope" as any, nonExistent: 99 })
+    expect(store.count()).toBe(5)
+  })
+})
+
+describe("$subscribe", () => {
+  test("fires on direct signal changes", () => {
+    const useStore = defineStore("sub-direct", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    const mutations: MutationInfo[] = []
+    store.$subscribe((mutation) => {
+      mutations.push(mutation)
+    })
+    store.count.set(5)
+    expect(mutations).toHaveLength(1)
+    expect(mutations[0].type).toBe("direct")
+    expect(mutations[0].storeId).toBe("sub-direct")
+    expect(mutations[0].events).toEqual([{ key: "count", oldValue: 0, newValue: 5 }])
+  })
+
+  test("provides current state snapshot", () => {
+    const useStore = defineStore("sub-state", () => ({
+      count: signal(0),
+      name: signal("X"),
+    }))
+    const store = useStore()
+    let capturedState: Record<string, unknown> | null = null
+    store.$subscribe((_mutation, state) => {
+      capturedState = state
+    })
+    store.count.set(42)
+    expect(capturedState).toEqual({ count: 42, name: "X" })
+  })
+
+  test("immediate option calls callback right away", () => {
+    const useStore = defineStore("sub-immediate", () => ({
+      count: signal(7),
+    }))
+    const store = useStore()
+    let called = false
+    let capturedState: Record<string, unknown> | null = null
+    store.$subscribe(
+      (_mutation, state) => {
+        called = true
+        capturedState = state
+      },
+      { immediate: true },
+    )
+    expect(called).toBe(true)
+    expect(capturedState).toEqual({ count: 7 })
+  })
+
+  test("unsubscribe stops notifications", () => {
+    const useStore = defineStore("sub-unsub", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    let callCount = 0
+    const unsub = store.$subscribe(() => {
+      callCount++
+    })
+    store.count.set(1)
+    expect(callCount).toBe(1)
+    unsub()
+    store.count.set(2)
+    expect(callCount).toBe(1)
+  })
+
+  test("does not fire if signal is set to same value", () => {
+    const useStore = defineStore("sub-same", () => ({
+      count: signal(5),
+    }))
+    const store = useStore()
+    let callCount = 0
+    store.$subscribe(() => {
+      callCount++
+    })
+    store.count.set(5) // same value
+    expect(callCount).toBe(0)
+  })
+})
+
+describe("$onAction", () => {
+  test("intercepts action calls with name and args", () => {
+    const useStore = defineStore("action-intercept", () => {
+      const count = signal(0)
+      const add = (n: number) => count.update((c) => c + n)
+      return { count, add }
+    })
+    const store = useStore()
+    const calls: { name: string; args: unknown[] }[] = []
+    store.$onAction(({ name, args }) => {
+      calls.push({ name, args })
+    })
+    store.add(5)
+    expect(calls).toEqual([{ name: "add", args: [5] }])
+  })
+
+  test("after callback runs on success", () => {
+    const useStore = defineStore("action-after", () => {
+      const count = signal(0)
+      const getCount = () => count()
+      return { count, getCount }
+    })
+    const store = useStore()
+    let result: unknown = null
+    store.$onAction(({ after }) => {
+      after((r) => {
+        result = r
+      })
+    })
+    store.count.set(42)
+    store.getCount()
+    expect(result).toBe(42)
+  })
+
+  test("onError callback runs when action throws", () => {
+    const useStore = defineStore("action-error", () => {
+      const fail = () => {
+        throw new Error("boom")
+      }
+      return { fail }
+    })
+    const store = useStore()
+    let caughtError: unknown = null
+    store.$onAction(({ onError }) => {
+      onError((err) => {
+        caughtError = err
+      })
+    })
+    expect(() => store.fail()).toThrow("boom")
+    expect(caughtError).toBeInstanceOf(Error)
+    expect((caughtError as Error).message).toBe("boom")
+  })
+
+  test("storeId is provided in context", () => {
+    const useStore = defineStore("action-store-id", () => ({
+      noop: () => {},
+    }))
+    const store = useStore()
+    let capturedId: string | null = null
+    store.$onAction(({ storeId }) => {
+      capturedId = storeId
+    })
+    store.noop()
+    expect(capturedId).toBe("action-store-id")
+  })
+
+  test("unsubscribe stops interception", () => {
+    const useStore = defineStore("action-unsub", () => ({
+      noop: () => {},
+    }))
+    const store = useStore()
+    let callCount = 0
+    const unsub = store.$onAction(() => {
+      callCount++
+    })
+    store.noop()
+    expect(callCount).toBe(1)
+    unsub()
+    store.noop()
+    expect(callCount).toBe(1)
+  })
+})
+
+describe("$reset", () => {
+  test("resets all signals to initial values", () => {
+    const useStore = defineStore("reset-test", () => ({
+      count: signal(0),
+      name: signal("initial"),
+    }))
+    const store = useStore()
+    store.count.set(99)
+    store.name.set("changed")
+    store.$reset()
+    expect(store.count()).toBe(0)
+    expect(store.name()).toBe("initial")
+  })
+
+  test("does not affect computed values (they recompute)", () => {
+    const useStore = defineStore("reset-computed", () => {
+      const count = signal(5)
+      const double = computed(() => count() * 2)
+      return { count, double }
+    })
+    const store = useStore()
+    store.count.set(20)
+    expect(store.double()).toBe(40)
+    store.$reset()
+    expect(store.count()).toBe(5)
+    expect(store.double()).toBe(10)
+  })
+})
+
+describe("$dispose", () => {
+  test("removes store from registry", () => {
+    const useStore = defineStore("dispose-test", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    store.$dispose()
+    // Next call should re-run setup
+    const store2 = useStore()
+    expect(store2).not.toBe(store)
+    expect(store2.count()).toBe(0)
+  })
+
+  test("clears subscribers after dispose", () => {
+    const useStore = defineStore("dispose-sub", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    let callCount = 0
+    store.$subscribe(() => {
+      callCount++
+    })
+    store.count.set(1)
+    expect(callCount).toBe(1)
+    store.$dispose()
+    // Mutating the old signal should not trigger subscriber
+    store.count.set(2)
+    expect(callCount).toBe(1)
+  })
+})
+
+describe("addStorePlugin", () => {
+  // Clean up plugins after each test by resetting module state
+  // Since there's no removePlugin API, we test in isolation
+
+  test("plugin receives store and storeId on creation", () => {
+    let receivedStoreId: string | null = null
+    let receivedStore: any = null
+
+    addStorePlugin(({ store, storeId }) => {
+      receivedStoreId = storeId
+      receivedStore = store
+    })
+
+    const useStore = defineStore("plugin-test", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+
+    expect(receivedStoreId).toBe("plugin-test")
+    expect(receivedStore).toBe(store)
+  })
+
+  test("plugin can use $subscribe", () => {
+    const changes: MutationInfo[] = []
+
+    addStorePlugin(({ store }) => {
+      store.$subscribe((mutation: MutationInfo) => {
+        changes.push(mutation)
+      })
+    })
+
+    const useStore = defineStore("plugin-subscribe", () => ({
+      count: signal(0),
+    }))
+    const store = useStore()
+    store.count.set(5)
+
+    expect(changes.length).toBeGreaterThanOrEqual(1)
+    const relevant = changes.filter((m) => m.storeId === "plugin-subscribe")
+    expect(relevant).toHaveLength(1)
+  })
+
+  test("plugin can use $onAction", () => {
+    const actionNames: string[] = []
+
+    addStorePlugin(({ store }) => {
+      store.$onAction(({ name, storeId }: { name: string; storeId: string }) => {
+        if (storeId === "plugin-action") {
+          actionNames.push(name)
+        }
+      })
+    })
+
+    const useStore = defineStore("plugin-action", () => ({
+      count: signal(0),
+      increment: () => {},
+    }))
+    const store = useStore()
+    store.increment()
+
+    expect(actionNames).toContain("increment")
   })
 })

@@ -10,28 +10,34 @@ bun add @pyreon/virtual @tanstack/virtual-core
 
 ## Quick Start
 
-```ts
+```tsx
 import { signal } from "@pyreon/reactivity"
 import { useVirtualizer } from "@pyreon/virtual"
 
-const parentRef = signal<HTMLDivElement | null>(null)
+function VirtualList() {
+  const parentRef = signal<HTMLDivElement | null>(null)
 
-const virtual = useVirtualizer(() => ({
-  count: 10000,
-  getScrollElement: () => parentRef(),
-  estimateSize: () => 35,
-}))
+  const virtual = useVirtualizer(() => ({
+    count: 10000,
+    getScrollElement: () => parentRef(),
+    estimateSize: () => 35,
+  }))
 
-// In your template:
-// <div ref={parentRef} style="height: 400px; overflow: auto">
-//   <div style={`height: ${virtual.totalSize()}px; position: relative`}>
-//     {virtual.virtualItems().map(item => (
-//       <div style={`position: absolute; top: ${item.start}px; height: ${item.size}px`}>
-//         Row {item.index}
-//       </div>
-//     ))}
-//   </div>
-// </div>
+  return (
+    <div ref={parentRef} style="height: 400px; overflow: auto">
+      <div style={`height: ${virtual.totalSize()}px; position: relative`}>
+        {virtual.virtualItems().map(item => (
+          <div
+            key={item.key}
+            style={`position: absolute; top: ${item.start}px; height: ${item.size}px; width: 100%`}
+          >
+            Row {item.index}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 ```
 
 ## API

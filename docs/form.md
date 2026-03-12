@@ -10,24 +10,33 @@ bun add @pyreon/form
 
 ## Quick Start
 
-```ts
+```tsx
 import { useForm } from "@pyreon/form"
 
-const form = useForm({
-  initialValues: { email: "", password: "" },
-  validators: {
-    email: (value) => (!value.includes("@") ? "Invalid email" : undefined),
-    password: (value) => (value.length < 8 ? "Too short" : undefined),
-  },
-  onSubmit: async (values) => {
-    await api.login(values)
-  },
-})
+function LoginForm() {
+  const form = useForm({
+    initialValues: { email: "", password: "" },
+    validators: {
+      email: (value) => (!value.includes("@") ? "Invalid email" : undefined),
+      password: (value) => (value.length < 8 ? "Too short" : undefined),
+    },
+    onSubmit: async (values) => {
+      await api.login(values)
+    },
+  })
 
-// In your template:
-// <input {...form.register("email")} />
-// <span>{form.fields.email.error()}</span>
-// <button onClick={form.handleSubmit}>Submit</button>
+  return (
+    <form onSubmit={form.handleSubmit}>
+      <input {...form.register("email")} />
+      <span>{form.fields.email.error()}</span>
+
+      <input {...form.register("password")} type="password" />
+      <span>{form.fields.password.error()}</span>
+
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
 ```
 
 ## API
@@ -199,6 +208,28 @@ Each item has a stable `key` (number) for keyed rendering and a reactive `value`
 | `ValidationError` | `string \| undefined` |
 | `FieldArrayItem<T>` | `{ key: number, value: Signal<T> }` |
 | `UseFieldArrayResult<T>` | Return type of `useFieldArray` |
+
+## Devtools
+
+Import from `@pyreon/form/devtools` for runtime inspection:
+
+```ts
+import {
+  registerForm,
+  getActiveForms,
+  getFormInstance,
+  getFormSnapshot,
+  onFormChange,
+} from "@pyreon/form/devtools"
+
+registerForm("login", form)            // Register a form instance for inspection
+getActiveForms()                        // Map of all registered form instances
+getFormInstance("login")                // Get a specific form instance
+getFormSnapshot("login")               // { values, errors, isDirty, isValid, ... }
+onFormChange("login", (snapshot) => {
+  console.log("Form changed:", snapshot)
+}) // Returns unsubscribe function
+```
 
 ## Gotchas
 

@@ -229,6 +229,28 @@ app.profile().rename("Carol")
 | `ActionCall` | `{ name: string, args: unknown[], path: string }` |
 | `MiddlewareFn` | `(call: ActionCall, next: (call: ActionCall) => unknown) => unknown` |
 
+## Devtools
+
+Import from `@pyreon/state-tree/devtools` for runtime inspection:
+
+```ts
+import {
+  registerInstance,
+  getActiveModels,
+  getModelInstance,
+  getModelSnapshot,
+  onModelChange,
+} from "@pyreon/state-tree/devtools"
+
+registerInstance("counter", counter)   // Register a model instance for inspection
+getActiveModels()                       // Map of all registered model instances
+getModelInstance("counter")             // Get a specific instance
+getModelSnapshot("counter")            // Get current snapshot of a registered model
+onModelChange("counter", (snapshot) => {
+  console.log("Model changed:", snapshot)
+}) // Returns unsubscribe function
+```
+
 ## Performance
 
 - Patch emission is lazy — no allocation when no listeners are registered

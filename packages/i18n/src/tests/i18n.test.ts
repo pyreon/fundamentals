@@ -2,6 +2,7 @@ import { effect } from '@pyreon/reactivity'
 import { createI18n } from '../create-i18n'
 import { interpolate } from '../interpolation'
 import { resolvePluralCategory } from '../pluralization'
+import { parseRichText, Trans } from '../trans'
 import type { TranslationDictionary } from '../types'
 
 // ─── interpolate ─────────────────────────────────────────────────────────────
@@ -568,5 +569,149 @@ describe('createI18n locale switching', () => {
 
     await i18n.loadNamespace('dynamic')
     expect(i18n.t('dynamic:dynamicKey')).toBe('From loader')
+  })
+})
+
+// ─── parseRichText ──────────────────────────────────────────────────────────
+
+describe('parseRichText', () => {
+  it('returns a single-element array for plain text', () => {
+    expect(parseRichText('Hello world')).toEqual(['Hello world'])
+  })
+
+  it('returns empty array for empty string', () => {
+    expect(parseRichText('')).toEqual([])
+  })
+
+  it('parses a single tag', () => {
+    expect(parseRichText('Hello <bold>world</bold>!')).toEqual([
+      'Hello ',
+      { tag: 'bold', children: 'world' },
+      '!',
+    ])
+  })
+
+  it('parses multiple tags', () => {
+    expect(
+      parseRichText('Read <terms>terms</terms> and <privacy>policy</privacy>'),
+    ).toEqual([
+      'Read ',
+      { tag: 'terms', children: 'terms' },
+      ' and ',
+      { tag: 'privacy', children: 'policy' },
+    ])
+  })
+
+  it('handles tags at the start and end', () => {
+    expect(parseRichText('<a>start</a> middle <b>end</b>')).toEqual([
+      { tag: 'a', children: 'start' },
+      ' middle ',
+      { tag: 'b', children: 'end' },
+    ])
+  })
+
+  it('handles adjacent tags with no gap', () => {
+    expect(parseRichText('<a>one</a><b>two</b>')).toEqual([
+      { tag: 'a', children: 'one' },
+      { tag: 'b', children: 'two' },
+    ])
+  })
+
+  it('leaves unmatched tags as plain text', () => {
+    expect(parseRichText('Hello <open>no close')).toEqual([
+      'Hello <open>no close',
+    ])
+  })
+})
+
+// ─── Trans ──────────────────────────────────────────────────────────────────
+
+describe('Trans', () => {
+  it('returns plain translated text when no components provided', () => {
+    const t = (key: string) => (key === 'hello' ? 'Hello World' : key)
+    const result = Trans({ t, i18nKey: 'hello' })
+    expect(result).toBe('Hello World')
+  })
+
+  it('returns plain translated text with values but no components', () => {
+    const i18n = createI18n({
+      locale: 'en',
+      messages: { en: { greeting: 'Hi {{name}}!' } },
+    })
+    const result = Trans({ t: i18n.t, i18nKey: 'greeting', values: { name: 'Alice' } })
+    expect(result).toBe('Hi Alice!')
+  })
+
+  it('returns plain string when components map is provided but text has no tags', () => {
+    const t = () => 'No tags here'
+    const result = Trans({
+      t,
+      i18nKey: 'plain',
+      components: { bold: (ch: string) => ({ type: 'strong', children: ch }) },
+    })
+    expect(result).toBe('No tags here')
+  })
+
+  it('invokes component functions for matched tags', () => {
+    const t = () => 'Click <link>here</link> please'
+    const result = Trans({
+      t,
+      i18nKey: 'action',
+      components: {
+        link: (children: string) => ({ type: 'a', props: { href: '/go' }, children }),
+      },
+    })
+
+    // Result is a Fragment VNode; check its children
+    expect(result).toBeTruthy()
+    expect(typeof result).toBe('object')
+    // The Fragment wraps: ["Click ", { type: 'a', ... }, " please"]
+    const vnode = result as any
+    expect(vnode.children.length).toBe(3)
+    expect(vnode.children[0]).toBe('Click ')
+    expect(vnode.children[1]).toEqual({
+      type: 'a',
+      props: { href: '/go' },
+      children: 'here',
+    })
+    expect(vnode.children[2]).toBe(' please')
+  })
+
+  it('preserves unmatched tags as raw text', () => {
+    const t = () => 'Hello <unknown>world</unknown>'
+    const result = Trans({
+      t,
+      i18nKey: 'test',
+      components: {}, // No matching component
+    })
+
+    const vnode = result as any
+    expect(vnode.children.length).toBe(2)
+    expect(vnode.children[0]).toBe('Hello ')
+    expect(vnode.children[1]).toBe('<unknown>world</unknown>')
+  })
+
+  it('works with values and components together', () => {
+    const i18n = createI18n({
+      locale: 'en',
+      messages: {
+        en: { items: 'You have <bold>{{count}}</bold> items' },
+      },
+    })
+
+    const result = Trans({
+      t: i18n.t,
+      i18nKey: 'items',
+      values: { count: 42 },
+      components: {
+        bold: (children: string) => ({ type: 'strong', children }),
+      },
+    })
+
+    const vnode = result as any
+    expect(vnode.children.length).toBe(3)
+    expect(vnode.children[0]).toBe('You have ')
+    expect(vnode.children[1]).toEqual({ type: 'strong', children: '42' })
+    expect(vnode.children[2]).toBe(' items')
   })
 })

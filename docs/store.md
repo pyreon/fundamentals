@@ -136,6 +136,144 @@ const useTodos = defineStore("todos", () => {
 })
 ```
 
+## Store Instance Properties
+
+Every store instance returned by the hook includes built-in properties prefixed with `$`:
+
+### `$id`
+
+The store's unique identifier string, as passed to `defineStore`.
+
+```ts
+const store = useCounter()
+store.$id // "counter"
+```
+
+### `$state`
+
+Get a snapshot of all signal values as a plain object:
+
+```ts
+const store = useCounter()
+store.$state // { count: 0 }
+```
+
+### `$patch(obj)` / `$patch(fn)`
+
+Batch-update multiple signals at once. Accepts either a partial object or a mutator function:
+
+```ts
+const store = useCounter()
+
+// Object form — merge partial state
+store.$patch({ count: 10 })
+
+// Function form — access current state
+store.$patch((state) => {
+  state.count = state.count + 5
+})
+```
+
+All writes within `$patch` are batched into a single reactive flush.
+
+### `$subscribe(callback, options?)`
+
+Watch for state changes. The callback receives a mutation descriptor and the current state:
+
+```ts
+store.$subscribe((mutation, state) => {
+  console.log(mutation.storeId) // "counter"
+  console.log(mutation.type)    // "direct" | "patch"
+  console.log(mutation.events)  // change details
+  console.log(state)            // { count: 10 }
+})
+
+// Fire immediately with current state:
+store.$subscribe(callback, { immediate: true })
+```
+
+Returns an unsubscribe function.
+
+### `$onAction(callback)`
+
+Intercept actions with `after` and `onError` hooks:
+
+```ts
+store.$onAction(({ name, args, after, onError }) => {
+  console.log(`Action "${name}" called with`, args)
+
+  after((result) => {
+    console.log(`Action "${name}" completed with`, result)
+  })
+
+  onError((error) => {
+    console.error(`Action "${name}" failed:`, error)
+  })
+})
+```
+
+Returns an unsubscribe function.
+
+### `$reset()`
+
+Reset all signals to their initial values:
+
+```ts
+store.increment()
+store.count() // 1
+store.$reset()
+store.count() // 0
+```
+
+### `$dispose()`
+
+Remove the store from the registry and clean up all subscriptions:
+
+```ts
+store.$dispose()
+// Store is removed — next hook call creates a fresh instance
+```
+
+## Plugins
+
+### `addStorePlugin(plugin)`
+
+Register a global plugin that runs on every store creation. Plugins can extend stores with additional properties or side effects:
+
+```ts
+import { addStorePlugin } from "@pyreon/store"
+
+addStorePlugin((store) => {
+  // Log every action
+  store.$onAction(({ name, args }) => {
+    console.log(`[${store.$id}] ${name}`, args)
+  })
+
+  // Extend the store with custom properties
+  return { createdAt: Date.now() }
+})
+```
+
+Plugins run once per store instance during creation.
+
+## Devtools
+
+Import from `@pyreon/store/devtools` for runtime inspection:
+
+```ts
+import {
+  getRegisteredStores,
+  getStoreById,
+  onStoreChange,
+} from "@pyreon/store/devtools"
+
+getRegisteredStores()          // Map of all active store instances
+getStoreById("counter")        // Get a specific store instance
+onStoreChange((storeId, state) => {
+  console.log(`Store "${storeId}" changed:`, state)
+}) // Returns unsubscribe function
+```
+
 ## Gotchas
 
 **Stores are singletons.** Two `defineStore` calls with the same id share the same instance — the first setup function wins.

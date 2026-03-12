@@ -11,6 +11,11 @@
       "bun": "./src/index.ts",
       "import": "./lib/index.js",
       "types": "./lib/types/index.d.ts"
+    },
+    "./devtools": {
+      "bun": "./src/devtools.ts",
+      "import": "./lib/devtools.js",
+      "types": "./lib/types/devtools.d.ts"
     }
   },
   "sideEffects": false,

@@ -86,6 +86,8 @@ packages/[name]/
 - `createStore(id, setup)` — Pinia-style composition stores
 - Setup function receives reactive primitives, returns public API
 - Singleton by ID with `setStoreRegistryProvider()` for SSR isolation
+- Store instance properties: `$id`, `$state`, `$patch`, `$subscribe`, `$onAction`, `$reset`, `$dispose`
+- Plugin system via `addStorePlugin(plugin)` — plugins receive each store on creation
 - `resetStore(id)` / `resetAllStores()` for testing
 
 ### @pyreon/state-tree
@@ -105,11 +107,24 @@ packages/[name]/
 - `createI18n({ locale, messages, loadNamespace? })` — reactive i18n instance
 - `t(key, params?)` — interpolation with `{name}` syntax
 - Pluralization, namespace lazy loading, locale switching
-- `I18nProvider` + `useI18n()` context pattern
+- `I18nProvider` + `useI18n()` context pattern for component trees
+- `<Trans>` component for JSX interpolation with rich text in translations
+- `parseRichText(template, components)` — programmatic rich text parsing
 
 ### @pyreon/validation
 - Multi-export: `@pyreon/validation/zod`, `@pyreon/validation/valibot`, `@pyreon/validation/arktype`
 - Each adapter wraps schema library into `@pyreon/form`-compatible validator
+
+## Devtools Integration
+
+Each stateful package exposes a `/devtools` subpath (`@pyreon/[name]/devtools`) with introspection APIs for tooling and debugging:
+
+- `@pyreon/store/devtools` — store registry inspection, action logging, state snapshots
+- `@pyreon/state-tree/devtools` — model tree inspection, patch history, snapshot diffing
+- `@pyreon/form/devtools` — form state inspection, field status, validation tracking
+- `@pyreon/i18n/devtools` — locale state, missing key tracking, namespace loading status
+
+These subpaths follow the same export pattern (`bun` / `import` / `types`) and are tree-shakeable in production.
 
 ## Scripts
 ```bash
