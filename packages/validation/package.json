@@ -35,7 +35,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/form": ">=0.0.1"
+    "@pyreon/form": "workspace:^"
   },
   "peerDependenciesMeta": {
     "zod": { "optional": true },
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
     "@pyreon/core": "file:../../../pyreon/packages/core",
-    "@pyreon/form": "file:../form",
+    "@pyreon/form": "workspace:*",
     "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity",
     "@pyreon/runtime-dom": "file:../../../pyreon/packages/runtime-dom",
     "zod": "^4.3.6",
