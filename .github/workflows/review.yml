@@ -1,0 +1,52 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: review-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Claude Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          DIFF=$(gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }})
+          # Write to file to avoid shell escaping issues
+          echo "$DIFF" > /tmp/pr_diff.txt
+          echo "files_changed=$(gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --name-only | wc -l | tr -d ' ')" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Review with Claude
+        if: steps.diff.outputs.files_changed != '0'
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-20250514
+          timeout_minutes: 5
+          direct_prompt: |
+            Review this pull request for the Pyreon fundamentals monorepo (8 TypeScript packages: store, state-tree, form, validation, query, table, virtual, i18n).
+
+            Focus on:
+            - Correctness: signal reactivity patterns, memory leaks, missing cleanup
+            - Security: injection, unsafe eval, prototype pollution
+            - Breaking changes: modified exports, changed type signatures
+            - Test coverage: are new code paths tested?
+            - Bundle impact: unnecessary dependencies, tree-shaking blockers
+
+            Be concise. Only comment on issues that matter. Skip style/formatting (Biome handles that).
