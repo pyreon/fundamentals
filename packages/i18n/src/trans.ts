@@ -102,7 +102,8 @@ export function Trans(props: TransProps): VNode | string {
   const children = parts.map((part) => {
     if (typeof part === "string") return part
     const component = props.components![part.tag]
-    if (!component) return `<${part.tag}>${part.children}</${part.tag}>`
+    // Unmatched tags: render children as plain text (no raw HTML markup)
+    if (!component) return part.children
     return component(part.children)
   })
 

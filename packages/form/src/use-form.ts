@@ -66,6 +66,9 @@ export function useForm<TValues extends Record<string, unknown>>(
   const isValidating = signal(false)
   const submitError = signal<unknown>(undefined)
 
+  // Track whether the form has been disposed (unmounted)
+  let disposed = false
+
   for (const [name, initial] of fieldEntries) {
     const valueSig = signal(initial) as Signal<TValues[typeof name]>
     const errorSig = signal<ValidationError>(undefined)
@@ -80,12 +83,21 @@ export function useForm<TValues extends Record<string, unknown>>(
       if (fieldValidator) {
         // Bump version to track this validation run
         const currentVersion = (validationVersions[name] = (validationVersions[name] ?? 0) + 1)
-        const result = await fieldValidator(value, getValues())
-        // Only apply result if this is still the latest validation for this field
-        if (validationVersions[name] === currentVersion) {
-          errorSig.set(result)
+        try {
+          const result = await fieldValidator(value, getValues())
+          // Only apply result if this is still the latest validation and not disposed
+          if (!disposed && validationVersions[name] === currentVersion) {
+            errorSig.set(result)
+          }
+          return result
+        } catch (err) {
+          // Validator threw — treat as error string if possible
+          if (!disposed && validationVersions[name] === currentVersion) {
+            const message = err instanceof Error ? err.message : String(err)
+            errorSig.set(message)
+          }
+          return err instanceof Error ? err.message : String(err)
         }
-        return result
       }
       errorSig.set(undefined)
       return undefined
@@ -136,8 +148,11 @@ export function useForm<TValues extends Record<string, unknown>>(
     } as FieldState<TValues[typeof name]>
   }
 
-  // Clean up debounce timers on unmount
-  onUnmount(clearAllTimers)
+  // Clean up debounce timers and cancel in-flight validators on unmount
+  onUnmount(() => {
+    disposed = true
+    clearAllTimers()
+  })
 
   const isSubmitting = signal(false)
   const submitCount = signal(0)
@@ -175,39 +190,55 @@ export function useForm<TValues extends Record<string, unknown>>(
     try {
       const allValues = getValues()
 
+      // Clear all errors before re-validating
+      for (const [name] of fieldEntries) {
+        fields[name].error.set(undefined)
+      }
+
       // Run field-level validators with all values for cross-field support
-      const results = await Promise.all(
+      await Promise.all(
         fieldEntries.map(async ([name]) => {
           const fieldValidator = validators?.[name]
           if (fieldValidator) {
             // Bump version so any in-flight debounced validation is discarded
             const currentVersion = (validationVersions[name] = (validationVersions[name] ?? 0) + 1)
-            const error = await fieldValidator(fields[name].value.peek(), allValues)
-            if (validationVersions[name] === currentVersion) {
-              fields[name].error.set(error)
+            try {
+              const error = await fieldValidator(fields[name].value.peek(), allValues)
+              if (validationVersions[name] === currentVersion) {
+                fields[name].error.set(error)
+              }
+            } catch (err) {
+              if (validationVersions[name] === currentVersion) {
+                fields[name].error.set(err instanceof Error ? err.message : String(err))
+              }
             }
-            return error
           }
-          return undefined
         }),
       )
 
-      // Run schema-level validator
+      // Run schema-level validator — only set schema errors for fields
+      // that don't already have a field-level error (field-level wins)
       if (schema) {
-        const schemaErrors = await schema(allValues)
-        for (const [name] of fieldEntries) {
-          const schemaError = schemaErrors[name]
-          if (schemaError !== undefined) {
-            fields[name].error.set(schemaError)
+        try {
+          const schemaErrors = await schema(allValues)
+          for (const [name] of fieldEntries) {
+            const schemaError = schemaErrors[name]
+            if (schemaError !== undefined && fields[name].error.peek() === undefined) {
+              fields[name].error.set(schemaError)
+            }
           }
-        }
-        // Check if schema added any errors
-        for (const key of Object.keys(schemaErrors)) {
-          if (schemaErrors[key as keyof TValues] !== undefined) return false
+        } catch (err) {
+          // Schema validator threw — set as submitError rather than losing it
+          submitError.set(err)
+          return false
         }
       }
 
-      return results.every((r) => r === undefined)
+      // Re-check: any field with an error means invalid
+      for (const [name] of fieldEntries) {
+        if (fields[name].error.peek() !== undefined) return false
+      }
+      return true
     } finally {
       isValidating.set(false)
     }
@@ -250,15 +281,17 @@ export function useForm<TValues extends Record<string, unknown>>(
   }
 
   const setFieldValue = <K extends keyof TValues>(field: K, value: TValues[K]) => {
-    if (fields[field]) {
-      fields[field].setValue(value)
+    if (!fields[field]) {
+      throw new Error(`[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`)
     }
+    fields[field].setValue(value)
   }
 
   const setFieldError = (field: keyof TValues, error: ValidationError) => {
-    if (fields[field]) {
-      fields[field].error.set(error)
+    if (!fields[field]) {
+      throw new Error(`[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`)
     }
+    fields[field].error.set(error)
   }
 
   const setErrors = (errors: Partial<Record<keyof TValues, ValidationError>>) => {
@@ -284,7 +317,7 @@ export function useForm<TValues extends Record<string, unknown>>(
 
   const register = <K extends keyof TValues & string>(
     field: K,
-    opts?: { type?: 'checkbox' },
+    opts?: { type?: 'checkbox' | 'number' },
   ): FieldRegisterProps<TValues[K]> => {
     const cacheKey = `${field}:${opts?.type ?? 'text'}`
     const cached = registerCache.get(cacheKey)
@@ -297,6 +330,9 @@ export function useForm<TValues extends Record<string, unknown>>(
         const target = e.target as HTMLInputElement
         if (opts?.type === 'checkbox') {
           fieldState.setValue(target.checked as TValues[K])
+        } else if (opts?.type === 'number') {
+          const num = target.valueAsNumber
+          fieldState.setValue((Number.isNaN(num) ? target.value : num) as TValues[K])
         } else {
           fieldState.setValue(target.value as TValues[K])
         }
@@ -336,16 +372,18 @@ export function useForm<TValues extends Record<string, unknown>>(
   }
 }
 
-/** Shallow structural equality — handles primitives, plain objects, and arrays. */
-function structuredEqual(a: unknown, b: unknown): boolean {
+/** Deep structural equality with depth limit to guard against circular references. */
+function structuredEqual(a: unknown, b: unknown, depth = 0): boolean {
   if (Object.is(a, b)) return true
   if (a == null || b == null) return false
   if (typeof a !== typeof b) return false
+  // Bail at depth 10 — treat as not equal to avoid infinite recursion
+  if (depth > 10) return false
 
   if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length !== b.length) return false
     for (let i = 0; i < a.length; i++) {
-      if (!Object.is(a[i], b[i])) return false
+      if (!structuredEqual(a[i], b[i], depth + 1)) return false
     }
     return true
   }
@@ -357,7 +395,7 @@ function structuredEqual(a: unknown, b: unknown): boolean {
     const bKeys = Object.keys(bObj)
     if (aKeys.length !== bKeys.length) return false
     for (const key of aKeys) {
-      if (!Object.is(aObj[key], bObj[key])) return false
+      if (!structuredEqual(aObj[key], bObj[key], depth + 1)) return false
     }
     return true
   }

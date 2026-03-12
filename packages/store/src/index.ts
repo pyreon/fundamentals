@@ -49,7 +49,7 @@ export interface ActionContext {
 
 export type OnActionCallback = (context: ActionContext) => void
 
-export type StorePlugin = (context: { store: any; storeId: string }) => void
+export type StorePlugin = (context: { store: Record<string, unknown> & EnhancedStoreApi; storeId: string }) => void
 
 /** The $ methods added to every store instance. */
 export interface EnhancedStoreApi {
@@ -65,14 +65,24 @@ export interface EnhancedStoreApi {
 
 // ─── Detection helpers ───────────────────────────────────────────────────────
 
-function isSignalLike(
-  v: unknown,
-): v is { (): unknown; set: (v: unknown) => void; peek: () => unknown; subscribe: (l: () => void) => () => void } {
-  return typeof v === "function" && typeof (v as any).set === "function" && typeof (v as any).peek === "function"
+/** Duck-typed signal interface for detection without importing concrete types. */
+interface SignalLike {
+  (): unknown
+  set(v: unknown): void
+  peek(): unknown
+  subscribe(l: () => void): () => void
+}
+
+function isSignalLike(v: unknown): v is SignalLike {
+  if (typeof v !== "function") return false
+  const fn = v as Record<string, unknown>
+  return typeof fn.set === "function" && typeof fn.peek === "function"
 }
 
 function isComputedLike(v: unknown): boolean {
-  return typeof v === "function" && typeof (v as any).dispose === "function" && !isSignalLike(v)
+  if (typeof v !== "function") return false
+  const fn = v as Record<string, unknown>
+  return typeof fn.dispose === "function" && !isSignalLike(v)
 }
 
 // ─── Plugin system ───────────────────────────────────────────────────────────
@@ -240,10 +250,11 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
           }
           partialOrFn(signalMap)
         } else {
-          // Object form: set values directly
+          // Object form: set values directly (skip reserved proto keys)
           for (const [key, value] of Object.entries(partialOrFn)) {
+            if (key === "__proto__" || key === "constructor" || key === "prototype") continue
             if (signalKeys.includes(key)) {
-              ;(raw[key] as any).set(value)
+              ;(raw[key] as SignalLike).set(value)
             }
           }
         }
@@ -306,9 +317,13 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
       getRegistry().delete(id)
     }
 
-    // Run plugins
+    // Run plugins — errors in one plugin should not break store creation
     for (const plugin of _plugins) {
-      plugin({ store: enhanced, storeId: id })
+      try {
+        plugin({ store: enhanced, storeId: id })
+      } catch (err) {
+        console.error(`[@pyreon/store] Plugin error for store "${id}":`, err)
+      }
     }
 
     registry.set(id, enhanced)

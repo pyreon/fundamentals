@@ -48,27 +48,28 @@ export function getI18nInstance(name: string): object | undefined {
   return instance
 }
 
+/** Safely read a property that may be a signal (callable). */
+function safeRead(obj: Record<string, unknown>, key: string, fallback: unknown = undefined): unknown {
+  try {
+    const val = obj[key]
+    return typeof val === "function" ? (val as () => unknown)() : fallback
+  } catch {
+    return fallback
+  }
+}
+
 /**
  * Get a snapshot of an i18n instance's state.
  */
 export function getI18nSnapshot(name: string): Record<string, unknown> | undefined {
   const instance = getI18nInstance(name) as Record<string, unknown> | undefined
   if (!instance) return undefined
+  const ns = safeRead(instance, "loadedNamespaces", new Set())
   return {
-    locale:
-      typeof instance.locale === "function" ? (instance.locale as () => unknown)() : undefined,
-    availableLocales:
-      typeof instance.availableLocales === "function"
-        ? (instance.availableLocales as () => unknown)()
-        : [],
-    loadedNamespaces:
-      typeof instance.loadedNamespaces === "function"
-        ? [...((instance.loadedNamespaces as () => Set<string>)())]
-        : [],
-    isLoading:
-      typeof instance.isLoading === "function"
-        ? (instance.isLoading as () => unknown)()
-        : false,
+    locale: safeRead(instance, "locale"),
+    availableLocales: safeRead(instance, "availableLocales", []),
+    loadedNamespaces: ns instanceof Set ? [...ns] : [],
+    isLoading: safeRead(instance, "isLoading", false),
   }
 }
 

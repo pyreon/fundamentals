@@ -42,11 +42,11 @@ export function useQueries(
   const client = useQueryClient()
   const observer = new QueriesObserver(client, queries())
 
-  const resultSig = signal<QueryObserverResult[]>(
-    observer.getCurrentResult() as QueryObserverResult[],
-  )
+  const resultSig = signal(
+    observer.getCurrentResult() as ReadonlyArray<QueryObserverResult>,
+  ) as Signal<QueryObserverResult[]>
 
-  const unsub = observer.subscribe((results) => {
+  const unsub = observer.subscribe((results: ReadonlyArray<QueryObserverResult>) => {
     resultSig.set(results as QueryObserverResult[])
   })
 

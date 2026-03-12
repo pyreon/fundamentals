@@ -52,9 +52,13 @@ export function zodSchema<TValues extends Record<string, unknown>>(
   schema: ZodSchema<TValues>,
 ): SchemaValidateFn<TValues> {
   return async (values: TValues) => {
-    const result = await schema.safeParseAsync(values)
-    if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
-    return issuesToRecord<TValues>(zodIssuesToGeneric(result.error!.issues))
+    try {
+      const result = await schema.safeParseAsync(values)
+      if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
+      return issuesToRecord<TValues>(zodIssuesToGeneric(result.error!.issues))
+    } catch (err) {
+      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+    }
   }
 }
 
@@ -76,8 +80,12 @@ export function zodSchema<TValues extends Record<string, unknown>>(
  */
 export function zodField<T>(schema: ZodSchema<T>): ValidateFn<T> {
   return async (value: T) => {
-    const result = await schema.safeParseAsync(value)
-    if (result.success) return undefined
-    return result.error!.issues[0]?.message
+    try {
+      const result = await schema.safeParseAsync(value)
+      if (result.success) return undefined
+      return result.error!.issues[0]?.message
+    } catch (err) {
+      return err instanceof Error ? err.message : String(err)
+    }
   }
 }

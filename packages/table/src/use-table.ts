@@ -67,6 +67,7 @@ export function useTable<TData extends RowData>(
   const cleanup = effect(() => {
     const userOpts = options()
     const currentState = tableState()
+    let stateChanged = false
 
     table.setOptions((prev) => ({
       ...prev,
@@ -80,6 +81,7 @@ export function useTable<TData extends RowData>(
           ? updater(tableState.peek())
           : updater
 
+        stateChanged = true
         batch(() => {
           tableState.set(newState)
           version.update((n) => n + 1)
@@ -89,8 +91,10 @@ export function useTable<TData extends RowData>(
       },
     }))
 
-    // After updating options, bump version so consumers re-read.
-    version.update((n) => n + 1)
+    // Only bump if setOptions didn't already trigger a state change
+    if (!stateChanged) {
+      version.update((n) => n + 1)
+    }
   })
 
   // Clean up the effect when the component unmounts.

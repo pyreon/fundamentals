@@ -1136,7 +1136,7 @@ describe('debounceMs field validation', () => {
 // ─── Edge case: nonexistent field names ──────────────────────────────────────
 
 describe('useForm nonexistent field operations', () => {
-  it('setFieldValue with nonexistent field is a no-op', () => {
+  it('setFieldValue with nonexistent field throws', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { name: 'Alice' },
@@ -1144,13 +1144,12 @@ describe('useForm nonexistent field operations', () => {
       }),
     )
 
-    // Should not throw
-    form.setFieldValue('nonexistent' as any, 'value')
+    expect(() => form.setFieldValue('nonexistent' as any, 'value')).toThrow('[@pyreon/form] Field "nonexistent" does not exist')
     expect(form.fields.name.value()).toBe('Alice')
     unmount()
   })
 
-  it('setFieldError with nonexistent field is a no-op', () => {
+  it('setFieldError with nonexistent field throws', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { name: 'Alice' },
@@ -1158,7 +1157,7 @@ describe('useForm nonexistent field operations', () => {
       }),
     )
 
-    form.setFieldError('nonexistent' as any, 'error')
+    expect(() => form.setFieldError('nonexistent' as any, 'error')).toThrow('[@pyreon/form] Field "nonexistent" does not exist')
     expect(form.isValid()).toBe(true)
     unmount()
   })

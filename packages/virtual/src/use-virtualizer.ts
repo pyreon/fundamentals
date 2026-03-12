@@ -1,5 +1,5 @@
 import { onMount, onUnmount } from '@pyreon/core'
-import { signal, effect } from '@pyreon/reactivity'
+import { signal, effect, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
 import {
   Virtualizer,
@@ -71,26 +71,34 @@ export function useVirtualizer<
   const totalSize = signal(0)
   const isScrolling = signal(false)
 
+  // Store latest user options so onChange always reads the freshest reference
+  let latestUserOpts = options()
+
   const instance = new Virtualizer<TScrollElement, TItemElement>(resolvedOptions)
 
   // Track reactive options: when signals inside options() change, update the virtualizer.
   const effectCleanup = effect(() => {
-    const userOpts = options()
+    latestUserOpts = options()
     instance.setOptions({
       ...instance.options,
-      ...userOpts,
+      ...latestUserOpts,
       onChange: (inst, sync) => {
-        virtualItems.set(inst.getVirtualItems())
-        totalSize.set(inst.getTotalSize())
-        isScrolling.set(inst.isScrolling)
-        userOpts.onChange?.(inst, sync)
+        batch(() => {
+          virtualItems.set(inst.getVirtualItems())
+          totalSize.set(inst.getTotalSize())
+          isScrolling.set(inst.isScrolling)
+        })
+        // Read latest opts to avoid stale closure
+        latestUserOpts.onChange?.(inst, sync)
       },
     })
 
     // After updating options, recalculate and re-emit
     instance._willUpdate()
-    virtualItems.set(instance.getVirtualItems())
-    totalSize.set(instance.getTotalSize())
+    batch(() => {
+      virtualItems.set(instance.getVirtualItems())
+      totalSize.set(instance.getTotalSize())
+    })
   })
 
   // Lifecycle: mount observers, clean up on unmount.
@@ -98,8 +106,10 @@ export function useVirtualizer<
   onMount(() => {
     mountCleanup = instance._didMount()
     instance._willUpdate()
-    virtualItems.set(instance.getVirtualItems())
-    totalSize.set(instance.getTotalSize())
+    batch(() => {
+      virtualItems.set(instance.getVirtualItems())
+      totalSize.set(instance.getTotalSize())
+    })
     return undefined
   })
 

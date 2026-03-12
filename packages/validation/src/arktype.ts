@@ -53,9 +53,13 @@ export function arktypeSchema<TValues extends Record<string, unknown>>(
   schema: ArkTypeSchema<TValues>,
 ): SchemaValidateFn<TValues> {
   return (values: TValues) => {
-    const result = schema(values)
-    if (!isArkErrors(result)) return {} as Partial<Record<keyof TValues, ValidationError>>
-    return issuesToRecord<TValues>(arkIssuesToGeneric(result))
+    try {
+      const result = schema(values)
+      if (!isArkErrors(result)) return {} as Partial<Record<keyof TValues, ValidationError>>
+      return issuesToRecord<TValues>(arkIssuesToGeneric(result))
+    } catch (err) {
+      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+    }
   }
 }
 
@@ -76,8 +80,12 @@ export function arktypeSchema<TValues extends Record<string, unknown>>(
  */
 export function arktypeField<T>(schema: ArkTypeSchema<T>): ValidateFn<T> {
   return (value: T) => {
-    const result = schema(value)
-    if (!isArkErrors(result)) return undefined
-    return result[0]?.message
+    try {
+      const result = schema(value)
+      if (!isArkErrors(result)) return undefined
+      return result[0]?.message
+    } catch (err) {
+      return err instanceof Error ? err.message : String(err)
+    }
   }
 }

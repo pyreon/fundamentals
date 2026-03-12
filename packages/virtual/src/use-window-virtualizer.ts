@@ -1,5 +1,5 @@
 import { onMount, onUnmount } from '@pyreon/core'
-import { signal, effect } from '@pyreon/reactivity'
+import { signal, effect, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
 import {
   Virtualizer,
@@ -58,32 +58,42 @@ export function useWindowVirtualizer<TItemElement extends Element>(
     ...options(),
   }
 
+  // Store latest user options so onChange always reads the freshest reference
+  let latestUserOpts = options()
+
   const instance = new Virtualizer<Window, TItemElement>(resolvedOptions)
 
   const effectCleanup = effect(() => {
-    const userOpts = options()
+    latestUserOpts = options()
     instance.setOptions({
       ...instance.options,
-      ...userOpts,
+      ...latestUserOpts,
       onChange: (inst, sync) => {
-        virtualItems.set(inst.getVirtualItems())
-        totalSize.set(inst.getTotalSize())
-        isScrolling.set(inst.isScrolling)
-        userOpts.onChange?.(inst, sync)
+        batch(() => {
+          virtualItems.set(inst.getVirtualItems())
+          totalSize.set(inst.getTotalSize())
+          isScrolling.set(inst.isScrolling)
+        })
+        // Read latest opts to avoid stale closure
+        latestUserOpts.onChange?.(inst, sync)
       },
     })
 
     instance._willUpdate()
-    virtualItems.set(instance.getVirtualItems())
-    totalSize.set(instance.getTotalSize())
+    batch(() => {
+      virtualItems.set(instance.getVirtualItems())
+      totalSize.set(instance.getTotalSize())
+    })
   })
 
   let mountCleanup: (() => void) | undefined
   onMount(() => {
     mountCleanup = instance._didMount()
     instance._willUpdate()
-    virtualItems.set(instance.getVirtualItems())
-    totalSize.set(instance.getTotalSize())
+    batch(() => {
+      virtualItems.set(instance.getVirtualItems())
+      totalSize.set(instance.getTotalSize())
+    })
     return undefined
   })
 

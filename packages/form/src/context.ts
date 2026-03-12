@@ -50,5 +50,7 @@ export function useFormContext<
   if (!form) {
     throw new Error('[@pyreon/form] useFormContext() must be used within a <FormProvider>.')
   }
-  return form as unknown as FormState<TValues>
+  // Generic narrowing: context stores FormState<Record<string, unknown>>
+  // but callers narrow to their specific TValues at the call site.
+  return form as FormState<TValues>
 }

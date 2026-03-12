@@ -15,6 +15,14 @@ export function interpolate(
   return template.replace(INTERPOLATION_RE, (_, key: string) => {
     const trimmed = key.trim()
     const value = values[trimmed]
-    return value !== undefined ? String(value) : `{{${trimmed}}}`
+    if (value === undefined) return `{{${trimmed}}}`
+    // Safely coerce — guard against malicious toString/valueOf
+    try {
+      return typeof value === "object" && value !== null
+        ? JSON.stringify(value)
+        : `${value}`
+    } catch {
+      return `{{${trimmed}}}`
+    }
   })
 }

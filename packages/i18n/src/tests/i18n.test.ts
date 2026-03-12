@@ -798,7 +798,7 @@ describe('Trans', () => {
     expect(vnode.children[2]).toBe(' please')
   })
 
-  it('preserves unmatched tags as raw text', () => {
+  it('renders unmatched tags as plain text children (no raw HTML)', () => {
     const t = () => 'Hello <unknown>world</unknown>'
     const result = Trans({
       t,
@@ -809,7 +809,8 @@ describe('Trans', () => {
     const vnode = result as any
     expect(vnode.children.length).toBe(2)
     expect(vnode.children[0]).toBe('Hello ')
-    expect(vnode.children[1]).toBe('<unknown>world</unknown>')
+    // Unmatched tags render children as plain text, stripping markup for safety
+    expect(vnode.children[1]).toBe('world')
   })
 
   it('works with values and components together', () => {

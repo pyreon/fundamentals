@@ -63,9 +63,13 @@ export function valibotSchema<TValues extends Record<string, unknown>>(
   safeParseFn: GenericSafeParseFn,
 ): SchemaValidateFn<TValues> {
   return async (values: TValues) => {
-    const result = await safeParseFn(schema, values)
-    if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
-    return issuesToRecord<TValues>(valibotIssuesToGeneric(result.issues ?? []))
+    try {
+      const result = await safeParseFn(schema, values)
+      if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
+      return issuesToRecord<TValues>(valibotIssuesToGeneric(result.issues ?? []))
+    } catch (err) {
+      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+    }
   }
 }
 
@@ -89,8 +93,12 @@ export function valibotField<T>(
   safeParseFn: GenericSafeParseFn,
 ): ValidateFn<T> {
   return async (value: T) => {
-    const result = await safeParseFn(schema, value)
-    if (result.success) return undefined
-    return result.issues?.[0]?.message
+    try {
+      const result = await safeParseFn(schema, value)
+      if (result.success) return undefined
+      return result.issues?.[0]?.message
+    } catch (err) {
+      return err instanceof Error ? err.message : String(err)
+    }
   }
 }
