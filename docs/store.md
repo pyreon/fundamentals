@@ -1,6 +1,6 @@
 # Store
 
-`@pyreon/store` is a Pinia-inspired global state management library built on `@pyreon/reactivity` signals.
+`@pyreon/store` is a composition-style global state management library built on `@pyreon/reactivity` signals.
 
 ## Installation
 
@@ -21,9 +21,10 @@ const useCounter = defineStore("counter", () => {
 })
 
 // Anywhere in your app:
-const { count, increment } = useCounter()
-increment()
-count() // 1
+const { store, patch, subscribe } = useCounter()
+store.increment()
+store.count() // 1
+patch({ count: 10 })
 ```
 
 ## API
@@ -55,7 +56,7 @@ const useAuth = defineStore("auth", () => {
 | `id` | `string` | Unique store identifier |
 | `setup` | `() => T` | Setup function returning the store's state, computed values, and actions |
 
-**Returns:** `() => T` — a hook function. Every call returns the same singleton instance.
+**Returns:** `() => StoreApi<T>` — a hook function. Every call returns the same singleton instance.
 
 The setup function runs once (on first access). Subsequent calls return the cached instance.
 
@@ -111,8 +112,8 @@ const useUser = defineStore("user", () => {
 })
 
 const useGreeting = defineStore("greeting", () => {
-  const { name } = useUser()
-  const message = computed(() => `Hello, ${name()}!`)
+  const { store: user } = useUser()
+  const message = computed(() => `Hello, ${user.name()}!`)
   return { message }
 })
 ```
@@ -136,52 +137,64 @@ const useTodos = defineStore("todos", () => {
 })
 ```
 
-## Store Instance Properties
+## StoreApi Properties
 
-Every store instance returned by the hook includes built-in properties prefixed with `$`:
+Every store hook returns a `StoreApi<T>` with these properties:
 
-### `$id`
+### `store`
+
+The user-defined state, computed values, and actions as returned by the setup function.
+
+```ts
+const { store } = useCounter()
+store.count() // 0
+store.increment()
+```
+
+### `id`
 
 The store's unique identifier string, as passed to `defineStore`.
 
 ```ts
-const store = useCounter()
-store.$id // "counter"
+const api = useCounter()
+api.id // "counter"
 ```
 
-### `$state`
+### `state`
 
 Get a snapshot of all signal values as a plain object:
 
 ```ts
-const store = useCounter()
-store.$state // { count: 0 }
+const api = useCounter()
+api.state // { count: 0 }
 ```
 
-### `$patch(obj)` / `$patch(fn)`
+### `patch(obj)` / `patch(fn)`
 
 Batch-update multiple signals at once. Accepts either a partial object or a mutator function:
 
 ```ts
-const store = useCounter()
+const { store, patch } = useCounter()
 
 // Object form — merge partial state
-store.$patch({ count: 10 })
+patch({ count: 10 })
 
-// Function form — access current state
-store.$patch((state) => {
-  state.count = state.count + 5
+// Function form — access signal references directly
+patch((signals) => {
+  signals.count.set(signals.count.peek() + 5)
 })
 ```
 
-All writes within `$patch` are batched into a single reactive flush.
+All writes within `patch` are batched into a single reactive flush.
 
-### `$subscribe(callback, options?)`
+### `subscribe(callback, options?)`
 
 Watch for state changes. The callback receives a mutation descriptor and the current state:
 
 ```ts
-store.$subscribe((mutation, state) => {
+const { subscribe } = useCounter()
+
+subscribe((mutation, state) => {
   console.log(mutation.storeId) // "counter"
   console.log(mutation.type)    // "direct" | "patch"
   console.log(mutation.events)  // change details
@@ -189,17 +202,19 @@ store.$subscribe((mutation, state) => {
 })
 
 // Fire immediately with current state:
-store.$subscribe(callback, { immediate: true })
+subscribe(callback, { immediate: true })
 ```
 
 Returns an unsubscribe function.
 
-### `$onAction(callback)`
+### `onAction(callback)`
 
 Intercept actions with `after` and `onError` hooks:
 
 ```ts
-store.$onAction(({ name, args, after, onError }) => {
+const { onAction } = useCounter()
+
+onAction(({ name, args, after, onError }) => {
   console.log(`Action "${name}" called with`, args)
 
   after((result) => {
@@ -214,23 +229,25 @@ store.$onAction(({ name, args, after, onError }) => {
 
 Returns an unsubscribe function.
 
-### `$reset()`
+### `reset()`
 
 Reset all signals to their initial values:
 
 ```ts
+const { store, reset } = useCounter()
 store.increment()
 store.count() // 1
-store.$reset()
+reset()
 store.count() // 0
 ```
 
-### `$dispose()`
+### `dispose()`
 
 Remove the store from the registry and clean up all subscriptions:
 
 ```ts
-store.$dispose()
+const api = useCounter()
+api.dispose()
 // Store is removed — next hook call creates a fresh instance
 ```
 
@@ -238,19 +255,16 @@ store.$dispose()
 
 ### `addStorePlugin(plugin)`
 
-Register a global plugin that runs on every store creation. Plugins can extend stores with additional properties or side effects:
+Register a global plugin that runs on every store creation. Plugins receive the full `StoreApi` and can extend stores with additional properties or side effects:
 
 ```ts
 import { addStorePlugin } from "@pyreon/store"
 
-addStorePlugin((store) => {
+addStorePlugin((api) => {
   // Log every action
-  store.$onAction(({ name, args }) => {
-    console.log(`[${store.$id}] ${name}`, args)
+  api.onAction(({ name, args }) => {
+    console.log(`[${api.id}] ${name}`, args)
   })
-
-  // Extend the store with custom properties
-  return { createdAt: Date.now() }
 })
 ```
 
@@ -267,10 +281,13 @@ import {
   onStoreChange,
 } from "@pyreon/store/devtools"
 
-getRegisteredStores()          // Map of all active store instances
-getStoreById("counter")        // Get a specific store instance
-onStoreChange((storeId, state) => {
-  console.log(`Store "${storeId}" changed:`, state)
+getRegisteredStores()       // Array of all active store IDs
+const api = getStoreById("counter") // Get a specific StoreApi
+api?.state                  // Snapshot of signal values
+api?.reset()                // Reset from devtools
+
+onStoreChange(() => {
+  console.log("Stores changed:", getRegisteredStores())
 }) // Returns unsubscribe function
 ```
 
