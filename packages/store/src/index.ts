@@ -1,7 +1,7 @@
 /**
  * @pyreon/store — global state management built on @pyreon/reactivity signals.
  *
- * API (Pinia-inspired composition style):
+ * API (composition style):
  *
  *   const useCounter = defineStore("counter", () => {
  *     const count = signal(0)
@@ -11,7 +11,10 @@
  *   })
  *
  *   // Inside a component (or anywhere):
- *   const { count, increment } = useCounter()
+ *   const { store, patch, subscribe } = useCounter()
+ *   store.count()       // read state
+ *   store.increment()   // call action
+ *   patch({ count: 5 }) // batch-update
  *
  * Stores are singletons — the setup function runs once per store id.
  * Call `resetStore(id)` or `resetAllStores()` to clear the registry
@@ -49,18 +52,27 @@ export interface ActionContext {
 
 export type OnActionCallback = (context: ActionContext) => void
 
-export type StorePlugin = (context: { store: Record<string, unknown> & EnhancedStoreApi; storeId: string }) => void
+export type StorePlugin = (api: StoreApi<Record<string, unknown>>) => void
 
-/** The $ methods added to every store instance. */
-export interface EnhancedStoreApi {
-  $id: string
-  readonly $state: Record<string, unknown>
-  $patch(partialState: Record<string, unknown>): void
-  $patch(fn: (state: Record<string, any>) => void): void
-  $subscribe(callback: SubscribeCallback, options?: { immediate?: boolean }): () => void
-  $onAction(callback: OnActionCallback): () => void
-  $reset(): void
-  $dispose(): void
+/** The structured result returned by every store hook. */
+export interface StoreApi<T> {
+  /** The user-defined store state, computeds, and actions. */
+  store: T
+  /** Store identifier. */
+  id: string
+  /** Read-only snapshot of all signal values. */
+  readonly state: Record<string, unknown>
+  /** Batch-update multiple signals (object form) or direct access (function form). */
+  patch(partialState: Record<string, unknown>): void
+  patch(fn: (state: Record<string, any>) => void): void
+  /** Subscribe to state mutations. Returns an unsubscribe function. */
+  subscribe(callback: SubscribeCallback, options?: { immediate?: boolean }): () => void
+  /** Intercept action calls. Returns an unsubscribe function. */
+  onAction(callback: OnActionCallback): () => void
+  /** Reset all signals to their initial values. */
+  reset(): void
+  /** Teardown: unsubscribe all listeners and remove from registry. */
+  dispose(): void
 }
 
 // ─── Detection helpers ───────────────────────────────────────────────────────
@@ -75,13 +87,13 @@ interface SignalLike {
 
 function isSignalLike(v: unknown): v is SignalLike {
   if (typeof v !== "function") return false
-  const fn = v as Record<string, unknown>
+  const fn = v as unknown as Record<string, unknown>
   return typeof fn.set === "function" && typeof fn.peek === "function"
 }
 
 function isComputedLike(v: unknown): boolean {
   if (typeof v !== "function") return false
-  const fn = v as Record<string, unknown>
+  const fn = v as unknown as Record<string, unknown>
   return typeof fn.dispose === "function" && !isSignalLike(v)
 }
 
@@ -98,12 +110,13 @@ export function addStorePlugin(plugin: StorePlugin): void {
 
 /**
  * Define a store with a unique id and a setup function.
- * Returns a `useStore` hook that returns the singleton enhanced store state.
+ * Returns a hook that returns a `StoreApi<T>` with the user's state under `.store`
+ * and framework methods (`patch`, `subscribe`, `onAction`, `reset`, `dispose`) at the top level.
  */
-export function defineStore<T extends Record<string, unknown>>(id: string, setup: () => T): () => T & EnhancedStoreApi {
-  return function useStore(): T & EnhancedStoreApi {
+export function defineStore<T extends Record<string, unknown>>(id: string, setup: () => T): () => StoreApi<T> {
+  return function useStore(): StoreApi<T> {
     const registry = getRegistry()
-    if (registry.has(id)) return registry.get(id) as T & EnhancedStoreApi
+    if (registry.has(id)) return registry.get(id) as StoreApi<T>
 
     const raw = setup()
 
@@ -124,7 +137,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
       }
     }
 
-    // ─── $subscribe infrastructure ─────────────────────────────────────
+    // ─── subscribe infrastructure ───────────────────────────────────────
     const subscribers = new Set<SubscribeCallback>()
     let patchInProgress = false
     let patchEvents: MutationInfo["events"] = []
@@ -166,7 +179,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
       signalUnsubs.push(unsub)
     }
 
-    // ─── $onAction infrastructure ──────────────────────────────────────
+    // ─── onAction infrastructure ────────────────────────────────────────
     const actionListeners = new Set<OnActionCallback>()
 
     // Wrap actions
@@ -214,121 +227,116 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
       }
     }
 
-    // ─── Build enhanced store ──────────────────────────────────────────
-    const enhanced: Record<string, unknown> = {}
+    // ─── Build user store object ────────────────────────────────────────
+    const userStore: Record<string, unknown> = {}
 
-    // Copy properties, wrapping actions
     for (const key of Object.keys(raw)) {
       if (actionKeys.includes(key)) {
-        enhanced[key] = wrapAction(key, raw[key] as (...args: any[]) => unknown)
+        userStore[key] = wrapAction(key, raw[key] as (...args: any[]) => unknown)
       } else {
-        enhanced[key] = raw[key]
+        userStore[key] = raw[key]
       }
     }
 
-    // $id
-    enhanced.$id = id
+    // ─── Build StoreApi ─────────────────────────────────────────────────
+    const api: StoreApi<T> = {
+      store: userStore as T,
 
-    // $state getter
-    Object.defineProperty(enhanced, "$state", {
-      get: getState,
-      enumerable: false,
-      configurable: true,
-    })
+      id,
 
-    // $patch
-    enhanced.$patch = (partialOrFn: Record<string, unknown> | ((state: Record<string, any>) => void)) => {
-      patchInProgress = true
-      patchEvents = []
+      get state() {
+        return getState()
+      },
 
-      batch(() => {
-        if (typeof partialOrFn === "function") {
-          // Functional form: pass an object with the actual signals so user calls .set()
-          const signalMap: Record<string, any> = {}
-          for (const key of signalKeys) {
-            signalMap[key] = raw[key]
-          }
-          partialOrFn(signalMap)
-        } else {
-          // Object form: set values directly (skip reserved proto keys)
-          for (const [key, value] of Object.entries(partialOrFn)) {
-            if (key === "__proto__" || key === "constructor" || key === "prototype") continue
-            if (signalKeys.includes(key)) {
-              ;(raw[key] as SignalLike).set(value)
+      patch(partialOrFn: Record<string, unknown> | ((state: Record<string, any>) => void)) {
+        patchInProgress = true
+        patchEvents = []
+
+        batch(() => {
+          if (typeof partialOrFn === "function") {
+            // Functional form: pass an object with the actual signals so user calls .set()
+            const signalMap: Record<string, any> = {}
+            for (const key of signalKeys) {
+              signalMap[key] = raw[key]
+            }
+            partialOrFn(signalMap)
+          } else {
+            // Object form: set values directly (skip reserved proto keys)
+            for (const [key, value] of Object.entries(partialOrFn)) {
+              if (key === "__proto__" || key === "constructor" || key === "prototype") continue
+              if (signalKeys.includes(key)) {
+                ;(raw[key] as SignalLike).set(value)
+              }
             }
           }
+        })
+
+        patchInProgress = false
+
+        // Emit a single notification for the patch
+        if (subscribers.size > 0 && patchEvents.length > 0) {
+          const mutation: MutationInfo = {
+            storeId: id,
+            type: "patch",
+            events: patchEvents,
+          }
+          const state = getState()
+          for (const cb of subscribers) cb(mutation, state)
         }
-      })
+        patchEvents = []
+      },
 
-      patchInProgress = false
-
-      // Emit a single notification for the patch
-      if (subscribers.size > 0 && patchEvents.length > 0) {
-        const mutation: MutationInfo = {
-          storeId: id,
-          type: "patch",
-          events: patchEvents,
+      subscribe(callback: SubscribeCallback, options?: { immediate?: boolean }): () => void {
+        subscribers.add(callback)
+        if (options?.immediate) {
+          const mutation: MutationInfo = {
+            storeId: id,
+            type: "direct",
+            events: [],
+          }
+          callback(mutation, getState())
         }
-        const state = getState()
-        for (const cb of subscribers) cb(mutation, state)
-      }
-      patchEvents = []
-    }
-
-    // $subscribe
-    enhanced.$subscribe = (callback: SubscribeCallback, options?: { immediate?: boolean }): (() => void) => {
-      subscribers.add(callback)
-      if (options?.immediate) {
-        const mutation: MutationInfo = {
-          storeId: id,
-          type: "direct",
-          events: [],
+        return () => {
+          subscribers.delete(callback)
         }
-        callback(mutation, getState())
-      }
-      return () => {
-        subscribers.delete(callback)
-      }
-    }
+      },
 
-    // $onAction
-    enhanced.$onAction = (callback: OnActionCallback): (() => void) => {
-      actionListeners.add(callback)
-      return () => {
-        actionListeners.delete(callback)
-      }
-    }
-
-    // $reset
-    enhanced.$reset = () => {
-      batch(() => {
-        for (const [key, initial] of initialValues) {
-          ;(raw[key] as any).set(initial)
+      onAction(callback: OnActionCallback): () => void {
+        actionListeners.add(callback)
+        return () => {
+          actionListeners.delete(callback)
         }
-      })
-    }
+      },
 
-    // $dispose
-    enhanced.$dispose = () => {
-      for (const unsub of signalUnsubs) unsub()
-      signalUnsubs.length = 0
-      subscribers.clear()
-      actionListeners.clear()
-      getRegistry().delete(id)
+      reset() {
+        batch(() => {
+          for (const [key, initial] of initialValues) {
+            ;(raw[key] as any).set(initial)
+          }
+        })
+      },
+
+      dispose() {
+        for (const unsub of signalUnsubs) unsub()
+        signalUnsubs.length = 0
+        subscribers.clear()
+        actionListeners.clear()
+        getRegistry().delete(id)
+      },
     }
 
     // Run plugins — errors in one plugin should not break store creation
     for (const plugin of _plugins) {
       try {
-        plugin({ store: enhanced, storeId: id })
+        plugin(api as StoreApi<Record<string, unknown>>)
       } catch (err) {
         console.error(`[@pyreon/store] Plugin error for store "${id}":`, err)
       }
     }
 
-    registry.set(id, enhanced)
+    registry.set(id, api)
     _notifyChange()
-    return enhanced as T & EnhancedStoreApi
+    return api
   }
 }
 

@@ -35,8 +35,8 @@ describe("defineStore", () => {
 
     const a = useStore()
     const b = useStore()
-    a.count.set(42)
-    expect(b.count()).toBe(42)
+    a.store.count.set(42)
+    expect(b.store.count()).toBe(42)
   })
 
   test("supports computed values", () => {
@@ -46,10 +46,10 @@ describe("defineStore", () => {
       return { count, double }
     })
 
-    const { count, double } = useStore()
-    expect(double()).toBe(6)
-    count.set(5)
-    expect(double()).toBe(10)
+    const { store } = useStore()
+    expect(store.double()).toBe(6)
+    store.count.set(5)
+    expect(store.double()).toBe(10)
   })
 
   test("supports actions (plain functions)", () => {
@@ -59,20 +59,20 @@ describe("defineStore", () => {
       return { count, increment }
     })
 
-    const { count, increment } = useStore()
-    increment()
-    increment()
-    expect(count()).toBe(2)
+    const { store } = useStore()
+    store.increment()
+    store.increment()
+    expect(store.count()).toBe(2)
   })
 
   test("different ids create independent stores", () => {
     const useA = defineStore("a", () => ({ val: signal(1) }))
     const useB = defineStore("b", () => ({ val: signal(2) }))
 
-    expect(useA().val()).toBe(1)
-    expect(useB().val()).toBe(2)
-    useA().val.set(99)
-    expect(useB().val()).toBe(2)
+    expect(useA().store.val()).toBe(1)
+    expect(useB().store.val()).toBe(2)
+    useA().store.val.set(99)
+    expect(useB().store.val()).toBe(2)
   })
 
   test("same id from different defineStore calls shares state", () => {
@@ -82,7 +82,7 @@ describe("defineStore", () => {
     const a = useA()
     const b = useB()
     expect(a).toBe(b)
-    expect(a.val()).toBe("first")
+    expect(a.store.val()).toBe("first")
   })
 })
 
@@ -103,9 +103,9 @@ describe("resetStore", () => {
   test("fresh state after reset", () => {
     const useStore = defineStore("fresh", () => ({ count: signal(0) }))
 
-    useStore().count.set(99)
+    useStore().store.count.set(99)
     resetStore("fresh")
-    expect(useStore().count()).toBe(0)
+    expect(useStore().store.count()).toBe(0)
   })
 
   test("resetting non-existent id is a no-op", () => {
@@ -149,13 +149,13 @@ describe("setStoreRegistryProvider", () => {
     const useStore = defineStore("isolated", () => ({ val: signal(0) }))
 
     setStoreRegistryProvider(() => registryA)
-    useStore().val.set(10)
+    useStore().store.val.set(10)
 
     setStoreRegistryProvider(() => registryB)
-    expect(useStore().val()).toBe(0)
+    expect(useStore().store.val()).toBe(0)
 
     setStoreRegistryProvider(() => registryA)
-    expect(useStore().val()).toBe(10)
+    expect(useStore().store.val()).toBe(10)
   })
 
   test("resetAllStores clears current provider registry", () => {
@@ -171,19 +171,19 @@ describe("setStoreRegistryProvider", () => {
   })
 })
 
-// ─── Enhanced Store API Tests ────────────────────────────────────────────────
+// ─── StoreApi Tests ─────────────────────────────────────────────────────────
 
-describe("$id", () => {
+describe("id", () => {
   test("exposes the store id", () => {
     const useStore = defineStore("my-store", () => ({
       count: signal(0),
     }))
-    const store = useStore()
-    expect(store.$id).toBe("my-store")
+    const api = useStore()
+    expect(api.id).toBe("my-store")
   })
 })
 
-describe("$state", () => {
+describe("state", () => {
   test("returns a plain snapshot of all signal values", () => {
     const useStore = defineStore("state-test", () => ({
       count: signal(10),
@@ -191,30 +191,30 @@ describe("$state", () => {
       double: computed(() => 20),
       greet: () => "hello",
     }))
-    const store = useStore()
-    expect(store.$state).toEqual({ count: 10, name: "Alice" })
+    const api = useStore()
+    expect(api.state).toEqual({ count: 10, name: "Alice" })
   })
 
   test("reflects current values after mutation", () => {
     const useStore = defineStore("state-mut", () => ({
       count: signal(0),
     }))
-    const store = useStore()
-    store.count.set(42)
-    expect(store.$state).toEqual({ count: 42 })
+    const api = useStore()
+    api.store.count.set(42)
+    expect(api.state).toEqual({ count: 42 })
   })
 })
 
-describe("$patch", () => {
+describe("patch", () => {
   test("object form: batch-updates multiple signals", () => {
     const useStore = defineStore("patch-obj", () => ({
       count: signal(0),
       name: signal("Bob"),
     }))
-    const store = useStore()
-    store.$patch({ count: 5, name: "Alice" })
-    expect(store.count()).toBe(5)
-    expect(store.name()).toBe("Alice")
+    const api = useStore()
+    api.patch({ count: 5, name: "Alice" })
+    expect(api.store.count()).toBe(5)
+    expect(api.store.name()).toBe("Alice")
   })
 
   test("function form: receives signals for manual updates", () => {
@@ -222,13 +222,13 @@ describe("$patch", () => {
       count: signal(0),
       name: signal("Bob"),
     }))
-    const store = useStore()
-    store.$patch((state) => {
+    const api = useStore()
+    api.patch((state) => {
       state.count.set(10)
       state.name.set("Charlie")
     })
-    expect(store.count()).toBe(10)
-    expect(store.name()).toBe("Charlie")
+    expect(api.store.count()).toBe(10)
+    expect(api.store.name()).toBe("Charlie")
   })
 
   test("emits single subscribe notification with type 'patch'", () => {
@@ -236,12 +236,12 @@ describe("$patch", () => {
       count: signal(0),
       name: signal("Bob"),
     }))
-    const store = useStore()
+    const api = useStore()
     const mutations: MutationInfo[] = []
-    store.$subscribe((mutation) => {
+    api.subscribe((mutation) => {
       mutations.push(mutation)
     })
-    store.$patch({ count: 5, name: "Alice" })
+    api.patch({ count: 5, name: "Alice" })
     expect(mutations).toHaveLength(1)
     expect(mutations[0].type).toBe("patch")
     expect(mutations[0].events).toHaveLength(2)
@@ -252,24 +252,24 @@ describe("$patch", () => {
       count: signal(0),
       greet: () => "hello",
     }))
-    const store = useStore()
+    const api = useStore()
     // Should not throw
-    store.$patch({ count: 5, greet: "nope" as any, nonExistent: 99 })
-    expect(store.count()).toBe(5)
+    api.patch({ count: 5, greet: "nope" as any, nonExistent: 99 })
+    expect(api.store.count()).toBe(5)
   })
 })
 
-describe("$subscribe", () => {
+describe("subscribe", () => {
   test("fires on direct signal changes", () => {
     const useStore = defineStore("sub-direct", () => ({
       count: signal(0),
     }))
-    const store = useStore()
+    const api = useStore()
     const mutations: MutationInfo[] = []
-    store.$subscribe((mutation) => {
+    api.subscribe((mutation) => {
       mutations.push(mutation)
     })
-    store.count.set(5)
+    api.store.count.set(5)
     expect(mutations).toHaveLength(1)
     expect(mutations[0].type).toBe("direct")
     expect(mutations[0].storeId).toBe("sub-direct")
@@ -281,12 +281,12 @@ describe("$subscribe", () => {
       count: signal(0),
       name: signal("X"),
     }))
-    const store = useStore()
+    const api = useStore()
     let capturedState: Record<string, unknown> | null = null
-    store.$subscribe((_mutation, state) => {
+    api.subscribe((_mutation, state) => {
       capturedState = state
     })
-    store.count.set(42)
+    api.store.count.set(42)
     expect(capturedState).toEqual({ count: 42, name: "X" })
   })
 
@@ -294,10 +294,10 @@ describe("$subscribe", () => {
     const useStore = defineStore("sub-immediate", () => ({
       count: signal(7),
     }))
-    const store = useStore()
+    const api = useStore()
     let called = false
     let capturedState: Record<string, unknown> | null = null
-    store.$subscribe(
+    api.subscribe(
       (_mutation, state) => {
         called = true
         capturedState = state
@@ -312,15 +312,15 @@ describe("$subscribe", () => {
     const useStore = defineStore("sub-unsub", () => ({
       count: signal(0),
     }))
-    const store = useStore()
+    const api = useStore()
     let callCount = 0
-    const unsub = store.$subscribe(() => {
+    const unsub = api.subscribe(() => {
       callCount++
     })
-    store.count.set(1)
+    api.store.count.set(1)
     expect(callCount).toBe(1)
     unsub()
-    store.count.set(2)
+    api.store.count.set(2)
     expect(callCount).toBe(1)
   })
 
@@ -328,29 +328,29 @@ describe("$subscribe", () => {
     const useStore = defineStore("sub-same", () => ({
       count: signal(5),
     }))
-    const store = useStore()
+    const api = useStore()
     let callCount = 0
-    store.$subscribe(() => {
+    api.subscribe(() => {
       callCount++
     })
-    store.count.set(5) // same value
+    api.store.count.set(5) // same value
     expect(callCount).toBe(0)
   })
 })
 
-describe("$onAction", () => {
+describe("onAction", () => {
   test("intercepts action calls with name and args", () => {
     const useStore = defineStore("action-intercept", () => {
       const count = signal(0)
       const add = (n: number) => count.update((c) => c + n)
       return { count, add }
     })
-    const store = useStore()
+    const api = useStore()
     const calls: { name: string; args: unknown[] }[] = []
-    store.$onAction(({ name, args }) => {
+    api.onAction(({ name, args }) => {
       calls.push({ name, args })
     })
-    store.add(5)
+    api.store.add(5)
     expect(calls).toEqual([{ name: "add", args: [5] }])
   })
 
@@ -360,15 +360,15 @@ describe("$onAction", () => {
       const getCount = () => count()
       return { count, getCount }
     })
-    const store = useStore()
+    const api = useStore()
     let result: unknown = null
-    store.$onAction(({ after }) => {
+    api.onAction(({ after }) => {
       after((r) => {
         result = r
       })
     })
-    store.count.set(42)
-    store.getCount()
+    api.store.count.set(42)
+    api.store.getCount()
     expect(result).toBe(42)
   })
 
@@ -379,14 +379,14 @@ describe("$onAction", () => {
       }
       return { fail }
     })
-    const store = useStore()
+    const api = useStore()
     let caughtError: unknown = null
-    store.$onAction(({ onError }) => {
+    api.onAction(({ onError }) => {
       onError((err) => {
         caughtError = err
       })
     })
-    expect(() => store.fail()).toThrow("boom")
+    expect(() => api.store.fail()).toThrow("boom")
     expect(caughtError).toBeInstanceOf(Error)
     expect((caughtError as Error).message).toBe("boom")
   })
@@ -395,12 +395,12 @@ describe("$onAction", () => {
     const useStore = defineStore("action-store-id", () => ({
       noop: () => {},
     }))
-    const store = useStore()
+    const api = useStore()
     let capturedId: string | null = null
-    store.$onAction(({ storeId }) => {
+    api.onAction(({ storeId }) => {
       capturedId = storeId
     })
-    store.noop()
+    api.store.noop()
     expect(capturedId).toBe("action-store-id")
   })
 
@@ -408,15 +408,15 @@ describe("$onAction", () => {
     const useStore = defineStore("action-unsub", () => ({
       noop: () => {},
     }))
-    const store = useStore()
+    const api = useStore()
     let callCount = 0
-    const unsub = store.$onAction(() => {
+    const unsub = api.onAction(() => {
       callCount++
     })
-    store.noop()
+    api.store.noop()
     expect(callCount).toBe(1)
     unsub()
-    store.noop()
+    api.store.noop()
     expect(callCount).toBe(1)
   })
 
@@ -428,14 +428,14 @@ describe("$onAction", () => {
       }
       return { fetchData }
     })
-    const store = useStore()
+    const api = useStore()
     let result: unknown = null
-    store.$onAction(({ after }) => {
+    api.onAction(({ after }) => {
       after((r) => {
         result = r
       })
     })
-    await store.fetchData()
+    await api.store.fetchData()
     expect(result).toBe("resolved-data")
   })
 
@@ -447,31 +447,31 @@ describe("$onAction", () => {
       }
       return { failAsync }
     })
-    const store = useStore()
+    const api = useStore()
     let caughtError: unknown = null
-    store.$onAction(({ onError }) => {
+    api.onAction(({ onError }) => {
       onError((err) => {
         caughtError = err
       })
     })
-    await store.failAsync().catch(() => {})
+    await api.store.failAsync().catch(() => {})
     expect(caughtError).toBeInstanceOf(Error)
     expect((caughtError as Error).message).toBe("async boom")
   })
 })
 
-describe("$reset", () => {
+describe("reset", () => {
   test("resets all signals to initial values", () => {
     const useStore = defineStore("reset-test", () => ({
       count: signal(0),
       name: signal("initial"),
     }))
-    const store = useStore()
-    store.count.set(99)
-    store.name.set("changed")
-    store.$reset()
-    expect(store.count()).toBe(0)
-    expect(store.name()).toBe("initial")
+    const api = useStore()
+    api.store.count.set(99)
+    api.store.name.set("changed")
+    api.reset()
+    expect(api.store.count()).toBe(0)
+    expect(api.store.name()).toBe("initial")
   })
 
   test("does not affect computed values (they recompute)", () => {
@@ -480,73 +480,70 @@ describe("$reset", () => {
       const double = computed(() => count() * 2)
       return { count, double }
     })
-    const store = useStore()
-    store.count.set(20)
-    expect(store.double()).toBe(40)
-    store.$reset()
-    expect(store.count()).toBe(5)
-    expect(store.double()).toBe(10)
+    const api = useStore()
+    api.store.count.set(20)
+    expect(api.store.double()).toBe(40)
+    api.reset()
+    expect(api.store.count()).toBe(5)
+    expect(api.store.double()).toBe(10)
   })
 })
 
-describe("$dispose", () => {
+describe("dispose", () => {
   test("removes store from registry", () => {
     const useStore = defineStore("dispose-test", () => ({
       count: signal(0),
     }))
-    const store = useStore()
-    store.$dispose()
+    const api = useStore()
+    api.dispose()
     // Next call should re-run setup
-    const store2 = useStore()
-    expect(store2).not.toBe(store)
-    expect(store2.count()).toBe(0)
+    const api2 = useStore()
+    expect(api2).not.toBe(api)
+    expect(api2.store.count()).toBe(0)
   })
 
   test("clears subscribers after dispose", () => {
     const useStore = defineStore("dispose-sub", () => ({
       count: signal(0),
     }))
-    const store = useStore()
+    const api = useStore()
     let callCount = 0
-    store.$subscribe(() => {
+    api.subscribe(() => {
       callCount++
     })
-    store.count.set(1)
+    api.store.count.set(1)
     expect(callCount).toBe(1)
-    store.$dispose()
+    api.dispose()
     // Mutating the old signal should not trigger subscriber
-    store.count.set(2)
+    api.store.count.set(2)
     expect(callCount).toBe(1)
   })
 })
 
 describe("addStorePlugin", () => {
-  // Clean up plugins after each test by resetting module state
-  // Since there's no removePlugin API, we test in isolation
+  test("plugin receives StoreApi on creation", () => {
+    let receivedId: string | null = null
+    let receivedApi: any = null
 
-  test("plugin receives store and storeId on creation", () => {
-    let receivedStoreId: string | null = null
-    let receivedStore: any = null
-
-    addStorePlugin(({ store, storeId }) => {
-      receivedStoreId = storeId
-      receivedStore = store
+    addStorePlugin((api) => {
+      receivedId = api.id
+      receivedApi = api
     })
 
     const useStore = defineStore("plugin-test", () => ({
       count: signal(0),
     }))
-    const store = useStore()
+    const api = useStore()
 
-    expect(receivedStoreId).toBe("plugin-test")
-    expect(receivedStore).toBe(store)
+    expect(receivedId).toBe("plugin-test")
+    expect(receivedApi).toBe(api)
   })
 
-  test("plugin can use $subscribe", () => {
+  test("plugin can use subscribe", () => {
     const changes: MutationInfo[] = []
 
-    addStorePlugin(({ store }) => {
-      store.$subscribe((mutation: MutationInfo) => {
+    addStorePlugin((api) => {
+      api.subscribe((mutation: MutationInfo) => {
         changes.push(mutation)
       })
     })
@@ -554,19 +551,19 @@ describe("addStorePlugin", () => {
     const useStore = defineStore("plugin-subscribe", () => ({
       count: signal(0),
     }))
-    const store = useStore()
-    store.count.set(5)
+    const api = useStore()
+    api.store.count.set(5)
 
     expect(changes.length).toBeGreaterThanOrEqual(1)
     const relevant = changes.filter((m) => m.storeId === "plugin-subscribe")
     expect(relevant).toHaveLength(1)
   })
 
-  test("plugin can use $onAction", () => {
+  test("plugin can use onAction", () => {
     const actionNames: string[] = []
 
-    addStorePlugin(({ store }) => {
-      store.$onAction(({ name, storeId }: { name: string; storeId: string }) => {
+    addStorePlugin((api) => {
+      api.onAction(({ name, storeId }: { name: string; storeId: string }) => {
         if (storeId === "plugin-action") {
           actionNames.push(name)
         }
@@ -577,8 +574,8 @@ describe("addStorePlugin", () => {
       count: signal(0),
       increment: () => {},
     }))
-    const store = useStore()
-    store.increment()
+    const api = useStore()
+    api.store.increment()
 
     expect(actionNames).toContain("increment")
   })

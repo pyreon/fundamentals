@@ -14,7 +14,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/query` | Pyreon adapter for TanStack Query |
 | `@pyreon/table` | Pyreon adapter for TanStack Table |
 | `@pyreon/virtual` | Pyreon adapter for TanStack Virtual |
-| `@pyreon/store` | Global state management — Pinia-inspired composition stores |
+| `@pyreon/store` | Global state management — composition stores returning `StoreApi<T>` |
 | `@pyreon/state-tree` | Structured reactive state tree — models, snapshots, patches, middleware |
 | `@pyreon/i18n` | Reactive i18n with async namespace loading, plurals, interpolation |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
@@ -80,9 +80,9 @@ packages/[name]/
 
 ### @pyreon/store
 
-- `defineStore(id, setup)` — Pinia-style composition stores, singleton by ID
-- Auto-classifies setup returns: signals → `$state`/`$patch`/`$reset`, functions → wrapped actions
-- `$patch(obj|fn)`, `$subscribe(cb, {immediate?})`, `$onAction(cb)` (handles sync + async), `$reset()`, `$dispose()`
+- `defineStore(id, setup)` — composition stores, singleton by ID, returns `StoreApi<T>`
+- `StoreApi<T>`: `.store` (user state/actions), `.id`, `.state` (snapshot), `patch()`, `subscribe()`, `onAction()`, `reset()`, `dispose()`
+- Auto-classifies setup returns: signals → state tracking, functions → wrapped actions
 - `addStorePlugin(plugin)`, `setStoreRegistryProvider()` for SSR, `resetStore(id)` / `resetAllStores()`
 
 ### @pyreon/state-tree

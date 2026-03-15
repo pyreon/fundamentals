@@ -17,9 +17,9 @@ export function getRegisteredStores(): string[] {
   return [...getRegistry().keys()]
 }
 
-/** Get a store instance by ID (or undefined if not registered). */
-export function getStoreById(id: string): Record<string, unknown> | undefined {
-  return getRegistry().get(id) as Record<string, unknown> | undefined
+/** Get a store API by ID (or undefined if not registered). */
+export function getStoreById(id: string): import("./index").StoreApi<Record<string, unknown>> | undefined {
+  return getRegistry().get(id) as import("./index").StoreApi<Record<string, unknown>> | undefined
 }
 
 /** Subscribe to store registry changes (store added/removed). Returns unsubscribe. */

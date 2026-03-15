@@ -1,6 +1,6 @@
 # @pyreon/store
 
-Global reactive state management built on `@pyreon/reactivity` signals. Pinia-inspired composition API.
+Global reactive state management built on `@pyreon/reactivity` signals. Composition API returning structured `StoreApi<T>`.
 
 ## Install
 
@@ -20,11 +20,12 @@ const useCounter = defineStore("counter", () => {
   return { count, doubled, increment }
 })
 
-// Inside a component or anywhere:
-const { count, doubled, increment } = useCounter()
-count()    // 0
-increment()
-doubled()  // 2
+// Destructure what you need:
+const { store, patch, subscribe, reset, dispose } = useCounter()
+store.count()       // 0
+store.increment()
+store.doubled()     // 2
+patch({ count: 10 }) // batch-update
 ```
 
 Stores are singletons. The setup function runs once per store ID; subsequent calls return the cached instance.
@@ -33,7 +34,22 @@ Stores are singletons. The setup function runs once per store ID; subsequent cal
 
 ### `defineStore(id, setup)`
 
-Define a store with a unique string ID and a setup function that returns reactive state. Returns a `useStore()` hook.
+Define a store with a unique string ID and a setup function. Returns a hook that produces a `StoreApi<T>`:
+
+| Property | Description |
+| --- | --- |
+| `store` | The user-defined state, computed values, and actions |
+| `id` | Store identifier |
+| `state` | Read-only snapshot of all signal values |
+| `patch(obj \| fn)` | Batch-update signals (object or function form) |
+| `subscribe(cb, opts?)` | Listen to state mutations. `{ immediate: true }` fires instantly |
+| `onAction(cb)` | Intercept action calls (sync + async). Returns unsubscribe |
+| `reset()` | Reset all signals to initial values |
+| `dispose()` | Teardown: unsubscribe all, remove from registry |
+
+### `addStorePlugin(plugin)`
+
+Register a global plugin. Plugins receive the `StoreApi` when a store is created.
 
 ### `resetStore(id)`
 
