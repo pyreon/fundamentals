@@ -3,6 +3,12 @@ import type { Signal, Computed } from '@pyreon/reactivity'
 export type ValidationError = string | undefined
 
 /**
+ * A reactive value that can be read by calling it.
+ * Both `Signal<T>` and `Computed<T>` satisfy this interface.
+ */
+export type Accessor<T> = Signal<T> | Computed<T>
+
+/**
  * Field validator function. Receives the field value and all current form values
  * for cross-field validation.
  */
@@ -39,7 +45,7 @@ export interface FieldRegisterProps<T> {
   value: Signal<T>
   onInput: (e: Event) => void
   onBlur: () => void
-  checked?: Signal<boolean>
+  checked?: Accessor<boolean>
 }
 
 export interface FormState<TValues extends Record<string, unknown>> {
@@ -49,10 +55,10 @@ export interface FormState<TValues extends Record<string, unknown>> {
   isSubmitting: Signal<boolean>
   /** Whether async validation is currently running. */
   isValidating: Signal<boolean>
-  /** Whether any field has an error. */
-  isValid: Signal<boolean> | Computed<boolean>
-  /** Whether any field value differs from its initial value. */
-  isDirty: Signal<boolean> | Computed<boolean>
+  /** Whether any field has an error (computed — read-only). */
+  isValid: Accessor<boolean>
+  /** Whether any field value differs from its initial value (computed — read-only). */
+  isDirty: Accessor<boolean>
   /** Number of times the form has been submitted. */
   submitCount: Signal<number>
   /** Error thrown by onSubmit (undefined if no error). */
@@ -75,10 +81,11 @@ export interface FormState<TValues extends Record<string, unknown>> {
    * Returns props for binding an input element to a field.
    * For text/select: includes `value` signal, `onInput`, and `onBlur`.
    * For checkboxes: pass `{ type: 'checkbox' }` to also get a `checked` signal.
+   * For numbers: pass `{ type: 'number' }` to use `valueAsNumber` on input.
    */
   register: <K extends keyof TValues & string>(
     field: K,
-    options?: { type?: 'checkbox' },
+    options?: { type?: 'checkbox' | 'number' },
   ) => FieldRegisterProps<TValues[K]>
   /**
    * Submit handler — runs validation, then calls onSubmit if valid.

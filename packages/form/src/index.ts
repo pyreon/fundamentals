@@ -6,6 +6,7 @@ export { useFormState } from './use-form-state'
 export { FormProvider, useFormContext } from './context'
 
 export type {
+  Accessor,
   FieldState,
   FieldRegisterProps,
   FormState,

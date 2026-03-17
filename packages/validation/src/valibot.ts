@@ -8,7 +8,6 @@ import { issuesToRecord } from './utils'
 
 /**
  * Minimal Valibot-compatible interfaces so we don't require valibot as a hard dep.
- * These match Valibot v1's public API surface.
  */
 interface ValibotPathItem {
   key: string | number
@@ -19,20 +18,20 @@ interface ValibotIssue {
   message: string
 }
 
-interface ValibotSafeParseResult<T> {
+interface ValibotSafeParseResult {
   success: boolean
-  output?: T
+  output?: unknown
   issues?: ValibotIssue[]
 }
 
 /**
- * Generic parse function signature that accepts any schema-like first arg.
- * This matches both valibot's `safeParse` and `safeParseAsync`.
+ * Any function that takes (schema, input, ...rest) and returns a parse result.
+ * Valibot's safeParse/safeParseAsync have generic constraints on the schema
+ * parameter that can't be expressed without importing Valibot types. We accept
+ * any callable and cast internally.
  */
-type GenericSafeParseFn = (
-  schema: unknown,
-  input: unknown,
-) => ValibotSafeParseResult<unknown> | Promise<ValibotSafeParseResult<unknown>>
+// biome-ignore lint/complexity/noBannedTypes: must accept any valibot parse function
+type GenericSafeParseFn = Function
 
 function valibotIssuesToGeneric(issues: ValibotIssue[]): ValidationIssue[] {
   return issues.map((issue) => ({
@@ -40,6 +39,11 @@ function valibotIssuesToGeneric(issues: ValibotIssue[]): ValidationIssue[] {
     message: issue.message,
   }))
 }
+
+type InternalParseFn = (
+  schema: unknown,
+  input: unknown,
+) => ValibotSafeParseResult | Promise<ValibotSafeParseResult>
 
 /**
  * Create a form-level schema validator from a Valibot schema.
@@ -66,9 +70,10 @@ export function valibotSchema<TValues extends Record<string, unknown>>(
   schema: unknown,
   safeParseFn: GenericSafeParseFn,
 ): SchemaValidateFn<TValues> {
+  const parse = safeParseFn as InternalParseFn
   return async (values: TValues) => {
     try {
-      const result = await safeParseFn(schema, values)
+      const result = await parse(schema, values)
       if (result.success)
         return {} as Partial<Record<keyof TValues, ValidationError>>
       return issuesToRecord<TValues>(
@@ -101,9 +106,10 @@ export function valibotField<T>(
   schema: unknown,
   safeParseFn: GenericSafeParseFn,
 ): ValidateFn<T> {
+  const parse = safeParseFn as InternalParseFn
   return async (value: T) => {
     try {
-      const result = await safeParseFn(schema, value)
+      const result = await parse(schema, value)
       if (result.success) return undefined
       return result.issues?.[0]?.message
     } catch (err) {

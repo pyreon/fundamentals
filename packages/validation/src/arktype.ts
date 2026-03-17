@@ -8,10 +8,9 @@ import { issuesToRecord } from './utils'
 
 /**
  * Minimal ArkType-compatible interfaces so we don't require arktype as a hard dep.
- * These match ArkType v2's public API surface.
  */
 interface ArkError {
-  path: (string | number)[]
+  path: PropertyKey[]
   message: string
 }
 
@@ -19,9 +18,12 @@ interface ArkErrors extends Array<ArkError> {
   summary: string
 }
 
-interface ArkTypeSchema<T = unknown> {
-  (data: unknown): T | ArkErrors
-  allows(data: unknown): data is T
+/**
+ * Internal callable interface matching ArkType's Type.
+ * Not exposed publicly — consumers pass their ArkType schema directly.
+ */
+interface ArkTypeCallable {
+  (data: unknown): unknown
 }
 
 function isArkErrors(result: unknown): result is ArkErrors {
@@ -30,13 +32,16 @@ function isArkErrors(result: unknown): result is ArkErrors {
 
 function arkIssuesToGeneric(errors: ArkErrors): ValidationIssue[] {
   return errors.map((err) => ({
-    path: err.path.join('.'),
+    path: err.path.map(String).join('.'),
     message: err.message,
   }))
 }
 
 /**
  * Create a form-level schema validator from an ArkType schema.
+ *
+ * Accepts any callable ArkType `Type` instance. The schema is duck-typed —
+ * no ArkType import required.
  *
  * @example
  * import { type } from 'arktype'
@@ -54,7 +59,7 @@ function arkIssuesToGeneric(errors: ArkErrors): ValidationIssue[] {
  * })
  */
 export function arktypeSchema<TValues extends Record<string, unknown>>(
-  schema: ArkTypeSchema<TValues>,
+  schema: ArkTypeCallable,
 ): SchemaValidateFn<TValues> {
   return (values: TValues) => {
     try {
@@ -85,7 +90,7 @@ export function arktypeSchema<TValues extends Record<string, unknown>>(
  *   onSubmit: (values) => { ... },
  * })
  */
-export function arktypeField<T>(schema: ArkTypeSchema<T>): ValidateFn<T> {
+export function arktypeField<T>(schema: ArkTypeCallable): ValidateFn<T> {
   return (value: T) => {
     try {
       const result = schema(value)
