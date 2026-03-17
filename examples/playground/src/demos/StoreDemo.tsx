@@ -3,7 +3,6 @@ import {
   defineStore,
   signal as storeSignal,
   computed,
-  resetAllStores,
 } from '@pyreon/store'
 
 const useCounter = defineStore('playground-counter', () => {
@@ -15,7 +14,7 @@ const useCounter = defineStore('playground-counter', () => {
 })
 
 export function StoreDemo() {
-  const { store, patch, subscribe, reset, dispose } = useCounter()
+  const { store, patch, subscribe, reset } = useCounter()
   const log = signal<string[]>([])
 
   subscribe((mutation) => {

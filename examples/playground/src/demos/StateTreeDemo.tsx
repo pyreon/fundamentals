@@ -7,14 +7,6 @@ import {
 } from '@pyreon/state-tree'
 import type { Patch } from '@pyreon/state-tree'
 
-const Todo = model({
-  state: { text: '', done: false },
-  actions: (self) => ({
-    toggle: () => self.done.update((d) => !d),
-    setText: (text: string) => self.text.set(text),
-  }),
-})
-
 const TodoList = model({
   state: {
     title: 'My Todos',
