@@ -16,10 +16,10 @@ import { QueryClient, QueryClientProvider, useQuery } from "@pyreon/query"
 const queryClient = new QueryClient()
 
 function UserProfile({ id }: { id: string }) {
-  const query = useQuery({
+  const query = useQuery(() => ({
     queryKey: ["user", id],
     queryFn: () => fetch(`/api/users/${id}`).then(r => r.json()),
-  })
+  }))
 
   return (
     <div>
@@ -60,13 +60,13 @@ const queryClient = new QueryClient({
 
 ## useQuery
 
-Returns a reactive query result with signal-based properties:
+Returns a reactive query result with signal-based properties. Options are passed as a function so reactive signals can be read inside — when a signal changes, the observer updates automatically.
 
 ```tsx
-const query = useQuery({
+const query = useQuery(() => ({
   queryKey: ["todos"],
   queryFn: fetchTodos,
-})
+}))
 
 query.data()        // T | undefined
 query.isLoading()   // boolean
@@ -80,11 +80,11 @@ query.status()      // "pending" | "error" | "success"
 
 ```tsx
 function UserPosts({ userId }: { userId: () => string }) {
-  const query = useQuery({
-    queryKey: () => ["posts", userId()],
+  const query = useQuery(() => ({
+    queryKey: ["posts", userId()],
     queryFn: () => fetchPosts(userId()),
-    enabled: () => !!userId(),
-  })
+    enabled: !!userId(),
+  }))
 }
 ```
 
@@ -108,29 +108,35 @@ mutation.isPending()  // boolean signal
 
 ## useInfiniteQuery
 
+Options are passed as a function, same as `useQuery`. The result `data` signal is typed as `InfiniteData<TQueryFnData>` — containing `pages` and `pageParams` arrays.
+
 ```tsx
-const query = useInfiniteQuery({
+const query = useInfiniteQuery(() => ({
   queryKey: ["posts"],
   queryFn: ({ pageParam }) => fetchPosts({ page: pageParam }),
   initialPageParam: 1,
   getNextPageParam: (lastPage) => lastPage.nextPage,
-})
+}))
 
-query.data().pages       // all fetched pages
+query.data()?.pages      // all fetched pages (InfiniteData<TQueryFnData>)
 query.fetchNextPage()    // load next
 query.hasNextPage()      // boolean signal
+query.isFetchingNextPage()     // boolean signal
+query.isFetchingPreviousPage() // boolean signal
 ```
 
 ## Suspense
 
 ### useSuspenseQuery
 
+Like `useQuery` but `data` is typed as `Signal<TData>` (never undefined). Designed for use inside a `QuerySuspense` boundary.
+
 ```tsx
 function UserList() {
-  const query = useSuspenseQuery({
+  const query = useSuspenseQuery(() => ({
     queryKey: ["users"],
     queryFn: fetchUsers,
-  })
+  }))
 
   return (
     <ul>
@@ -138,21 +144,28 @@ function UserList() {
     </ul>
   )
 }
-
-<Suspense fallback={<Spinner />}>
-  <UserList />
-</Suspense>
 ```
 
 ### QuerySuspense
 
-Convenience wrapper combining `Suspense` and `ErrorBoundary`:
+Pyreon-native suspense boundary for queries. Shows `fallback` while any query is pending. On error, renders the `error` fallback or re-throws to the nearest `ErrorBoundary`.
 
 ```tsx
-<QuerySuspense fallback={<Spinner />}>
-  <UserList />
+const userQuery = useSuspenseQuery(() => ({
+  queryKey: ["user"],
+  queryFn: fetchUser,
+}))
+
+<QuerySuspense
+  query={userQuery}
+  fallback={<Spinner />}
+  error={(err) => <p>Failed: {String(err)}</p>}
+>
+  <UserProfile user={userQuery.data()} />
 </QuerySuspense>
 ```
+
+The `query` prop accepts a single query result or an array of them — children only render when all queries have succeeded.
 
 ## SSR Dehydration
 
@@ -180,6 +193,7 @@ hydrate(queryClient, dehydratedState)
 | `useIsFetching(filters?)` | Signal of active query count |
 | `useIsMutating(filters?)` | Signal of active mutation count |
 | `useQueryErrorResetBoundary()` | Reset error state for retry |
+| `QueryErrorResetBoundary` | Component — scopes error reset to a subtree |
 | `useSuspenseInfiniteQuery(options)` | Infinite query with Suspense |
 
 ## Gotchas

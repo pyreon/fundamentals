@@ -190,3 +190,8 @@ All adapters use minimal TypeScript interfaces that match each library's public 
 - Zod, Valibot, and ArkType are optional peer dependencies
 - Only the adapter you import is bundled
 - If a library changes its API, the adapter interface can be updated without affecting others
+
+**Duck-typed internals:**
+
+- **ArkType adapter** uses an internal `ArkTypeCallable` interface — any callable that returns either parsed data or an `ArkErrors` array.
+- **Valibot adapter** accepts `GenericSafeParseFn` (typed as `Function`) for the parse function, avoiding hard coupling to Valibot's generic constraints.

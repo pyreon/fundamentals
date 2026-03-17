@@ -131,6 +131,22 @@ onPatch(app, (patch) => {
 app.profile().rename("Bob")
 ```
 
+### `applyPatch(instance, patch)`
+
+Apply a JSON patch (or array of patches) to a model instance. Only `"replace"` operations are supported (matching the patches emitted by `onPatch`). Multiple patches are batched into a single reactive flush.
+
+```ts
+applyPatch(counter, { op: "replace", path: "/count", value: 10 })
+
+// Replay patches recorded from onPatch (undo/redo, time-travel)
+applyPatch(counter, [
+  { op: "replace", path: "/count", value: 1 },
+  { op: "replace", path: "/count", value: 2 },
+])
+```
+
+Paths use JSON pointer format: `"/count"` for top-level, `"/profile/name"` for nested models.
+
 ### `addMiddleware(instance, middleware)`
 
 Intercept every action call. Middlewares run in registration order (Koa-style onion). Returns an unsubscribe function.
