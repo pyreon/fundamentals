@@ -10,8 +10,7 @@ bun add @pyreon/virtual @tanstack/virtual-core
 
 ## Quick Start
 
-```ts
-import { h } from "@pyreon/core"
+```tsx
 import { signal } from "@pyreon/reactivity"
 import { useVirtualizer } from "@pyreon/virtual"
 
@@ -26,17 +25,20 @@ function VirtualList() {
     overscan: 5,
   }))
 
-  return () =>
-    h("div", { ref: (el) => parentRef.set(el), style: "height: 400px; overflow-y: auto;" }, [
-      h("div", { style: `height: ${totalSize()}px; position: relative;` },
-        virtualItems().map((row) =>
-          h("div", {
-            key: row.key,
-            style: `position: absolute; top: 0; width: 100%; height: ${row.size}px; transform: translateY(${row.start}px);`,
-          }, items[row.index])
-        )
-      ),
-    ])
+  return () => (
+    <div ref={(el) => parentRef.set(el)} style="height: 400px; overflow-y: auto;">
+      <div style={`height: ${totalSize()}px; position: relative;`}>
+        {virtualItems().map((row) => (
+          <div
+            key={row.key}
+            style={`position: absolute; top: 0; width: 100%; height: ${row.size}px; transform: translateY(${row.start}px);`}
+          >
+            {items[row.index]}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 ```
 
@@ -86,7 +88,7 @@ Create a reactive virtualizer for window-based scrolling. The scroll element is 
 
 **Returns:** `UseWindowVirtualizerResult` — same shape as `UseVirtualizerResult` but typed with `Window` as the scroll element.
 
-```ts
+```tsx
 function WindowList() {
   const items = Array.from({ length: 50000 }, (_, i) => `Row ${i}`)
 
@@ -95,15 +97,18 @@ function WindowList() {
     estimateSize: () => 40,
   }))
 
-  return () =>
-    h("div", { style: `height: ${totalSize()}px; position: relative;` },
-      virtualItems().map((row) =>
-        h("div", {
-          key: row.key,
-          style: `position: absolute; top: 0; width: 100%; height: ${row.size}px; transform: translateY(${row.start}px);`,
-        }, items[row.index])
-      )
-    )
+  return () => (
+    <div style={`height: ${totalSize()}px; position: relative;`}>
+      {virtualItems().map((row) => (
+        <div
+          key={row.key}
+          style={`position: absolute; top: 0; width: 100%; height: ${row.size}px; transform: translateY(${row.start}px);`}
+        >
+          {items[row.index]}
+        </div>
+      ))}
+    </div>
+  )
 }
 ```
 
@@ -113,7 +118,7 @@ function WindowList() {
 
 Use `measureElement` for variable-height items that are measured after render.
 
-```ts
+```tsx
 import { measureElement } from "@pyreon/virtual"
 
 const { virtualItems, totalSize, instance } = useVirtualizer(() => ({
@@ -124,13 +129,15 @@ const { virtualItems, totalSize, instance } = useVirtualizer(() => ({
 }))
 
 // In render, set the ref on each item:
-virtualItems().map((row) =>
-  h("div", {
-    key: row.key,
-    ref: (el) => instance.measureElement(el),
-    "data-index": row.index,
-  }, items[row.index])
-)
+virtualItems().map((row) => (
+  <div
+    key={row.key}
+    ref={(el) => instance.measureElement(el)}
+    data-index={row.index}
+  >
+    {items[row.index]}
+  </div>
+))
 ```
 
 ### Horizontal Lists

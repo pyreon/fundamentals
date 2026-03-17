@@ -10,8 +10,7 @@ bun add @pyreon/form
 
 ## Quick Start
 
-```ts
-import { h } from "@pyreon/core"
+```tsx
 import { useForm } from "@pyreon/form"
 
 function LoginForm() {
@@ -27,12 +26,13 @@ function LoginForm() {
     },
   })
 
-  return () =>
-    h("form", { onSubmit: form.handleSubmit }, [
-      h("input", { type: "email", ...form.register("email") }),
-      h("input", { type: "password", ...form.register("password") }),
-      h("button", { type: "submit" }, "Login"),
-    ])
+  return () => (
+    <form onSubmit={form.handleSubmit}>
+      <input type="email" {...form.register("email")} />
+      <input type="password" {...form.register("password")} />
+      <button type="submit">Login</button>
+    </form>
+  )
 }
 ```
 
@@ -74,20 +74,20 @@ Create a reactive form instance with field states, validation, and submission ha
 | `clearErrors()` | `() => void` | Clear all errors |
 | `resetField(field)` | `Function` | Reset a single field |
 
-```ts
+```tsx
 const form = useForm({
   initialValues: { email: "", remember: false },
   onSubmit: async (values) => console.log(values),
 })
 
 // Bind text input:
-h("input", form.register("email"))
+<input {...form.register("email")} />
 
 // Bind checkbox:
-h("input", { type: "checkbox", ...form.register("remember", { type: "checkbox" }) })
+<input type="checkbox" {...form.register("remember", { type: "checkbox" })} />
 
 // Bind number input:
-h("input", { type: "number", ...form.register("age", { type: "number" }) })
+<input type="number" {...form.register("age", { type: "number" })} />
 ```
 
 ### `useField(form, name)`
@@ -101,13 +101,15 @@ Extract a single field's state with computed helpers. Useful for building isolat
 
 **Returns:** `UseFieldResult<T>` with `value`, `error`, `touched`, `dirty`, `setValue`, `setTouched`, `reset`, `register`, `hasError` (Computed), `showError` (Computed: touched AND has error).
 
-```ts
+```tsx
 function EmailField({ form }) {
   const field = useField(form, "email")
-  return () => h("div", null, [
-    h("input", field.register()),
-    field.showError() ? h("span", null, field.error()) : null,
-  ])
+  return () => (
+    <div>
+      <input {...field.register()} />
+      {() => field.showError() ? <span>{field.error()}</span> : null}
+    </div>
+  )
 }
 ```
 
@@ -184,14 +186,16 @@ canSubmit()  // boolean
 
 Context pattern for sharing a form instance with nested components.
 
-```ts
+```tsx
 // Parent:
-h(FormProvider, { form }, h(EmailField))
+<FormProvider form={form}>
+  <EmailField />
+</FormProvider>
 
 // Child:
 function EmailField() {
   const form = useFormContext<{ email: string }>()
-  return () => h("input", form.register("email"))
+  return () => <input {...form.register("email")} />
 }
 ```
 

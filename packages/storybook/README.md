@@ -22,9 +22,8 @@ export default {
 
 ## Quick Start
 
-```ts
+```tsx
 import type { Meta, StoryObj } from "@pyreon/storybook"
-import { h } from "@pyreon/storybook"
 import { Button } from "./Button"
 
 const meta = {
@@ -40,11 +39,12 @@ export const Primary: Story = {
 }
 
 export const AllVariants: Story = {
-  render: (args) =>
-    h("div", { style: "display: flex; gap: 8px;" }, [
-      h(Button, { ...args, variant: "primary" }),
-      h(Button, { ...args, variant: "secondary" }),
-    ]),
+  render: (args) => (
+    <div style="display: flex; gap: 8px;">
+      <Button {...args} variant="primary" />
+      <Button {...args} variant="secondary" />
+    </div>
+  ),
 }
 ```
 
@@ -111,9 +111,10 @@ Type for individual story exports. Args are merged with `Meta.args`.
 
 Decorator function type for wrapping stories.
 
-```ts
-const withTheme: DecoratorFn<{ label: string }> = (storyFn, context) =>
-  h("div", { class: "dark-theme" }, storyFn(context.args, context))
+```tsx
+const withTheme: DecoratorFn<{ label: string }> = (storyFn, context) => (
+  <div class="dark-theme">{storyFn(context.args, context)}</div>
+)
 ```
 
 ### `StoryFn<TArgs>` / `StoryContext<TArgs>` / `InferProps<T>`
@@ -130,13 +131,15 @@ const withTheme: DecoratorFn<{ label: string }> = (storyFn, context) =>
 
 Wrap stories with providers, themes, or layout containers.
 
-```ts
+```tsx
 const meta = {
   component: Button,
   decorators: [
-    (storyFn, context) =>
-      h("div", { style: "padding: 20px; background: #f5f5f5;" },
-        storyFn(context.args, context)),
+    (storyFn, context) => (
+      <div style="padding: 20px; background: #f5f5f5;">
+        {storyFn(context.args, context)}
+      </div>
+    ),
   ],
 } satisfies Meta<typeof Button>
 ```
@@ -161,16 +164,18 @@ export const Clickable: Story = {
 
 Use signals directly in stories to demonstrate interactive behavior.
 
-```ts
+```tsx
 import { signal, effect } from "@pyreon/storybook"
 
 export const Interactive: Story = {
   render: (args) => {
     const count = signal(0)
-    return h("div", null, [
-      h("p", null, () => `Count: ${count()}`),
-      h("button", { onClick: () => count.update(n => n + 1) }, "Increment"),
-    ])
+    return (
+      <div>
+        <p>{() => `Count: ${count()}`}</p>
+        <button onClick={() => count.update(n => n + 1)}>Increment</button>
+      </div>
+    )
   },
 }
 ```

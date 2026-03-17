@@ -115,14 +115,16 @@ resolvePluralCategory("ar", 3)   // "few" (via Intl.PluralRules)
 
 Context pattern for providing an i18n instance to the component tree.
 
-```ts
+```tsx
 // Root:
-h(I18nProvider, { instance: i18n }, h(App))
+<I18nProvider instance={i18n}>
+  <App />
+</I18nProvider>
 
 // Any descendant:
 function Greeting() {
   const { t, locale } = useI18n()
-  return () => h("h1", null, t("greeting", { name: "World" }))
+  return () => <h1>{t("greeting", { name: "World" })}</h1>
 }
 ```
 
@@ -139,16 +141,16 @@ Rich JSX interpolation component. Resolves `{{values}}` first, then maps `<tag>c
 | `values` | `InterpolationValues` | Interpolation values |
 | `components` | `Record<string, (children) => VNode>` | Component map for rich tags |
 
-```ts
+```tsx
 // Translation: "Read our <terms>terms</terms> and <privacy>policy</privacy>"
-h(Trans, {
-  t,
-  i18nKey: "legal",
-  components: {
-    terms: (children) => h("a", { href: "/terms" }, children),
-    privacy: (children) => h("a", { href: "/privacy" }, children),
-  },
-})
+<Trans
+  t={t}
+  i18nKey="legal"
+  components={{
+    terms: (children) => <a href="/terms">{children}</a>,
+    privacy: (children) => <a href="/privacy">{children}</a>,
+  }}
+/>
 ```
 
 ### `parseRichText(text)`

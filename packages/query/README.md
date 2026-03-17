@@ -10,8 +10,7 @@ bun add @pyreon/query @tanstack/query-core
 
 ## Quick Start
 
-```ts
-import { h } from "@pyreon/core"
+```tsx
 import { QueryClient, QueryClientProvider, useQuery } from "@pyreon/query"
 
 const queryClient = new QueryClient()
@@ -23,15 +22,17 @@ function UserProfile(props: { id: string }) {
   }))
 
   return () => {
-    if (query.isLoading()) return h("p", null, "Loading...")
-    if (query.isError()) return h("p", null, "Error")
-    return h("h1", null, query.data()?.name)
+    if (query.isLoading()) return <p>Loading...</p>
+    if (query.isError()) return <p>Error</p>
+    return <h1>{query.data()?.name}</h1>
   }
 }
 
-const App = () =>
-  h(QueryClientProvider, { client: queryClient },
-    h(UserProfile, { id: "1" }))
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <UserProfile id="1" />
+  </QueryClientProvider>
+)
 ```
 
 ## API
@@ -143,13 +144,17 @@ Suspense-enabled queries. Data is guaranteed non-undefined after the suspense bo
 | --- | --- | --- |
 | `data` | `Signal<TData>` | Always defined (non-undefined) |
 
-```ts
+```tsx
 function UserList() {
   const query = useSuspenseQuery({
     queryKey: ["users"],
     queryFn: fetchUsers,
   })
-  return () => h("ul", null, ...query.data().map(u => h("li", null, u.name)))
+  return () => (
+    <ul>
+      {query.data().map(u => <li>{u.name}</li>)}
+    </ul>
+  )
 }
 ```
 
@@ -162,9 +167,10 @@ Suspense wrapper component with built-in error handling.
 | `fallback` | `VNodeChild` | Loading fallback |
 | `children` | `VNodeChild` | Content |
 
-```ts
-h(QuerySuspense, { fallback: h("p", null, "Loading...") },
-  h(UserList))
+```tsx
+<QuerySuspense fallback={<p>Loading...</p>}>
+  <UserList />
+</QuerySuspense>
 ```
 
 ### `QueryErrorResetBoundary` / `useQueryErrorResetBoundary()`
