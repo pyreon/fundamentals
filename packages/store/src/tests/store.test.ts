@@ -241,8 +241,8 @@ describe("patch", () => {
     })
     api.patch({ count: 5, name: "Alice" })
     expect(mutations).toHaveLength(1)
-    expect(mutations[0].type).toBe("patch")
-    expect(mutations[0].events).toHaveLength(2)
+    expect(mutations[0]!.type).toBe("patch")
+    expect(mutations[0]!.events).toHaveLength(2)
   })
 
   test("ignores keys that are not signals", () => {
@@ -269,9 +269,9 @@ describe("subscribe", () => {
     })
     api.store.count.set(5)
     expect(mutations).toHaveLength(1)
-    expect(mutations[0].type).toBe("direct")
-    expect(mutations[0].storeId).toBe("sub-direct")
-    expect(mutations[0].events).toEqual([{ key: "count", oldValue: 0, newValue: 5 }])
+    expect(mutations[0]!.type).toBe("direct")
+    expect(mutations[0]!.storeId).toBe("sub-direct")
+    expect(mutations[0]!.events).toEqual([{ key: "count", oldValue: 0, newValue: 5 }])
   })
 
   test("provides current state snapshot", () => {
