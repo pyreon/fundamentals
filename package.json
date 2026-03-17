@@ -1,15 +1,15 @@
 {
   "name": "pyreon-fundamentals",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["packages/*", "examples/*"],
   "scripts": {
-    "build": "bun run --filter='*' build",
-    "dev": "bun run --filter='*' dev",
-    "test": "bun run --filter='*' test",
+    "build": "bun run --filter='@pyreon/*' build",
+    "dev": "bun run --filter='@pyreon/*' dev",
+    "test": "bun run --filter='@pyreon/*' test",
     "lint": "biome lint ./packages/",
     "format": "biome format --write ./packages/",
     "check": "biome check --write ./packages/",
-    "typecheck": "bun run --filter='*' typecheck",
+    "typecheck": "bun run --filter='@pyreon/*' typecheck",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "bun run build && changeset publish"
