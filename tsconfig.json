@@ -4,7 +4,8 @@
     "jsx": "preserve",
     "jsxImportSource": "@pyreon/core",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "customConditions": ["bun"]
+    "customConditions": ["bun"],
+    "skipLibCheck": true
   },
   "exclude": ["node_modules", "lib", "dist"]
 }

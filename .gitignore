@@ -5,9 +5,6 @@ node_modules/
 lib/
 dist/
 
-# lockfiles
-bun.lock
-
 # editor
 .idea/
 .vscode/

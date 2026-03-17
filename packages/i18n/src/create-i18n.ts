@@ -1,5 +1,10 @@
 import { signal, computed } from '@pyreon/reactivity'
-import type { I18nOptions, I18nInstance, TranslationDictionary, InterpolationValues } from './types'
+import type {
+  I18nOptions,
+  I18nInstance,
+  TranslationDictionary,
+  InterpolationValues,
+} from './types'
 import { interpolate } from './interpolation'
 import { resolvePluralCategory } from './pluralization'
 
@@ -7,7 +12,10 @@ import { resolvePluralCategory } from './pluralization'
  * Resolve a dot-separated key path in a nested dictionary.
  * E.g. "user.greeting" → dictionary.user.greeting
  */
-function resolveKey(dict: TranslationDictionary, keyPath: string): string | undefined {
+function resolveKey(
+  dict: TranslationDictionary,
+  keyPath: string,
+): string | undefined {
   const parts = keyPath.split('.')
   let current: TranslationDictionary | string = dict
 
@@ -22,8 +30,13 @@ function resolveKey(dict: TranslationDictionary, keyPath: string): string | unde
 /**
  * Deep-merge source into target (mutates target).
  */
-function deepMerge(target: TranslationDictionary, source: TranslationDictionary): void {
+function deepMerge(
+  target: TranslationDictionary,
+  source: TranslationDictionary,
+): void {
   for (const key of Object.keys(source)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype')
+      continue
     const sourceVal = source[key]
     const targetVal = target[key]
     if (
@@ -32,9 +45,12 @@ function deepMerge(target: TranslationDictionary, source: TranslationDictionary)
       typeof targetVal === 'object' &&
       targetVal !== null
     ) {
-      deepMerge(targetVal as TranslationDictionary, sourceVal as TranslationDictionary)
+      deepMerge(
+        targetVal as TranslationDictionary,
+        sourceVal as TranslationDictionary,
+      )
     } else {
-      target[key] = sourceVal
+      target[key] = sourceVal!
     }
   }
 }
@@ -165,8 +181,11 @@ export function createI18n(options: I18nOptions): I18nInstance {
 
       // Try exact form first (e.g. "items_one"), then fall back to base key
       const pluralKey = `${keyPath}_${category}`
-      const pluralResult = lookupKey(currentLocale, namespace, pluralKey)
-        ?? (fallbackLocale ? lookupKey(fallbackLocale, namespace, pluralKey) : undefined)
+      const pluralResult =
+        lookupKey(currentLocale, namespace, pluralKey) ??
+        (fallbackLocale
+          ? lookupKey(fallbackLocale, namespace, pluralKey)
+          : undefined)
 
       if (pluralResult) {
         return interpolate(pluralResult, values)
@@ -174,8 +193,11 @@ export function createI18n(options: I18nOptions): I18nInstance {
     }
 
     // Standard lookup: current locale → fallback locale
-    const result = lookupKey(currentLocale, namespace, keyPath)
-      ?? (fallbackLocale ? lookupKey(fallbackLocale, namespace, keyPath) : undefined)
+    const result =
+      lookupKey(currentLocale, namespace, keyPath) ??
+      (fallbackLocale
+        ? lookupKey(fallbackLocale, namespace, keyPath)
+        : undefined)
 
     if (result !== undefined) {
       return interpolate(result, values)
@@ -184,7 +206,7 @@ export function createI18n(options: I18nOptions): I18nInstance {
     // Missing key handler
     if (onMissingKey) {
       const custom = onMissingKey(currentLocale, key, namespace)
-      if (custom !== undefined) return custom
+      if (custom !== undefined) return custom!
     }
 
     // Return the key itself as a visual fallback
@@ -197,7 +219,10 @@ export function createI18n(options: I18nOptions): I18nInstance {
     return resolveTranslation(key, values)
   }
 
-  const loadNamespace = async (namespace: string, loc?: string): Promise<void> => {
+  const loadNamespace = async (
+    namespace: string,
+    loc?: string,
+  ): Promise<void> => {
     if (!loader) return
 
     const targetLocale = loc ?? locale.peek()
@@ -243,7 +268,9 @@ export function createI18n(options: I18nOptions): I18nInstance {
 
     return (
       lookupKey(currentLocale, namespace, keyPath) !== undefined ||
-      (fallbackLocale ? lookupKey(fallbackLocale, namespace, keyPath) !== undefined : false)
+      (fallbackLocale
+        ? lookupKey(fallbackLocale, namespace, keyPath) !== undefined
+        : false)
     )
   }
 

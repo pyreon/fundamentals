@@ -1,5 +1,5 @@
 import { computed } from '@pyreon/reactivity'
-import type { Signal } from '@pyreon/reactivity'
+import type { Signal, Computed } from '@pyreon/reactivity'
 import type { FormState } from './types'
 
 /**
@@ -29,11 +29,14 @@ export function useWatch<
 export function useWatch<
   TValues extends Record<string, unknown>,
   K extends (keyof TValues & string)[],
->(form: FormState<TValues>, names: K): { [I in keyof K]: Signal<TValues[K[I] & keyof TValues]> }
+>(
+  form: FormState<TValues>,
+  names: K,
+): { [I in keyof K]: Signal<TValues[K[I] & keyof TValues]> }
 
 export function useWatch<TValues extends Record<string, unknown>>(
   form: FormState<TValues>,
-): Signal<TValues>
+): Computed<TValues>
 
 export function useWatch<
   TValues extends Record<string, unknown>,
@@ -41,12 +44,13 @@ export function useWatch<
 >(
   form: FormState<TValues>,
   nameOrNames?: K | K[],
-): Signal<TValues[K]> | Signal<TValues[K]>[] | Signal<TValues> {
+): Signal<TValues[K]> | Signal<TValues[K]>[] | Computed<TValues> {
   // Watch all fields
   if (nameOrNames === undefined) {
     return computed(() => {
       const result = {} as TValues
-      for (const key of Object.keys(form.fields) as (keyof TValues & string)[]) {
+      for (const key of Object.keys(form.fields) as (keyof TValues &
+        string)[]) {
         ;(result as Record<string, unknown>)[key] = form.fields[key].value()
       }
       return result
@@ -55,7 +59,9 @@ export function useWatch<
 
   // Watch multiple fields
   if (Array.isArray(nameOrNames)) {
-    return nameOrNames.map((name) => form.fields[name].value) as Signal<TValues[K]>[]
+    return nameOrNames.map((name) => form.fields[name].value) as Signal<
+      TValues[K]
+    >[]
   }
 
   // Watch single field

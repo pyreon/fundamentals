@@ -2,6 +2,25 @@
   "name": "@pyreon/store",
   "version": "0.0.1",
   "description": "Global state management for Pyreon — Pinia-inspired composition stores",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pyreon/fundamentals.git",
+    "directory": "packages/store"
+  },
+  "homepage": "https://github.com/pyreon/fundamentals/tree/main/packages/store#readme",
+  "bugs": {
+    "url": "https://github.com/pyreon/fundamentals/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./lib/index.js",
   "module": "./lib/index.js",

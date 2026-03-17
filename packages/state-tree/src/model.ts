@@ -1,7 +1,7 @@
-import type { Computed, Signal } from "@pyreon/reactivity"
-import { createInstance, type ModelConfig } from "./instance"
-import type { ModelInstance, Snapshot, StateShape } from "./types"
-import { MODEL_BRAND } from "./types"
+import type { Computed, Signal } from '@pyreon/reactivity'
+import { createInstance, type ModelConfig } from './instance'
+import type { ModelInstance, Snapshot, StateShape } from './types'
+import { MODEL_BRAND } from './types'
 
 // ─── Hook registry ────────────────────────────────────────────────────────────
 
@@ -47,7 +47,9 @@ export class ModelDefinition<
    * @example
    * const counter = Counter.create({ count: 5 })
    */
-  create(initial?: Partial<Snapshot<TState>>): ModelInstance<TState, TActions, TViews> {
+  create(
+    initial?: Partial<Snapshot<TState>>,
+  ): ModelInstance<TState, TActions, TViews> {
     return createInstance(this._config, initial ?? {})
   }
 
@@ -100,8 +102,16 @@ export class ModelDefinition<
  */
 export function model<
   TState extends StateShape,
-  TActions extends Record<string, (...args: any[]) => any> = Record<never, never>,
-  TViews extends Record<string, Signal<any> | Computed<any>> = Record<never, never>,
->(config: ModelConfig<TState, TActions, TViews>): ModelDefinition<TState, TActions, TViews> {
+  TActions extends Record<string, (...args: any[]) => any> = Record<
+    never,
+    never
+  >,
+  TViews extends Record<string, Signal<any> | Computed<any>> = Record<
+    never,
+    never
+  >,
+>(
+  config: ModelConfig<TState, TActions, TViews>,
+): ModelDefinition<TState, TActions, TViews> {
   return new ModelDefinition(config)
 }

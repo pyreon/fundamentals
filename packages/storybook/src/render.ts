@@ -1,6 +1,6 @@
-import { h } from "@pyreon/core"
-import type { ComponentFn, VNodeChild } from "@pyreon/core"
-import { mount } from "@pyreon/runtime-dom"
+import { h } from '@pyreon/core'
+import type { ComponentFn, VNodeChild } from '@pyreon/core'
+import { mount } from '@pyreon/runtime-dom'
 
 /**
  * State tracked per canvas element so we can clean up between renders.
@@ -22,10 +22,8 @@ const canvasState = new WeakMap<HTMLElement, () => void>()
 export function renderToCanvas(
   {
     storyFn,
-    _storyContext,
     showMain,
     showError,
-    _forceRemount,
   }: {
     storyFn: () => VNodeChild
     storyContext: {
@@ -38,7 +36,7 @@ export function renderToCanvas(
     forceRemount: boolean
   },
   canvasElement: HTMLElement,
-): undefined | (() => void) {
+): void {
   // Always clean up the previous render
   const prevUnmount = canvasState.get(canvasElement)
   if (prevUnmount) {

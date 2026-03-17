@@ -1,4 +1,4 @@
-import type { ComponentFn, Props, VNodeChild } from "@pyreon/core"
+import type { ComponentFn, Props, VNodeChild } from '@pyreon/core'
 
 // ─── Storybook Renderer Interface ────────────────────────────────────────────
 
@@ -26,10 +26,13 @@ export interface StoryContext<TArgs = Props> {
   id: string
   kind: string
   name: string
-  viewMode: "story" | "docs"
+  viewMode: 'story' | 'docs'
 }
 
-export type StoryFn<TArgs = Props> = (args: TArgs, context: StoryContext<TArgs>) => VNodeChild
+export type StoryFn<TArgs = Props> = (
+  args: TArgs,
+  context: StoryContext<TArgs>,
+) => VNodeChild
 
 export type DecoratorFn<TArgs = Props> = (
   storyFn: StoryFn<TArgs>,
@@ -57,7 +60,10 @@ export interface Meta<TComponent extends ComponentFn<any> = ComponentFn> {
    * Default render function. If omitted, the component is called
    * with args as props: `h(component, args)`.
    */
-  render?: (args: InferProps<TComponent>, context: StoryContext<InferProps<TComponent>>) => VNodeChild
+  render?: (
+    args: InferProps<TComponent>,
+    context: StoryContext<InferProps<TComponent>>,
+  ) => VNodeChild
   /** Exclude arg names from Controls. */
   excludeStories?: string | string[] | RegExp
   /** Include only these story names. */
@@ -78,11 +84,18 @@ export interface StoryObj<TMeta extends Meta<any> = Meta> {
   /** Tags for this story. */
   tags?: string[]
   /** Override the render function for this story. */
-  render?: (args: MetaArgs<TMeta>, context: StoryContext<MetaArgs<TMeta>>) => VNodeChild
+  render?: (
+    args: MetaArgs<TMeta>,
+    context: StoryContext<MetaArgs<TMeta>>,
+  ) => VNodeChild
   /** Story name override. */
   name?: string
   /** Play function for interaction tests. */
-  play?: (context: { canvasElement: HTMLElement; args: MetaArgs<TMeta>; step: (name: string, fn: () => Promise<void>) => Promise<void> }) => Promise<void> | void
+  play?: (context: {
+    canvasElement: HTMLElement
+    args: MetaArgs<TMeta>
+    step: (name: string, fn: () => Promise<void>) => Promise<void>
+  }) => Promise<void> | void
 }
 
 /** Extract the args type from a Meta definition. */

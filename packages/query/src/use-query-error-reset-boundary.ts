@@ -1,7 +1,13 @@
-import { createContext, pushContext, popContext, onUnmount, useContext } from "@pyreon/core"
-import type { VNodeChild, VNode } from "@pyreon/core"
-import type { Props } from "@pyreon/core"
-import { useQueryClient } from "./query-client"
+import {
+  createContext,
+  pushContext,
+  popContext,
+  onUnmount,
+  useContext,
+} from '@pyreon/core'
+import type { VNodeChild, VNode } from '@pyreon/core'
+import type { Props } from '@pyreon/core'
+import { useQueryClient } from './query-client'
 
 // ─── Context ────────────────────────────────────────────────────────────────
 
@@ -9,7 +15,8 @@ interface ErrorResetBoundaryValue {
   reset: () => void
 }
 
-const QueryErrorResetBoundaryContext = createContext<ErrorResetBoundaryValue | null>(null)
+const QueryErrorResetBoundaryContext =
+  createContext<ErrorResetBoundaryValue | null>(null)
 
 // ─── QueryErrorResetBoundary ─────────────────────────────────────────────────
 
@@ -36,13 +43,17 @@ export interface QueryErrorResetBoundaryProps extends Props {
  *   }, h(MyComponent, null)),
  * )
  */
-export function QueryErrorResetBoundary(props: QueryErrorResetBoundaryProps): VNode {
+export function QueryErrorResetBoundary(
+  props: QueryErrorResetBoundaryProps,
+): VNode {
   const client = useQueryClient()
 
   const value: ErrorResetBoundaryValue = {
     reset: () => {
       // Reset all active queries that are in error state so they refetch.
-      client.refetchQueries({ predicate: (query) => query.state.status === "error" })
+      client.refetchQueries({
+        predicate: (query) => query.state.status === 'error',
+      })
     },
   }
 
@@ -51,7 +62,7 @@ export function QueryErrorResetBoundary(props: QueryErrorResetBoundaryProps): VN
   onUnmount(() => popContext())
 
   const ch = props.children
-  return (typeof ch === "function" ? (ch as () => VNodeChild)() : ch) as VNode
+  return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode
 }
 
 // ─── useQueryErrorResetBoundary ──────────────────────────────────────────────
@@ -76,7 +87,9 @@ export function useQueryErrorResetBoundary(): ErrorResetBoundaryValue {
   // Fallback: no explicit boundary — use the QueryClient directly.
   return {
     reset: () => {
-      client.refetchQueries({ predicate: (query) => query.state.status === "error" })
+      client.refetchQueries({
+        predicate: (query) => query.state.status === 'error',
+      })
     },
   }
 }

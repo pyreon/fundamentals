@@ -1,4 +1,8 @@
-import type { SchemaValidateFn, ValidateFn, ValidationError } from '@pyreon/form'
+import type {
+  SchemaValidateFn,
+  ValidateFn,
+  ValidationError,
+} from '@pyreon/form'
 
 /** Re-export form types for convenience. */
 export type { SchemaValidateFn, ValidateFn, ValidationError }
@@ -26,6 +30,4 @@ export type SchemaAdapter<TSchema> = <TValues extends Record<string, unknown>>(
  * A generic field adapter transforms a library-specific schema
  * into a single-field validator function.
  */
-export type FieldAdapter<TSchema> = <T>(
-  schema: TSchema,
-) => ValidateFn<T>
+export type FieldAdapter<TSchema> = <T>(schema: TSchema) => ValidateFn<T>

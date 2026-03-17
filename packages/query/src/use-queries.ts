@@ -1,22 +1,17 @@
-import { onUnmount } from "@pyreon/core"
-import { signal, effect } from "@pyreon/reactivity"
-import type { Signal } from "@pyreon/reactivity"
-import { QueriesObserver } from "@tanstack/query-core"
+import { onUnmount } from '@pyreon/core'
+import { signal, effect } from '@pyreon/reactivity'
+import type { Signal } from '@pyreon/reactivity'
+import { QueriesObserver } from '@tanstack/query-core'
 import type {
   DefaultError,
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
-} from "@tanstack/query-core"
-import { useQueryClient } from "./query-client"
+} from '@tanstack/query-core'
+import { useQueryClient } from './query-client'
 
-export type UseQueriesOptions<TQueryKey extends QueryKey = QueryKey> = QueryObserverOptions<
-  unknown,
-  DefaultError,
-  unknown,
-  unknown,
-  TQueryKey
->
+export type UseQueriesOptions<TQueryKey extends QueryKey = QueryKey> =
+  QueryObserverOptions<unknown, DefaultError, unknown, unknown, TQueryKey>
 
 /**
  * Subscribe to multiple queries in parallel. Returns a single signal containing
@@ -46,12 +41,16 @@ export function useQueries(
     observer.getCurrentResult() as readonly QueryObserverResult[],
   ) as Signal<QueryObserverResult[]>
 
-  const unsub = observer.subscribe((results: readonly QueryObserverResult[]) => {
-    resultSig.set(results as QueryObserverResult[])
-  })
+  const unsub = observer.subscribe(
+    (results: readonly QueryObserverResult[]) => {
+      resultSig.set(results as QueryObserverResult[])
+    },
+  )
 
   // When signals inside queries() change, update the observer.
-  effect(() => { observer.setQueries(queries()) })
+  effect(() => {
+    observer.setQueries(queries())
+  })
 
   onUnmount(() => {
     unsub()

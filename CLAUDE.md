@@ -53,6 +53,12 @@ packages/[name]/
 {
   "name": "@pyreon/[name]",
   "version": "0.0.1",
+  "description": "...",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/pyreon/fundamentals.git", "directory": "packages/[name]" },
+  "publishConfig": { "access": "public" },
+  "files": ["lib", "src", "README.md", "LICENSE"],
+  "sideEffects": false,
   "type": "module",
   "exports": {
     ".": { "bun": "./src/index.ts", "import": "./lib/index.js", "types": "./lib/types/index.d.ts" }
@@ -67,8 +73,8 @@ packages/[name]/
 
 ### Dependencies
 
-- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (^0.1.2)
-- Dev dependencies use npm versions (^0.1.2) for `@pyreon/core`, `@pyreon/reactivity`, `@pyreon/runtime-dom`
+- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (^0.2.1)
+- Dev dependencies use npm versions (^0.2.1) for `@pyreon/core`, `@pyreon/reactivity`, `@pyreon/runtime-dom`
 - TanStack packages (`query`, `table`, `virtual`) have `@tanstack/*-core` as direct deps
 
 ### Testing & Linting

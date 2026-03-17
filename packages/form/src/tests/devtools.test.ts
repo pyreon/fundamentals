@@ -1,4 +1,4 @@
-import { signal, computed } from "@pyreon/reactivity"
+import { signal, computed } from '@pyreon/reactivity'
 import {
   registerForm,
   unregisterForm,
@@ -7,7 +7,7 @@ import {
   getFormSnapshot,
   onFormChange,
   _resetDevtools,
-} from "../devtools"
+} from '../devtools'
 
 // Minimal form-like object for testing (avoids needing the full useForm + DOM)
 function createMockForm(values: Record<string, unknown>) {
@@ -28,40 +28,40 @@ function createMockForm(values: Record<string, unknown>) {
 
 afterEach(() => _resetDevtools())
 
-describe("form devtools", () => {
-  test("getActiveForms returns empty initially", () => {
+describe('form devtools', () => {
+  test('getActiveForms returns empty initially', () => {
     expect(getActiveForms()).toEqual([])
   })
 
-  test("registerForm makes form visible", () => {
-    const form = createMockForm({ email: "" })
-    registerForm("login", form)
-    expect(getActiveForms()).toEqual(["login"])
+  test('registerForm makes form visible', () => {
+    const form = createMockForm({ email: '' })
+    registerForm('login', form)
+    expect(getActiveForms()).toEqual(['login'])
   })
 
-  test("getFormInstance returns the registered form", () => {
-    const form = createMockForm({ email: "" })
-    registerForm("login", form)
-    expect(getFormInstance("login")).toBe(form)
+  test('getFormInstance returns the registered form', () => {
+    const form = createMockForm({ email: '' })
+    registerForm('login', form)
+    expect(getFormInstance('login')).toBe(form)
   })
 
-  test("getFormInstance returns undefined for unregistered name", () => {
-    expect(getFormInstance("nope")).toBeUndefined()
+  test('getFormInstance returns undefined for unregistered name', () => {
+    expect(getFormInstance('nope')).toBeUndefined()
   })
 
-  test("unregisterForm removes the form", () => {
-    const form = createMockForm({ email: "" })
-    registerForm("login", form)
-    unregisterForm("login")
+  test('unregisterForm removes the form', () => {
+    const form = createMockForm({ email: '' })
+    registerForm('login', form)
+    unregisterForm('login')
     expect(getActiveForms()).toEqual([])
   })
 
-  test("getFormSnapshot returns current form state", () => {
-    const form = createMockForm({ email: "test@test.com" })
-    registerForm("login", form)
-    const snapshot = getFormSnapshot("login")
+  test('getFormSnapshot returns current form state', () => {
+    const form = createMockForm({ email: 'test@test.com' })
+    registerForm('login', form)
+    const snapshot = getFormSnapshot('login')
     expect(snapshot).toBeDefined()
-    expect(snapshot!.values).toEqual({ email: "test@test.com" })
+    expect(snapshot!.values).toEqual({ email: 'test@test.com' })
     expect(snapshot!.errors).toEqual({})
     expect(snapshot!.isSubmitting).toBe(false)
     expect(snapshot!.isValid).toBe(true)
@@ -69,19 +69,19 @@ describe("form devtools", () => {
     expect(snapshot!.submitCount).toBe(0)
   })
 
-  test("getFormSnapshot handles form with non-function properties", () => {
+  test('getFormSnapshot handles form with non-function properties', () => {
     // Register a plain object where properties are NOT functions
     // This covers the false branches of typeof checks in getFormSnapshot
     const plainForm = {
-      values: "not-a-function",
+      values: 'not-a-function',
       errors: 42,
       isSubmitting: true,
       isValid: null,
       isDirty: undefined,
-      submitCount: "five",
+      submitCount: 'five',
     }
-    registerForm("plain", plainForm)
-    const snapshot = getFormSnapshot("plain")
+    registerForm('plain', plainForm)
+    const snapshot = getFormSnapshot('plain')
     expect(snapshot).toBeDefined()
     expect(snapshot!.values).toBeUndefined()
     expect(snapshot!.errors).toBeUndefined()
@@ -91,64 +91,66 @@ describe("form devtools", () => {
     expect(snapshot!.submitCount).toBeUndefined()
   })
 
-  test("getFormSnapshot returns undefined for unregistered name", () => {
-    expect(getFormSnapshot("nope")).toBeUndefined()
+  test('getFormSnapshot returns undefined for unregistered name', () => {
+    expect(getFormSnapshot('nope')).toBeUndefined()
   })
 
-  test("onFormChange fires on register", () => {
+  test('onFormChange fires on register', () => {
     const calls: number[] = []
     const unsub = onFormChange(() => calls.push(1))
 
-    registerForm("login", createMockForm({}))
+    registerForm('login', createMockForm({}))
     expect(calls.length).toBe(1)
 
     unsub()
   })
 
-  test("onFormChange fires on unregister", () => {
-    registerForm("login", createMockForm({}))
+  test('onFormChange fires on unregister', () => {
+    registerForm('login', createMockForm({}))
 
     const calls: number[] = []
     const unsub = onFormChange(() => calls.push(1))
-    unregisterForm("login")
+    unregisterForm('login')
     expect(calls.length).toBe(1)
 
     unsub()
   })
 
-  test("onFormChange unsubscribe stops notifications", () => {
+  test('onFormChange unsubscribe stops notifications', () => {
     const calls: number[] = []
     const unsub = onFormChange(() => calls.push(1))
     unsub()
 
-    registerForm("login", createMockForm({}))
+    registerForm('login', createMockForm({}))
     expect(calls.length).toBe(0)
   })
 
-  test("multiple forms are tracked", () => {
-    registerForm("login", createMockForm({}))
-    registerForm("signup", createMockForm({}))
-    expect(getActiveForms().sort()).toEqual(["login", "signup"])
+  test('multiple forms are tracked', () => {
+    registerForm('login', createMockForm({}))
+    registerForm('signup', createMockForm({}))
+    expect(getActiveForms().sort()).toEqual(['login', 'signup'])
   })
 
-  test("getActiveForms cleans up garbage-collected WeakRefs", () => {
+  test('getActiveForms cleans up garbage-collected WeakRefs', () => {
     // Simulate a WeakRef whose target has been GC'd by replacing
     // the internal map entry with a WeakRef that returns undefined from deref()
-    registerForm("gc-form", createMockForm({}))
-    expect(getActiveForms()).toEqual(["gc-form"])
+    registerForm('gc-form', createMockForm({}))
+    expect(getActiveForms()).toEqual(['gc-form'])
 
     // Overwrite with a WeakRef-like object that always returns undefined (simulates GC)
     // We do this by registering and then manipulating the internal state
     // The cleanest way: register, then call getActiveForms which checks deref.
     // We need to actually make deref() return undefined.
     // Register a form, then replace the Map entry with a dead WeakRef.
-    const _fakeDeadRef = { deref: () => undefined } as unknown as WeakRef<object>
+    const _fakeDeadRef = {
+      deref: () => undefined,
+    } as unknown as WeakRef<object>
     // Access the internal map via the module's exports — we use registerForm to set,
     // then overwrite. Since _activeForms is private, we register and rely on
     // the WeakRef naturally. Instead, let's create a real WeakRef to a short-lived object:
     ;(() => {
       let tempObj: object | null = { tmp: true }
-      registerForm("temp-form", tempObj)
+      registerForm('temp-form', tempObj)
       tempObj = null // Allow GC
     })()
 
@@ -163,11 +165,11 @@ describe("form devtools", () => {
     _resetDevtools()
   })
 
-  test("getFormInstance cleans up and returns undefined when WeakRef is dead", () => {
+  test('getFormInstance cleans up and returns undefined when WeakRef is dead', () => {
     // Register a form, then simulate GC by replacing the map entry
-    const form = createMockForm({ email: "" })
-    registerForm("dying-form", form)
-    expect(getFormInstance("dying-form")).toBe(form)
+    const form = createMockForm({ email: '' })
+    registerForm('dying-form', form)
+    expect(getFormInstance('dying-form')).toBe(form)
 
     // Now we need to make the WeakRef deref return undefined.
     // We can't directly access _activeForms, but we can test the
@@ -180,20 +182,22 @@ describe("form devtools", () => {
     const originalWeakRef = globalThis.WeakRef
     let mockDerefResult: object | undefined = form
     const MockWeakRef = class {
-      deref() { return mockDerefResult }
+      deref() {
+        return mockDerefResult
+      }
     }
     globalThis.WeakRef = MockWeakRef as any
 
     _resetDevtools()
-    registerForm("mock-form", form)
-    expect(getFormInstance("mock-form")).toBe(form)
+    registerForm('mock-form', form)
+    expect(getFormInstance('mock-form')).toBe(form)
 
     // Now simulate GC
     mockDerefResult = undefined
-    expect(getFormInstance("mock-form")).toBeUndefined()
+    expect(getFormInstance('mock-form')).toBeUndefined()
 
     // getActiveForms should also clean it up
-    registerForm("mock-form2", form)
+    registerForm('mock-form2', form)
     mockDerefResult = undefined
     expect(getActiveForms()).toEqual([])
 

@@ -2,7 +2,27 @@
   "name": "@pyreon/i18n",
   "version": "0.0.1",
   "description": "Reactive internationalization for Pyreon with async namespace loading",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pyreon/fundamentals.git",
+    "directory": "packages/i18n"
+  },
+  "homepage": "https://github.com/pyreon/fundamentals/tree/main/packages/i18n#readme",
+  "bugs": {
+    "url": "https://github.com/pyreon/fundamentals/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "sideEffects": false,
   "main": "./lib/index.js",
   "module": "./lib/index.js",
   "types": "./lib/types/index.d.ts",

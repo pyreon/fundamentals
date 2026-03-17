@@ -30,7 +30,14 @@ import type {
 export function useForm<TValues extends Record<string, unknown>>(
   options: UseFormOptions<TValues>,
 ): FormState<TValues> {
-  const { initialValues, onSubmit, validators, schema, validateOn = 'blur', debounceMs } = options
+  const {
+    initialValues,
+    onSubmit,
+    validators,
+    schema,
+    validateOn = 'blur',
+    debounceMs,
+  } = options
 
   // Build field states
   const fieldEntries = Object.entries(initialValues) as [
@@ -41,7 +48,9 @@ export function useForm<TValues extends Record<string, unknown>>(
   const fields = {} as { [K in keyof TValues]: FieldState<TValues[K]> }
 
   // Debounce timers per field (only allocated when debounceMs is set)
-  const debounceTimers: Partial<Record<keyof TValues, ReturnType<typeof setTimeout>>> = {}
+  const debounceTimers: Partial<
+    Record<keyof TValues, ReturnType<typeof setTimeout>>
+  > = {}
 
   // Validation version per field — used to discard stale async results
   const validationVersions: Partial<Record<keyof TValues, number>> = {}
@@ -50,7 +59,9 @@ export function useForm<TValues extends Record<string, unknown>>(
   const getValues = (): TValues => {
     const values = {} as TValues
     for (const [name] of fieldEntries) {
-      ;(values as Record<string, unknown>)[name] = fields[name]?.value.peek() ?? (initialValues as Record<string, unknown>)[name]
+      ;(values as Record<string, unknown>)[name] =
+        fields[name]?.value.peek() ??
+        (initialValues as Record<string, unknown>)[name]
     }
     return values
   }
@@ -140,7 +151,7 @@ export function useForm<TValues extends Record<string, unknown>>(
         }
       },
       reset: () => {
-        valueSig.set(initial)
+        valueSig.set(initial as TValues[typeof name])
         errorSig.set(undefined)
         touchedSig.set(false)
         dirtySig.set(false)
@@ -205,13 +216,18 @@ export function useForm<TValues extends Record<string, unknown>>(
             validationVersions[name] = (validationVersions[name] ?? 0) + 1
             const currentVersion = validationVersions[name]
             try {
-              const error = await fieldValidator(fields[name].value.peek(), allValues)
+              const error = await fieldValidator(
+                fields[name].value.peek(),
+                allValues,
+              )
               if (validationVersions[name] === currentVersion) {
                 fields[name].error.set(error)
               }
             } catch (err) {
               if (validationVersions[name] === currentVersion) {
-                fields[name].error.set(err instanceof Error ? err.message : String(err))
+                fields[name].error.set(
+                  err instanceof Error ? err.message : String(err),
+                )
               }
             }
           }
@@ -225,7 +241,10 @@ export function useForm<TValues extends Record<string, unknown>>(
           const schemaErrors = await schema(allValues)
           for (const [name] of fieldEntries) {
             const schemaError = schemaErrors[name]
-            if (schemaError !== undefined && fields[name].error.peek() === undefined) {
+            if (
+              schemaError !== undefined &&
+              fields[name].error.peek() === undefined
+            ) {
               fields[name].error.set(schemaError)
             }
           }
@@ -282,21 +301,30 @@ export function useForm<TValues extends Record<string, unknown>>(
     submitError.set(undefined)
   }
 
-  const setFieldValue = <K extends keyof TValues>(field: K, value: TValues[K]) => {
+  const setFieldValue = <K extends keyof TValues>(
+    field: K,
+    value: TValues[K],
+  ) => {
     if (!fields[field]) {
-      throw new Error(`[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`)
+      throw new Error(
+        `[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`,
+      )
     }
     fields[field].setValue(value)
   }
 
   const setFieldError = (field: keyof TValues, error: ValidationError) => {
     if (!fields[field]) {
-      throw new Error(`[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`)
+      throw new Error(
+        `[@pyreon/form] Field "${String(field)}" does not exist. Available fields: ${fieldEntries.map(([n]) => n).join(', ')}`,
+      )
     }
     fields[field].error.set(error)
   }
 
-  const setErrors = (errors: Partial<Record<keyof TValues, ValidationError>>) => {
+  const setErrors = (
+    errors: Partial<Record<keyof TValues, ValidationError>>,
+  ) => {
     for (const [name, error] of Object.entries(errors)) {
       setFieldError(name as keyof TValues, error as ValidationError)
     }
@@ -334,7 +362,9 @@ export function useForm<TValues extends Record<string, unknown>>(
           fieldState.setValue(target.checked as TValues[K])
         } else if (opts?.type === 'number') {
           const num = target.valueAsNumber
-          fieldState.setValue((Number.isNaN(num) ? target.value : num) as TValues[K])
+          fieldState.setValue(
+            (Number.isNaN(num) ? target.value : num) as TValues[K],
+          )
         } else {
           fieldState.setValue(target.value as TValues[K])
         }
@@ -345,7 +375,9 @@ export function useForm<TValues extends Record<string, unknown>>(
     }
 
     if (opts?.type === 'checkbox') {
-      props.checked = computed(() => Boolean(fieldState.value())) as Signal<boolean>
+      props.checked = computed(() =>
+        Boolean(fieldState.value()),
+      ) as unknown as Signal<boolean>
     }
 
     registerCache.set(cacheKey, props as FieldRegisterProps<unknown>)

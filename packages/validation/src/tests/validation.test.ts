@@ -16,13 +16,10 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(
-      () => {
-        result = fn()
-        return null
-      },
-      null,
-    ),
+    h(() => {
+      result = fn()
+      return null
+    }, null),
     el,
   )
   return {
@@ -67,20 +64,20 @@ describe('zodSchema', () => {
   })
 
   it('returns empty record for valid data', async () => {
-    const validate = zodSchema(schema)
+    const validate = zodSchema(schema as any)
     const result = await validate({ email: 'a@b.com', password: '12345678' })
     expect(result).toEqual({})
   })
 
   it('returns field errors for invalid data', async () => {
-    const validate = zodSchema(schema)
+    const validate = zodSchema(schema as any)
     const result = await validate({ email: 'bad', password: 'short' })
     expect(result.email).toBe('Invalid email')
     expect(result.password).toBe('Min 8 chars')
   })
 
   it('returns error for single invalid field', async () => {
-    const validate = zodSchema(schema)
+    const validate = zodSchema(schema as any)
     const result = await validate({ email: 'a@b.com', password: 'short' })
     expect(result.email).toBeUndefined()
     expect(result.password).toBe('Min 8 chars')
@@ -89,17 +86,17 @@ describe('zodSchema', () => {
 
 describe('zodField', () => {
   it('returns undefined for valid value', async () => {
-    const validate = zodField(z.string().email('Invalid email'))
+    const validate = zodField(z.string().email('Invalid email') as any)
     expect(await validate('a@b.com', {})).toBeUndefined()
   })
 
   it('returns error message for invalid value', async () => {
-    const validate = zodField(z.string().email('Invalid email'))
+    const validate = zodField(z.string().email('Invalid email') as any)
     expect(await validate('bad', {})).toBe('Invalid email')
   })
 
   it('works with number schemas', async () => {
-    const validate = zodField(z.number().min(0, 'Must be positive'))
+    const validate = zodField(z.number().min(0, 'Must be positive') as any)
     expect(await validate(-1, {})).toBe('Must be positive')
     expect(await validate(5, {})).toBeUndefined()
   })
@@ -115,8 +112,10 @@ describe('zod + useForm integration', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { email: '', password: '' },
-        schema: zodSchema(schema),
-        onSubmit: () => { /* noop */ },
+        schema: zodSchema(schema as any),
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -132,10 +131,12 @@ describe('zod + useForm integration', () => {
       useForm({
         initialValues: { email: '', age: 0 },
         validators: {
-          email: zodField(z.string().email('Invalid')),
-          age: zodField(z.number().min(18, 'Must be 18+')),
+          email: zodField(z.string().email('Invalid') as any),
+          age: zodField(z.number().min(18, 'Must be 18+') as any),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -156,20 +157,20 @@ describe('valibotSchema', () => {
   })
 
   it('returns empty record for valid data', async () => {
-    const validate = valibotSchema(schema, v.safeParseAsync)
+    const validate = valibotSchema(schema, v.safeParseAsync as any)
     const result = await validate({ email: 'a@b.com', password: '12345678' })
     expect(result).toEqual({})
   })
 
   it('returns field errors for invalid data', async () => {
-    const validate = valibotSchema(schema, v.safeParseAsync)
+    const validate = valibotSchema(schema, v.safeParseAsync as any)
     const result = await validate({ email: 'bad', password: 'short' })
     expect(result.email).toBe('Invalid email')
     expect(result.password).toBe('Min 8 chars')
   })
 
   it('works with sync safeParse', async () => {
-    const validate = valibotSchema(schema, v.safeParse as typeof v.safeParseAsync)
+    const validate = valibotSchema(schema, v.safeParse as any)
     const result = await validate({ email: 'bad', password: 'short' })
     expect(result.email).toBe('Invalid email')
   })
@@ -201,7 +202,7 @@ describe('valibotField', () => {
   it('returns undefined for valid value', async () => {
     const validate = valibotField(
       v.pipe(v.string(), v.email('Invalid email')),
-      v.safeParseAsync,
+      v.safeParseAsync as any,
     )
     expect(await validate('a@b.com', {})).toBeUndefined()
   })
@@ -209,7 +210,7 @@ describe('valibotField', () => {
   it('returns error message for invalid value', async () => {
     const validate = valibotField(
       v.pipe(v.string(), v.email('Invalid email')),
-      v.safeParseAsync,
+      v.safeParseAsync as any,
     )
     expect(await validate('bad', {})).toBe('Invalid email')
   })
@@ -233,8 +234,10 @@ describe('valibot + useForm integration', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { email: '', password: '' },
-        schema: valibotSchema(schema, v.safeParseAsync),
-        onSubmit: () => { /* noop */ },
+        schema: valibotSchema(schema, v.safeParseAsync as any),
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -293,7 +296,9 @@ describe('arktype + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: arktypeSchema(schema as any),
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 

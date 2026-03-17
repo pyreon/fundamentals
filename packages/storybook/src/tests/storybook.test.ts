@@ -4,7 +4,13 @@ import { signal, effect } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { renderToCanvas, defaultRender } from '../render'
 import { render as previewRender } from '../preview'
-import type { Meta, StoryObj, DecoratorFn, StoryContext } from '../types'
+import type {
+  Meta,
+  StoryObj,
+  DecoratorFn,
+  StoryFn,
+  StoryContext,
+} from '../types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -25,8 +31,12 @@ function makeRenderContext(overrides: {
       component: overrides.component,
       args: overrides.args ?? {},
     },
-    showMain: () => { /* noop */ },
-    showError: (_err: { title: string; description: string }) => { /* noop */ },
+    showMain: () => {
+      /* noop */
+    },
+    showError: (_err: { title: string; description: string }) => {
+      /* noop */
+    },
     forceRemount: false,
   }
 }
@@ -126,10 +136,16 @@ describe('renderToCanvas', () => {
     let errorShown: { title: string; description: string } | null = null
 
     const ctx = {
-      storyFn: () => { throw new Error('Boom') },
+      storyFn: () => {
+        throw new Error('Boom')
+      },
       storyContext: { args: {} },
-      showMain: () => { /* noop */ },
-      showError: (err: { title: string; description: string }) => { errorShown = err },
+      showMain: () => {
+        /* noop */
+      },
+      showError: (err: { title: string; description: string }) => {
+        errorShown = err
+      },
       forceRemount: false,
     }
 
@@ -145,10 +161,16 @@ describe('renderToCanvas', () => {
     let errorShown: { title: string; description: string } | null = null
 
     const ctx = {
-      storyFn: () => { throw 'string error' },
+      storyFn: () => {
+        throw 'string error'
+      },
       storyContext: { args: {} },
-      showMain: () => { /* noop */ },
-      showError: (err: { title: string; description: string }) => { errorShown = err },
+      showMain: () => {
+        /* noop */
+      },
+      showError: (err: { title: string; description: string }) => {
+        errorShown = err
+      },
       forceRemount: false,
     }
 
@@ -202,7 +224,10 @@ describe('defaultRender', () => {
 
 describe('Meta and StoryObj types', () => {
   it('Meta accepts a component and typed args', () => {
-    function Button(props: { label: string; variant?: 'primary' | 'secondary' }) {
+    function Button(props: {
+      label: string
+      variant?: 'primary' | 'secondary'
+    }) {
       return h('button', { class: props.variant }, props.label)
     }
 
@@ -219,7 +244,10 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj inherits args from Meta', () => {
     function Input(props: { placeholder: string; disabled?: boolean }) {
-      return h('input', { placeholder: props.placeholder, disabled: props.disabled })
+      return h('input', {
+        placeholder: props.placeholder,
+        disabled: props.disabled,
+      })
     }
 
     const _meta = {
@@ -273,14 +301,23 @@ describe('Decorators', () => {
     }
 
     const withPadding: DecoratorFn<{ label: string }> = (storyFn, context) => {
-      return h('div', { style: 'padding: 1rem' }, storyFn(context.args, context))
+      return h(
+        'div',
+        { style: 'padding: 1rem' },
+        storyFn(context.args, context),
+      )
     }
 
     const canvas = createCanvas()
-    const storyResult = withPadding(
-      (args) => h(Button, args),
-      { args: { label: 'Wrapped' }, argTypes: {}, globals: {}, id: '1', kind: 'Button', name: 'Primary', viewMode: 'story' },
-    )
+    const storyResult = withPadding((args) => h(Button, args), {
+      args: { label: 'Wrapped' },
+      argTypes: {},
+      globals: {},
+      id: '1',
+      kind: 'Button',
+      name: 'Primary',
+      viewMode: 'story',
+    })
 
     const unmount = mount(storyResult, canvas)
     expect(canvas.querySelector('div[style]')).toBeTruthy()
@@ -312,10 +349,7 @@ describe('Decorators', () => {
 
     // Compose: withTheme(withBorder(story))
     const story: StoryFn<{ content: string }> = (args) => h(Text, args)
-    const decorated = withTheme(
-      (_args, ctx) => withBorder(story, ctx),
-      context,
-    )
+    const decorated = withTheme((_args, ctx) => withBorder(story, ctx), context)
 
     const canvas = createCanvas()
     const unmount = mount(decorated, canvas)
@@ -335,10 +369,7 @@ describe('Fragment stories', () => {
     renderToCanvas(
       makeRenderContext({
         storyFn: () =>
-          h(Fragment, null,
-            h('p', null, 'Line 1'),
-            h('p', null, 'Line 2'),
-          ),
+          h(Fragment, null, h('p', null, 'Line 1'), h('p', null, 'Line 2')),
       }),
       canvas,
     )
@@ -360,10 +391,7 @@ describe('preview render', () => {
     }
 
     const canvas = createCanvas()
-    const vnode = previewRender(
-      { text: 'New' },
-      { component: Badge },
-    )
+    const vnode = previewRender({ text: 'New' }, { component: Badge })
     const unmount = mount(vnode, canvas)
 
     expect(canvas.querySelector('.badge')!.textContent).toBe('New')
@@ -372,9 +400,9 @@ describe('preview render', () => {
   })
 
   it('throws when no component is provided', () => {
-    expect(() =>
-      previewRender({ foo: 'bar' }, {}),
-    ).toThrow('[@pyreon/storybook] No component provided')
+    expect(() => previewRender({ foo: 'bar' }, {})).toThrow(
+      '[@pyreon/storybook] No component provided',
+    )
   })
 
   it('throws when component is undefined', () => {

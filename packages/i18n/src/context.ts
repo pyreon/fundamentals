@@ -1,6 +1,12 @@
-import { createContext, pushContext, popContext, onUnmount, useContext } from "@pyreon/core"
-import type { VNodeChild, VNode, Props } from "@pyreon/core"
-import type { I18nInstance } from "./types"
+import {
+  createContext,
+  pushContext,
+  popContext,
+  onUnmount,
+  useContext,
+} from '@pyreon/core'
+import type { VNodeChild, VNode, Props } from '@pyreon/core'
+import type { I18nInstance } from './types'
 
 export const I18nContext = createContext<I18nInstance | null>(null)
 
@@ -27,7 +33,7 @@ export function I18nProvider(props: I18nProviderProps): VNode {
   onUnmount(() => popContext())
 
   const ch = props.children
-  return (typeof ch === "function" ? (ch as () => VNodeChild)() : ch) as VNode
+  return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode
 }
 
 /**
@@ -44,7 +50,7 @@ export function useI18n(): I18nInstance {
   const instance = useContext(I18nContext)
   if (!instance) {
     throw new Error(
-      "[@pyreon/i18n] useI18n() must be used within an <I18nProvider>.",
+      '[@pyreon/i18n] useI18n() must be used within an <I18nProvider>.',
     )
   }
   return instance

@@ -1,4 +1,8 @@
-import type { SchemaValidateFn, ValidateFn, ValidationError } from '@pyreon/form'
+import type {
+  SchemaValidateFn,
+  ValidateFn,
+  ValidationError,
+} from '@pyreon/form'
 import type { ValidationIssue } from './types'
 import { issuesToRecord } from './utils'
 
@@ -54,10 +58,13 @@ export function zodSchema<TValues extends Record<string, unknown>>(
   return async (values: TValues) => {
     try {
       const result = await schema.safeParseAsync(values)
-      if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
+      if (result.success)
+        return {} as Partial<Record<keyof TValues, ValidationError>>
       return issuesToRecord<TValues>(zodIssuesToGeneric(result.error!.issues))
     } catch (err) {
-      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+      return {
+        '': err instanceof Error ? err.message : String(err),
+      } as Partial<Record<keyof TValues, ValidationError>>
     }
   }
 }

@@ -1,5 +1,5 @@
 import { signal, computed } from '@pyreon/reactivity'
-import type { Signal } from '@pyreon/reactivity'
+import type { Signal, Computed } from '@pyreon/reactivity'
 
 export interface FieldArrayItem<T> {
   /** Stable key for keyed rendering. */
@@ -12,7 +12,7 @@ export interface UseFieldArrayResult<T> {
   /** Reactive list of items with stable keys. */
   items: Signal<FieldArrayItem<T>[]>
   /** Number of items. */
-  length: Signal<number>
+  length: Computed<number>
   /** Append a new item to the end. */
   append: (value: T) => void
   /** Prepend a new item to the start. */
@@ -111,9 +111,7 @@ export function useFieldArray<T>(initial: T[] = []): UseFieldArrayResult<T> {
     },
 
     values() {
-      return items
-        .peek()
-        .map((item) => item.value.peek())
+      return items.peek().map((item) => item.value.peek())
     },
   }
 }
