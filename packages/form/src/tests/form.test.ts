@@ -690,6 +690,34 @@ describe('useForm', () => {
     unmount()
   })
 
+  it('register() with number type uses valueAsNumber when valid', () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { age: 0 },
+        onSubmit: () => {
+          /* noop */
+        },
+      }),
+    )
+
+    const props = form.register('age', { type: 'number' })
+
+    // Simulate input with a valid number
+    const validEvent = {
+      target: { value: '25', valueAsNumber: 25 },
+    } as unknown as Event
+    props.onInput(validEvent)
+    expect(form.fields.age.value()).toBe(25)
+
+    // Simulate input with NaN (e.g. empty string) — falls back to target.value
+    const nanEvent = {
+      target: { value: '', valueAsNumber: NaN },
+    } as unknown as Event
+    props.onInput(nanEvent)
+    expect(form.fields.age.value()).toBe('')
+    unmount()
+  })
+
   it('register() returns same props for repeated calls (memoized)', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
@@ -1374,6 +1402,49 @@ describe('validate() branch coverage', () => {
     unmount()
   })
 
+  it('field-level validator throwing during validate() captures error', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice' },
+        validators: {
+          name: () => {
+            throw new Error('Validator crashed')
+          },
+        },
+        onSubmit: () => {
+          /* noop */
+        },
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(false)
+    expect(form.fields.name.error()).toBe('Validator crashed')
+    unmount()
+  })
+
+  it('field-level validator throwing on blur captures error', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: '' },
+        validators: {
+          name: () => {
+            throw new Error('Blur validator crashed')
+          },
+        },
+        validateOn: 'blur',
+        onSubmit: () => {
+          /* noop */
+        },
+      }),
+    )
+
+    form.fields.name.setTouched()
+    await new Promise((r) => setTimeout(r, 0))
+    expect(form.fields.name.error()).toBe('Blur validator crashed')
+    unmount()
+  })
+
   it('schema validator with keys having undefined value does not block submit', async () => {
     let submitted = false
     const { result: form, unmount } = mountWith(() =>
@@ -1392,6 +1463,26 @@ describe('validate() branch coverage', () => {
     await form.handleSubmit()
     // Schema returned keys but all with undefined values — should pass
     expect(submitted).toBe(true)
+    unmount()
+  })
+
+  it('schema validator throwing sets submitError and returns false', async () => {
+    const { result: form, unmount } = mountWith(() =>
+      useForm({
+        initialValues: { name: 'Alice', email: 'a@b.com' },
+        schema: () => {
+          throw new Error('Schema exploded')
+        },
+        onSubmit: () => {
+          /* noop */
+        },
+      }),
+    )
+
+    const valid = await form.validate()
+    expect(valid).toBe(false)
+    expect(form.submitError()).toBeInstanceOf(Error)
+    expect((form.submitError() as Error).message).toBe('Schema exploded')
     unmount()
   })
 

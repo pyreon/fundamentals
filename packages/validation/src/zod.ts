@@ -11,24 +11,28 @@ import { issuesToRecord } from './utils'
  * These match Zod v3's public API surface.
  */
 interface ZodIssue {
-  path: (string | number)[]
+  path: PropertyKey[]
   message: string
 }
 
-interface ZodSafeParseResult<T> {
-  success: boolean
-  data?: T
-  error?: { issues: ZodIssue[] }
-}
-
+/**
+ * Duck-typed Zod schema interface — works with both Zod v3 and v4.
+ * Inlines the result shape to avoid version-specific type mismatches.
+ */
 interface ZodSchema<T = unknown> {
-  safeParse(data: unknown): ZodSafeParseResult<T>
-  safeParseAsync(data: unknown): Promise<ZodSafeParseResult<T>>
+  safeParse(data: unknown): {
+    success: boolean
+    data?: T
+    error?: { issues: ZodIssue[] }
+  }
+  safeParseAsync(
+    data: unknown,
+  ): Promise<{ success: boolean; data?: T; error?: { issues: ZodIssue[] } }>
 }
 
 function zodIssuesToGeneric(issues: ZodIssue[]): ValidationIssue[] {
   return issues.map((issue) => ({
-    path: issue.path.join('.'),
+    path: issue.path.map(String).join('.'),
     message: issue.message,
   }))
 }

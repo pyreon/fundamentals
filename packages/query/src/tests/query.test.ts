@@ -877,7 +877,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-pending'],
             queryFn: () =>
               new Promise(() => {
@@ -915,7 +915,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-success'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
               Promise.resolve(`page-${pageParam}`),
@@ -952,7 +952,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-next'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
               Promise.resolve(`page-${pageParam}`),
@@ -994,7 +994,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-prev'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
               Promise.resolve(`page-${pageParam}`),
@@ -1031,7 +1031,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-error'],
             queryFn: () => Promise.reject(new Error('inf failed')),
             initialPageParam: 0,
@@ -1061,7 +1061,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-refetch'],
             queryFn: () => {
               callCount++
@@ -1094,7 +1094,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-result'],
             queryFn: () => Promise.resolve('val'),
             initialPageParam: 0,
@@ -1109,7 +1109,7 @@ describe('useInfiniteQuery', () => {
     await new Promise((resolve) => setTimeout(resolve, 20))
     const r = query!.result()
     expect(r.status).toBe('success')
-    expect((r.data as any)?.pages).toEqual(['val'])
+    expect(r.data?.pages).toEqual(['val'])
     unmount()
     el.remove()
   })
@@ -1124,7 +1124,7 @@ describe('useInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useInfiniteQuery as any)(() => ({
+          query = useInfiniteQuery(() => ({
             queryKey: ['inf-reactive', key()],
             queryFn: () => Promise.resolve(`data-${key()}`),
             initialPageParam: 0,
@@ -1164,7 +1164,7 @@ describe('useSuspenseInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useSuspenseInfiniteQuery as any)(() => ({
+          query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-1'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
               Promise.resolve(`p${pageParam}`),
@@ -1202,7 +1202,7 @@ describe('useSuspenseInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useSuspenseInfiniteQuery as any)(() => ({
+          query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-pages'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
               Promise.resolve(`p${pageParam}`),
@@ -1240,7 +1240,7 @@ describe('useSuspenseInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useSuspenseInfiniteQuery as any)(() => ({
+          query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-refetch'],
             queryFn: () => {
               callCount++
@@ -1273,7 +1273,7 @@ describe('useSuspenseInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useSuspenseInfiniteQuery as any)(() => ({
+          query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-result'],
             queryFn: () => Promise.resolve('v'),
             initialPageParam: 0,
@@ -1301,7 +1301,7 @@ describe('useSuspenseInfiniteQuery', () => {
         QueryClientProvider,
         { client },
         h(() => {
-          query = (useSuspenseInfiniteQuery as any)(() => ({
+          query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-reactive', key()],
             queryFn: () => Promise.resolve(`val-${key()}`),
             initialPageParam: 0,

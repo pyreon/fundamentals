@@ -34,10 +34,15 @@ export interface UseSuspenseQueryResult<TData, TError = DefaultError> {
   refetch: () => Promise<QueryObserverResult<TData, TError>>
 }
 
-export interface UseSuspenseInfiniteQueryResult<TData, TError = DefaultError> {
-  result: Signal<InfiniteQueryObserverResult<TData, TError>>
-  /** Always InfiniteData<TData> — never undefined inside a QuerySuspense boundary. */
-  data: Signal<InfiniteData<TData>>
+export interface UseSuspenseInfiniteQueryResult<
+  TQueryFnData,
+  TError = DefaultError,
+> {
+  result: Signal<
+    InfiniteQueryObserverResult<InfiniteData<TQueryFnData>, TError>
+  >
+  /** Always InfiniteData<TQueryFnData> — never undefined inside a QuerySuspense boundary. */
+  data: Signal<InfiniteData<TQueryFnData>>
   error: Signal<TError | null>
   status: Signal<'pending' | 'error' | 'success'>
   isFetching: Signal<boolean>
@@ -47,9 +52,15 @@ export interface UseSuspenseInfiniteQueryResult<TData, TError = DefaultError> {
   isSuccess: Signal<boolean>
   hasNextPage: Signal<boolean>
   hasPreviousPage: Signal<boolean>
-  fetchNextPage: () => Promise<InfiniteQueryObserverResult<TData, TError>>
-  fetchPreviousPage: () => Promise<InfiniteQueryObserverResult<TData, TError>>
-  refetch: () => Promise<InfiniteQueryObserverResult<TData, TError>>
+  fetchNextPage: () => Promise<
+    InfiniteQueryObserverResult<InfiniteData<TQueryFnData>, TError>
+  >
+  fetchPreviousPage: () => Promise<
+    InfiniteQueryObserverResult<InfiniteData<TQueryFnData>, TError>
+  >
+  refetch: () => Promise<
+    QueryObserverResult<InfiniteData<TQueryFnData>, TError>
+  >
 }
 
 // ─── QuerySuspense ──────────────────────────────────────────────────────────
@@ -196,23 +207,33 @@ export function useSuspenseQuery<
  * (never undefined). Use inside a `QuerySuspense` boundary.
  */
 export function useSuspenseInfiniteQuery<
-  TData = unknown,
+  TQueryFnData = unknown,
   TError = DefaultError,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
 >(
-  options: () => InfiniteQueryObserverOptions<any, any, any, any, any>,
-): UseSuspenseInfiniteQueryResult<TData, TError> {
+  options: () => InfiniteQueryObserverOptions<
+    TQueryFnData,
+    TError,
+    InfiniteData<TQueryFnData>,
+    TQueryKey,
+    TPageParam
+  >,
+): UseSuspenseInfiniteQueryResult<TQueryFnData, TError> {
   const client = useQueryClient()
-  const observer = new InfiniteQueryObserver(client, options() as any)
+  const observer = new InfiniteQueryObserver<
+    TQueryFnData,
+    TError,
+    InfiniteData<TQueryFnData>,
+    TQueryKey,
+    TPageParam
+  >(client, options())
   const initial = observer.getCurrentResult()
 
-  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(
-    initial as any,
-  )
-  const dataSig = signal<InfiniteData<TData>>(
-    initial.data as InfiniteData<TData>,
-  )
-  const errorSig = signal<TError | null>((initial.error ?? null) as any)
-  const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
+  const resultSig = signal(initial)
+  const dataSig = signal(initial.data as InfiniteData<TQueryFnData>)
+  const errorSig = signal<TError | null>(initial.error ?? null)
+  const statusSig = signal(initial.status)
   const isFetching = signal(initial.isFetching)
   const isFetchingNextPage = signal(initial.isFetchingNextPage)
   const isFetchingPreviousPage = signal(initial.isFetchingPreviousPage)
@@ -221,10 +242,10 @@ export function useSuspenseInfiniteQuery<
   const hasNextPage = signal(initial.hasNextPage)
   const hasPreviousPage = signal(initial.hasPreviousPage)
 
-  const unsub = observer.subscribe((r: any) => {
+  const unsub = observer.subscribe((r) => {
     batch(() => {
       resultSig.set(r)
-      if (r.data !== undefined) dataSig.set(r.data as InfiniteData<TData>)
+      if (r.data !== undefined) dataSig.set(r.data)
       errorSig.set(r.error ?? null)
       statusSig.set(r.status)
       isFetching.set(r.isFetching)
@@ -238,7 +259,7 @@ export function useSuspenseInfiniteQuery<
   })
 
   effect(() => {
-    observer.setOptions(options() as any)
+    observer.setOptions(options())
   })
   onUnmount(() => unsub())
 
@@ -254,8 +275,8 @@ export function useSuspenseInfiniteQuery<
     isSuccess,
     hasNextPage,
     hasPreviousPage,
-    fetchNextPage: () => observer.fetchNextPage() as any,
-    fetchPreviousPage: () => observer.fetchPreviousPage() as any,
-    refetch: () => observer.refetch() as any,
+    fetchNextPage: () => observer.fetchNextPage(),
+    fetchPreviousPage: () => observer.fetchPreviousPage(),
+    refetch: () => observer.refetch(),
   }
 }

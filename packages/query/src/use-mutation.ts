@@ -1,6 +1,3 @@
-const __DEV__ =
-  typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'
-
 import { onUnmount } from '@pyreon/core'
 import { signal, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
@@ -28,9 +25,14 @@ export interface UseMutationResult<
   isSuccess: Signal<boolean>
   isError: Signal<boolean>
   isIdle: Signal<boolean>
-  /** Fire the mutation. Callbacks in the second arg are per-call (not stored). */
-  mutate: MutateFunction<TData, TError, TVariables, TContext>
-  /** Like mutate but returns a promise. */
+  /** Fire the mutation (fire-and-forget). Errors are captured in the error signal. */
+  mutate: (
+    variables: TVariables,
+    options?: Parameters<
+      MutateFunction<TData, TError, TVariables, TContext>
+    >[1],
+  ) => void
+  /** Like mutate but returns a promise — use for try/catch error handling. */
   mutateAsync: MutateFunction<TData, TError, TVariables, TContext>
   /** Reset the mutation state back to idle. */
   reset: () => void
@@ -102,13 +104,12 @@ export function useMutation<
     isSuccess,
     isError,
     isIdle,
-    mutate: ((vars: TVariables, callbackOptions?: any) => {
+    mutate: (vars, callbackOptions) => {
       observer.mutate(vars, callbackOptions).catch(() => {
         // Error is already captured in the error signal via the observer subscription.
         // This catch prevents an unhandled promise rejection for fire-and-forget callers.
-        // Use mutateAsync() if you need to handle the error in a try/catch.
       })
-    }) as MutateFunction<TData, TError, TVariables, TContext>,
+    },
     mutateAsync: (vars, callbackOptions) =>
       observer.mutate(vars, callbackOptions),
     reset: () => observer.reset(),
