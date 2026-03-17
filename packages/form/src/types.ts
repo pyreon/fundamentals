@@ -1,4 +1,4 @@
-import type { Signal } from '@pyreon/reactivity'
+import type { Signal, Computed } from '@pyreon/reactivity'
 
 export type ValidationError = string | undefined
 
@@ -50,9 +50,9 @@ export interface FormState<TValues extends Record<string, unknown>> {
   /** Whether async validation is currently running. */
   isValidating: Signal<boolean>
   /** Whether any field has an error. */
-  isValid: Signal<boolean>
+  isValid: Signal<boolean> | Computed<boolean>
   /** Whether any field value differs from its initial value. */
-  isDirty: Signal<boolean>
+  isDirty: Signal<boolean> | Computed<boolean>
   /** Number of times the form has been submitted. */
   submitCount: Signal<number>
   /** Error thrown by onSubmit (undefined if no error). */

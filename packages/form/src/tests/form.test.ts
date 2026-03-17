@@ -33,7 +33,7 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   }
 }
 
-interface LoginForm {
+type LoginForm = {
   email: string
   password: string
 }
@@ -858,9 +858,9 @@ describe('useFieldArray', () => {
   it('items have stable keys', () => {
     const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'b']))
 
-    const keysBefore = arr.items().map((i) => i.key)
+    const keysBefore = arr.items().map((i: any) => i.key)
     arr.append('c')
-    const keysAfter = arr.items().map((i) => i.key)
+    const keysAfter = arr.items().map((i: any) => i.key)
 
     // First two keys should be preserved
     expect(keysAfter[0]).toBe(keysBefore[0])
@@ -1596,10 +1596,10 @@ describe('useWatch', () => {
       return { form, first, last }
     })
 
-    expect(result.first()).toBe('John')
-    expect(result.last()).toBe('Doe')
+    expect(result.first!()).toBe('John')
+    expect(result.last!()).toBe('Doe')
     result.form.fields.first.setValue('Jane')
-    expect(result.first()).toBe('Jane')
+    expect(result.first!()).toBe('Jane')
     unmount()
   })
 

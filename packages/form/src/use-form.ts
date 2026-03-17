@@ -151,7 +151,7 @@ export function useForm<TValues extends Record<string, unknown>>(
         }
       },
       reset: () => {
-        valueSig.set(initial)
+        valueSig.set(initial as TValues[typeof name])
         errorSig.set(undefined)
         touchedSig.set(false)
         dirtySig.set(false)
@@ -377,7 +377,7 @@ export function useForm<TValues extends Record<string, unknown>>(
     if (opts?.type === 'checkbox') {
       props.checked = computed(() =>
         Boolean(fieldState.value()),
-      ) as Signal<boolean>
+      ) as unknown as Signal<boolean>
     }
 
     registerCache.set(cacheKey, props as FieldRegisterProps<unknown>)

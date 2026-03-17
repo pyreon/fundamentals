@@ -4,7 +4,7 @@ import { signal, effect } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { renderToCanvas, defaultRender } from '../render'
 import { render as previewRender } from '../preview'
-import type { Meta, StoryObj, DecoratorFn, StoryContext } from '../types'
+import type { Meta, StoryObj, DecoratorFn, StoryFn, StoryContext } from '../types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

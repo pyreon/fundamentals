@@ -139,7 +139,8 @@ describe('createI18n', () => {
       locale: 'en',
       messages: { en },
       onMissingKey: () => {
-        // intentionally returns void
+        // intentionally returns undefined
+        return undefined
       },
     })
 

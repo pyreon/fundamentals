@@ -1,5 +1,5 @@
 import { computed } from '@pyreon/reactivity'
-import type { Signal } from '@pyreon/reactivity'
+import type { Signal, Computed } from '@pyreon/reactivity'
 import type {
   FieldState,
   FormState,
@@ -25,9 +25,9 @@ export interface UseFieldResult<T> {
   /** Register props for input binding. */
   register: (opts?: { type?: 'checkbox' }) => FieldRegisterProps<T>
   /** Whether the field has an error (computed). */
-  hasError: Signal<boolean>
+  hasError: Computed<boolean>
   /** Whether the field should show its error (touched + has error). */
-  showError: Signal<boolean>
+  showError: Computed<boolean>
 }
 
 /**

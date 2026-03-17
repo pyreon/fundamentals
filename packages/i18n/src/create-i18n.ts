@@ -48,7 +48,7 @@ function deepMerge(
         sourceVal as TranslationDictionary,
       )
     } else {
-      target[key] = sourceVal
+      target[key] = sourceVal!
     }
   }
 }
@@ -204,7 +204,7 @@ export function createI18n(options: I18nOptions): I18nInstance {
     // Missing key handler
     if (onMissingKey) {
       const custom = onMissingKey(currentLocale, key, namespace)
-      if (custom !== undefined) return custom
+      if (custom !== undefined) return custom!
     }
 
     // Return the key itself as a visual fallback

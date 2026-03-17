@@ -7,7 +7,6 @@ import type {
   InfiniteData,
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
-  QueryKey,
 } from '@tanstack/query-core'
 import { useQueryClient } from './query-client'
 
@@ -49,34 +48,18 @@ export interface UseInfiniteQueryResult<TData, TError = DefaultError> {
 export function useInfiniteQuery<
   TData = unknown,
   TError = DefaultError,
-  TKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
 >(
-  options: () => InfiniteQueryObserverOptions<
-    TData,
-    TError,
-    InfiniteData<TData>,
-    TData,
-    TKey,
-    TPageParam
-  >,
+  options: () => InfiniteQueryObserverOptions<any, any, any, any, any>,
 ): UseInfiniteQueryResult<TData, TError> {
   const client = useQueryClient()
-  const observer = new InfiniteQueryObserver<
-    TData,
-    TError,
-    InfiniteData<TData>,
-    TData,
-    TKey,
-    TPageParam
-  >(client, options())
+  const observer = new InfiniteQueryObserver(client, options() as any)
   const initial = observer.getCurrentResult()
 
   // Fine-grained signals: each field is independent so only effects that read
   // e.g. `query.isFetchingNextPage()` re-run when that specific field changes.
-  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial)
-  const dataSig = signal<InfiniteData<TData> | undefined>(initial.data)
-  const errorSig = signal<TError | null>(initial.error ?? null)
+  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial as any)
+  const dataSig = signal<InfiniteData<TData> | undefined>(initial.data as any)
+  const errorSig = signal<TError | null>((initial.error ?? null) as any)
   const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
   const isPending = signal(initial.isPending)
   const isLoading = signal(initial.isLoading)
@@ -89,7 +72,7 @@ export function useInfiniteQuery<
   const hasPreviousPage = signal(initial.hasPreviousPage)
 
   // batch() coalesces all signal updates into one notification flush.
-  const unsub = observer.subscribe((r) => {
+  const unsub = observer.subscribe((r: any) => {
     batch(() => {
       resultSig.set(r)
       dataSig.set(r.data)
@@ -109,7 +92,7 @@ export function useInfiniteQuery<
 
   // Track reactive options: when signals inside options() change, update the observer.
   effect(() => {
-    observer.setOptions(options())
+    observer.setOptions(options() as any)
   })
 
   onUnmount(() => unsub())
@@ -128,8 +111,8 @@ export function useInfiniteQuery<
     isSuccess,
     hasNextPage,
     hasPreviousPage,
-    fetchNextPage: () => observer.fetchNextPage(),
-    fetchPreviousPage: () => observer.fetchPreviousPage(),
-    refetch: () => observer.refetch(),
+    fetchNextPage: () => observer.fetchNextPage() as any,
+    fetchPreviousPage: () => observer.fetchPreviousPage() as any,
+    refetch: () => observer.refetch() as any,
   }
 }

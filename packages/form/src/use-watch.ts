@@ -1,5 +1,5 @@
 import { computed } from '@pyreon/reactivity'
-import type { Signal } from '@pyreon/reactivity'
+import type { Signal, Computed } from '@pyreon/reactivity'
 import type { FormState } from './types'
 
 /**
@@ -36,7 +36,7 @@ export function useWatch<
 
 export function useWatch<TValues extends Record<string, unknown>>(
   form: FormState<TValues>,
-): Signal<TValues>
+): Computed<TValues>
 
 export function useWatch<
   TValues extends Record<string, unknown>,
@@ -44,7 +44,7 @@ export function useWatch<
 >(
   form: FormState<TValues>,
   nameOrNames?: K | K[],
-): Signal<TValues[K]> | Signal<TValues[K]>[] | Signal<TValues> {
+): Signal<TValues[K]> | Signal<TValues[K]>[] | Computed<TValues> {
   // Watch all fields
   if (nameOrNames === undefined) {
     return computed(() => {

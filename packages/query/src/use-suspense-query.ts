@@ -198,34 +198,18 @@ export function useSuspenseQuery<
 export function useSuspenseInfiniteQuery<
   TData = unknown,
   TError = DefaultError,
-  TKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
 >(
-  options: () => InfiniteQueryObserverOptions<
-    TData,
-    TError,
-    InfiniteData<TData>,
-    TData,
-    TKey,
-    TPageParam
-  >,
+  options: () => InfiniteQueryObserverOptions<any, any, any, any, any>,
 ): UseSuspenseInfiniteQueryResult<TData, TError> {
   const client = useQueryClient()
-  const observer = new InfiniteQueryObserver<
-    TData,
-    TError,
-    InfiniteData<TData>,
-    TData,
-    TKey,
-    TPageParam
-  >(client, options())
+  const observer = new InfiniteQueryObserver(client, options() as any)
   const initial = observer.getCurrentResult()
 
-  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial)
+  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial as any)
   const dataSig = signal<InfiniteData<TData>>(
     initial.data as InfiniteData<TData>,
   )
-  const errorSig = signal<TError | null>(initial.error ?? null)
+  const errorSig = signal<TError | null>((initial.error ?? null) as any)
   const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
   const isFetching = signal(initial.isFetching)
   const isFetchingNextPage = signal(initial.isFetchingNextPage)
@@ -235,7 +219,7 @@ export function useSuspenseInfiniteQuery<
   const hasNextPage = signal(initial.hasNextPage)
   const hasPreviousPage = signal(initial.hasPreviousPage)
 
-  const unsub = observer.subscribe((r) => {
+  const unsub = observer.subscribe((r: any) => {
     batch(() => {
       resultSig.set(r)
       if (r.data !== undefined) dataSig.set(r.data as InfiniteData<TData>)
@@ -252,7 +236,7 @@ export function useSuspenseInfiniteQuery<
   })
 
   effect(() => {
-    observer.setOptions(options())
+    observer.setOptions(options() as any)
   })
   onUnmount(() => unsub())
 
@@ -268,8 +252,8 @@ export function useSuspenseInfiniteQuery<
     isSuccess,
     hasNextPage,
     hasPreviousPage,
-    fetchNextPage: () => observer.fetchNextPage(),
-    fetchPreviousPage: () => observer.fetchPreviousPage(),
-    refetch: () => observer.refetch(),
+    fetchNextPage: () => observer.fetchNextPage() as any,
+    fetchPreviousPage: () => observer.fetchPreviousPage() as any,
+    refetch: () => observer.refetch() as any,
   }
 }

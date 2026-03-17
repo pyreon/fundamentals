@@ -1,5 +1,5 @@
 import { computed } from '@pyreon/reactivity'
-import type { Signal } from '@pyreon/reactivity'
+import type { Computed } from '@pyreon/reactivity'
 import type { FormState, ValidationError } from './types'
 
 export interface FormStateSummary<TValues extends Record<string, unknown>> {
@@ -29,17 +29,17 @@ export interface FormStateSummary<TValues extends Record<string, unknown>> {
  */
 export function useFormState<TValues extends Record<string, unknown>>(
   form: FormState<TValues>,
-): Signal<FormStateSummary<TValues>>
+): Computed<FormStateSummary<TValues>>
 
 export function useFormState<TValues extends Record<string, unknown>, R>(
   form: FormState<TValues>,
   selector: (state: FormStateSummary<TValues>) => R,
-): Signal<R>
+): Computed<R>
 
 export function useFormState<TValues extends Record<string, unknown>, R>(
   form: FormState<TValues>,
   selector?: (state: FormStateSummary<TValues>) => R,
-): Signal<FormStateSummary<TValues>> | Signal<R> {
+): Computed<FormStateSummary<TValues>> | Computed<R> {
   const buildSummary = (): FormStateSummary<TValues> => {
     const touchedFields = {} as Partial<Record<keyof TValues, boolean>>
     const dirtyFields = {} as Partial<Record<keyof TValues, boolean>>

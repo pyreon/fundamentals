@@ -1,5 +1,5 @@
 import { h } from '@pyreon/core'
-import { signal, computed, type Signal } from '@pyreon/reactivity'
+import { signal, computed, type Computed } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import {
   useTable,
@@ -105,7 +105,7 @@ describe('useTable', () => {
 
   it('reactive subscribers — computed derived from table re-evaluates on data change', () => {
     const data = signal<Person[]>(defaultData)
-    let rowCount: Signal<number> | undefined
+    let rowCount: Computed<number> | undefined
 
     const { unmount } = mountWithTable(() => {
       const table = useTable(() => ({
