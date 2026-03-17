@@ -70,7 +70,7 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - name: Audit dependencies
-        run: bun pm audit --level=high
+        run: bun pm scan
 
   dependency-review:
     name: Dependency Review

@@ -22,10 +22,8 @@ const canvasState = new WeakMap<HTMLElement, () => void>()
 export function renderToCanvas(
   {
     storyFn,
-    _storyContext,
     showMain,
     showError,
-    _forceRemount,
   }: {
     storyFn: () => VNodeChild
     storyContext: {
@@ -38,7 +36,7 @@ export function renderToCanvas(
     forceRemount: boolean
   },
   canvasElement: HTMLElement,
-): undefined | (() => void) {
+): void {
   // Always clean up the previous render
   const prevUnmount = canvasState.get(canvasElement)
   if (prevUnmount) {
