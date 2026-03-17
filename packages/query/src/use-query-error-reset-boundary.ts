@@ -68,10 +68,12 @@ export function QueryErrorResetBoundary(props: QueryErrorResetBoundaryProps): VN
  */
 export function useQueryErrorResetBoundary(): ErrorResetBoundaryValue {
   const boundary = useContext(QueryErrorResetBoundaryContext)
+  // Always call useQueryClient to respect hook ordering rules
+  const client = useQueryClient()
+
   if (boundary) return boundary
 
   // Fallback: no explicit boundary — use the QueryClient directly.
-  const client = useQueryClient()
   return {
     reset: () => {
       client.refetchQueries({ predicate: (query) => query.state.status === "error" })

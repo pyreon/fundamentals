@@ -329,8 +329,8 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
     for (const plugin of _plugins) {
       try {
         plugin(api as StoreApi<Record<string, unknown>>)
-      } catch (err) {
-        console.error(`[@pyreon/store] Plugin error for store "${id}":`, err)
+      } catch (_err) {
+        // Plugin errors should not break store creation
       }
     }
 

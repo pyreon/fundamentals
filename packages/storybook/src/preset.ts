@@ -11,7 +11,7 @@
 
 import { dirname, join } from "node:path"
 
-function getAbsolutePath(value: string): string {
+function _getAbsolutePath(value: string): string {
   return dirname(require.resolve(join(value, "package.json")))
 }
 

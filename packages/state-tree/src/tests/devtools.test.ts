@@ -1,4 +1,4 @@
-import { model, getSnapshot } from "../index"
+import { model, } from "../index"
 import {
   registerInstance,
   unregisterInstance,

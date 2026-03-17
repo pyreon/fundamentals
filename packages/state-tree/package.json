@@ -26,10 +26,10 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/reactivity": ">=0.0.1"
+    "@pyreon/reactivity": "^0.2.1"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/reactivity": "file:../../../pyreon/packages/reactivity"
+    "@pyreon/reactivity": "^0.2.1"
   }
 }

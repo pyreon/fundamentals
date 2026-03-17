@@ -67,8 +67,8 @@ packages/[name]/
 
 ### Dependencies
 
-- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (>=0.0.1)
-- Dev dependencies use `file:` paths to `../../../pyreon/packages/[name]`
+- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (^0.1.2)
+- Dev dependencies use npm versions (^0.1.2) for `@pyreon/core`, `@pyreon/reactivity`, `@pyreon/runtime-dom`
 - TanStack packages (`query`, `table`, `virtual`) have `@tanstack/*-core` as direct deps
 
 ### Testing & Linting

@@ -82,7 +82,7 @@ export interface ActionCall {
   path: string
 }
 
-export type MiddlewareFn = (call: ActionCall, next: (call: ActionCall) => unknown) => unknown
+export type MiddlewareFn = (call: ActionCall, next: (nextCall: ActionCall) => unknown) => unknown
 
 // ─── Instance metadata ────────────────────────────────────────────────────────
 

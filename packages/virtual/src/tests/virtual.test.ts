@@ -2,7 +2,6 @@ import { h } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { useVirtualizer, useWindowVirtualizer } from '../index'
-import type { UseVirtualizerResult, UseWindowVirtualizerResult } from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -604,9 +603,9 @@ describe('useWindowVirtualizer', () => {
     const origDoc = globalThis.document
     const origWin = globalThis.window
     try {
-      // @ts-ignore — temporarily remove globals to exercise SSR fallback branches
+      // @ts-expect-error — temporarily remove globals to exercise SSR fallback branches
       delete globalThis.document
-      // @ts-ignore
+      // @ts-expect-error
       delete globalThis.window
 
       const { totalSize } = useWindowVirtualizer(() => ({

@@ -50,7 +50,7 @@ export interface I18nOptions {
    * Missing key handler — called when a translation key is not found.
    * Useful for logging, reporting, or returning a custom fallback.
    */
-  onMissingKey?: (locale: string, key: string, namespace?: string) => string | void
+  onMissingKey?: (locale: string, key: string, namespace?: string) => string | undefined
 }
 
 /** The public i18n instance returned by `createI18n()`. */

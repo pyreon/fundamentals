@@ -44,7 +44,7 @@ export function useTable<TData extends RowData>(
   // Resolve user options with adapter-required defaults.
   const resolvedOptions: TableOptionsResolved<TData> = {
     state: {},
-    onStateChange() {},
+    onStateChange() { /* default noop */ },
     renderFallbackValue: null,
     ...options(),
   }

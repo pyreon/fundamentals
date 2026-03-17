@@ -29,13 +29,12 @@ function makeClient() {
 }
 
 /** Mount a component inside a QueryClientProvider, return unmount fn. */
-function withProvider(client: QueryClient, component: () => void): () => void {
+function _withProvider(client: QueryClient, component: () => void): () => void {
   const el = document.createElement("div")
   document.body.appendChild(el)
-  let captured: ReturnType<typeof component> | undefined
   const unmount = mount(
     h(QueryClientProvider, { client }, () => {
-      captured = component()
+      component()
       return null
     }),
     el,
@@ -109,7 +108,7 @@ describe("useQuery", () => {
         h(() => {
           query = useQuery(() => ({
             queryKey: ["test-pending"],
-            queryFn: () => new Promise(() => {}), // never resolves
+            queryFn: () => new Promise(() => { /* never resolves */ }), // never resolves
           }))
           return null
         }, null),
@@ -171,7 +170,7 @@ describe("useQuery", () => {
     )
 
     reject(new Error("fetch failed"))
-    await promise.catch(() => {})
+    await promise.catch(() => { /* expected */ })
     await new Promise(r => setTimeout(r, 0))
 
     expect(query!.isError()).toBe(true)
@@ -621,7 +620,7 @@ describe("useSuspenseQuery + QuerySuspense", () => {
     )
 
     reject(new Error("sq failed"))
-    await promise.catch(() => {})
+    await promise.catch(() => { /* expected */ })
     await new Promise(r => setTimeout(r, 10))
     expect(errorMsg).toBe("sq failed")
     unmount(); el.remove()
@@ -741,7 +740,7 @@ describe("useInfiniteQuery", () => {
         h(() => {
           query = useInfiniteQuery(() => ({
             queryKey: ["inf-pending"],
-            queryFn: () => new Promise(() => {}),
+            queryFn: () => new Promise(() => { /* never resolves */ }),
             initialPageParam: 0,
             getNextPageParam: () => undefined,
           }))
@@ -932,7 +931,7 @@ describe("useInfiniteQuery", () => {
       el,
     )
 
-    await new Promise(r => setTimeout(r, 20))
+    await new Promise(resolve => setTimeout(resolve, 20))
     const r = query!.result()
     expect(r.status).toBe("success")
     expect(r.data?.pages).toEqual(["val"])
@@ -1228,7 +1227,7 @@ describe("useSuspenseQuery — additional", () => {
     )
 
     reject(new Error("rethrow test"))
-    await promise.catch(() => {})
+    await promise.catch(() => { /* expected */ })
     await new Promise(r => setTimeout(r, 10))
     expect(query!.isError()).toBe(true)
     expect(query!.isPending()).toBe(false)
@@ -1244,7 +1243,7 @@ describe("useSuspenseQuery — additional", () => {
         h(() => {
           query = useSuspenseQuery(() => ({
             queryKey: ["sq-fn-fallback"],
-            queryFn: () => new Promise(() => {}),
+            queryFn: () => new Promise(() => { /* never resolves */ }),
           }))
           return h(QuerySuspense, { query: query!, fallback: () => "loading fn" }, () => null)
         }, null),
@@ -1416,7 +1415,7 @@ describe("useSuspenseQuery — error without handler (QuerySuspense throw branch
     const el = document.createElement("div")
     document.body.appendChild(el)
 
-    let thrownError: unknown = null
+    const _thrownError: unknown = null
     let query: ReturnType<typeof useSuspenseQuery> | undefined
 
     const unmount = mount(
@@ -1436,7 +1435,7 @@ describe("useSuspenseQuery — error without handler (QuerySuspense throw branch
     )
 
     reject(new Error("unhandled suspense error"))
-    await promise.catch(() => {})
+    await promise.catch(() => { /* expected */ })
     await new Promise(r => setTimeout(r, 10))
 
     // The error state should be set on the query
@@ -1471,7 +1470,7 @@ describe("useSuspenseQuery — error without handler (QuerySuspense throw branch
     )
 
     reject(new Error("direct throw"))
-    await promise.catch(() => {})
+    await promise.catch(() => { /* expected */ })
     await new Promise(r => setTimeout(r, 10))
 
     // Manually invoke QuerySuspense to verify it throws when no error handler

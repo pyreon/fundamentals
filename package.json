@@ -15,6 +15,7 @@
     "release": "bun run build && changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.7",
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
     "@types/bun": "^1.3.10",
@@ -25,10 +26,5 @@
     "@vitus-labs/tools-vitest": "latest",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
-  },
-  "overrides": {
-    "@pyreon/reactivity": "file:../pyreon/packages/reactivity",
-    "@pyreon/core": "file:../pyreon/packages/core",
-    "@pyreon/runtime-dom": "file:../pyreon/packages/runtime-dom"
   }
 }
