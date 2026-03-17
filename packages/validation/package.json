@@ -58,9 +58,15 @@
     "@pyreon/form": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "zod": { "optional": true },
-    "valibot": { "optional": true },
-    "arktype": { "optional": true }
+    "zod": {
+      "optional": true
+    },
+    "valibot": {
+      "optional": true
+    },
+    "arktype": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",

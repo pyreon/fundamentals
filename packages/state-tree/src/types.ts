@@ -1,9 +1,9 @@
-import type { Computed, Signal } from "@pyreon/reactivity"
+import type { Computed, Signal } from '@pyreon/reactivity'
 
 // ─── Model brand ──────────────────────────────────────────────────────────────
 
 /** Property key stamped on every ModelDefinition to distinguish it from plain objects. */
-export const MODEL_BRAND = "__pyreonMod" as const
+export const MODEL_BRAND = '__pyreonMod' as const
 
 // ─── State type helpers ───────────────────────────────────────────────────────
 
@@ -31,7 +31,8 @@ export type StateSignals<TState extends StateShape> = {
  * strongly typed for state signals, `any` for actions and views so that
  * actions can call each other without circular type issues.
  */
-export type ModelSelf<TState extends StateShape> = StateSignals<TState> & Record<string, any>
+export type ModelSelf<TState extends StateShape> = StateSignals<TState> &
+  Record<string, any>
 
 /** The public instance type returned by `.create()` and hooks. */
 export type ModelInstance<
@@ -64,7 +65,7 @@ export type Snapshot<TState extends StateShape> = {
 // ─── Patch ────────────────────────────────────────────────────────────────────
 
 export interface Patch {
-  op: "replace"
+  op: 'replace'
   path: string
   value: unknown
 }
@@ -82,7 +83,10 @@ export interface ActionCall {
   path: string
 }
 
-export type MiddlewareFn = (call: ActionCall, next: (nextCall: ActionCall) => unknown) => unknown
+export type MiddlewareFn = (
+  call: ActionCall,
+  next: (nextCall: ActionCall) => unknown,
+) => unknown
 
 // ─── Instance metadata ────────────────────────────────────────────────────────
 

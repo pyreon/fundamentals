@@ -1,4 +1,8 @@
-import type { SchemaValidateFn, ValidateFn, ValidationError } from '@pyreon/form'
+import type {
+  SchemaValidateFn,
+  ValidateFn,
+  ValidationError,
+} from '@pyreon/form'
 import type { ValidationIssue } from './types'
 import { issuesToRecord } from './utils'
 
@@ -65,10 +69,15 @@ export function valibotSchema<TValues extends Record<string, unknown>>(
   return async (values: TValues) => {
     try {
       const result = await safeParseFn(schema, values)
-      if (result.success) return {} as Partial<Record<keyof TValues, ValidationError>>
-      return issuesToRecord<TValues>(valibotIssuesToGeneric(result.issues ?? []))
+      if (result.success)
+        return {} as Partial<Record<keyof TValues, ValidationError>>
+      return issuesToRecord<TValues>(
+        valibotIssuesToGeneric(result.issues ?? []),
+      )
     } catch (err) {
-      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+      return {
+        '': err instanceof Error ? err.message : String(err),
+      } as Partial<Record<keyof TValues, ValidationError>>
     }
   }
 }

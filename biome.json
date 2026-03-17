@@ -92,6 +92,7 @@
     }
   ],
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    "includes": ["**", "!**/lib", "!**/dist", "!**/coverage", "!**/node_modules"]
   }
 }

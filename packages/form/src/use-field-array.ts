@@ -111,9 +111,7 @@ export function useFieldArray<T>(initial: T[] = []): UseFieldArrayResult<T> {
     },
 
     values() {
-      return items
-        .peek()
-        .map((item) => item.value.peek())
+      return items.peek().map((item) => item.value.peek())
     },
   }
 }

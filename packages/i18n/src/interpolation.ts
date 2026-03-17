@@ -18,7 +18,7 @@ export function interpolate(
     if (value === undefined) return `{{${trimmed}}}`
     // Safely coerce — guard against malicious toString/valueOf
     try {
-      return typeof value === "object" && value !== null
+      return typeof value === 'object' && value !== null
         ? JSON.stringify(value)
         : `${value}`
     } catch {

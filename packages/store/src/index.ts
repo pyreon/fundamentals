@@ -24,23 +24,26 @@
  * AsyncLocalStorage-backed provider so each request gets isolated store state.
  */
 
-export type { Signal } from "@pyreon/reactivity"
-export { batch, computed, effect, signal } from "@pyreon/reactivity"
-import { batch } from "@pyreon/reactivity"
+export type { Signal } from '@pyreon/reactivity'
+export { batch, computed, effect, signal } from '@pyreon/reactivity'
+import { batch } from '@pyreon/reactivity'
 
-export { setRegistryProvider as setStoreRegistryProvider } from "./registry"
-import { getRegistry } from "./registry"
-import { _notifyChange } from "./devtools"
+export { setRegistryProvider as setStoreRegistryProvider } from './registry'
+import { getRegistry } from './registry'
+import { _notifyChange } from './devtools'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface MutationInfo {
   storeId: string
-  type: "direct" | "patch"
+  type: 'direct' | 'patch'
   events: { key: string; newValue: unknown; oldValue: unknown }[]
 }
 
-export type SubscribeCallback = (mutation: MutationInfo, state: Record<string, unknown>) => void
+export type SubscribeCallback = (
+  mutation: MutationInfo,
+  state: Record<string, unknown>,
+) => void
 
 export interface ActionContext {
   name: string
@@ -66,7 +69,10 @@ export interface StoreApi<T> {
   patch(partialState: Record<string, unknown>): void
   patch(fn: (state: Record<string, any>) => void): void
   /** Subscribe to state mutations. Returns an unsubscribe function. */
-  subscribe(callback: SubscribeCallback, options?: { immediate?: boolean }): () => void
+  subscribe(
+    callback: SubscribeCallback,
+    options?: { immediate?: boolean },
+  ): () => void
   /** Intercept action calls. Returns an unsubscribe function. */
   onAction(callback: OnActionCallback): () => void
   /** Reset all signals to their initial values. */
@@ -86,15 +92,15 @@ interface SignalLike {
 }
 
 function isSignalLike(v: unknown): v is SignalLike {
-  if (typeof v !== "function") return false
+  if (typeof v !== 'function') return false
   const fn = v as unknown as Record<string, unknown>
-  return typeof fn.set === "function" && typeof fn.peek === "function"
+  return typeof fn.set === 'function' && typeof fn.peek === 'function'
 }
 
 function isComputedLike(v: unknown): boolean {
-  if (typeof v !== "function") return false
+  if (typeof v !== 'function') return false
   const fn = v as unknown as Record<string, unknown>
-  return typeof fn.dispose === "function" && !isSignalLike(v)
+  return typeof fn.dispose === 'function' && !isSignalLike(v)
 }
 
 // ─── Plugin system ───────────────────────────────────────────────────────────
@@ -113,7 +119,10 @@ export function addStorePlugin(plugin: StorePlugin): void {
  * Returns a hook that returns a `StoreApi<T>` with the user's state under `.store`
  * and framework methods (`patch`, `subscribe`, `onAction`, `reset`, `dispose`) at the top level.
  */
-export function defineStore<T extends Record<string, unknown>>(id: string, setup: () => T): () => StoreApi<T> {
+export function defineStore<T extends Record<string, unknown>>(
+  id: string,
+  setup: () => T,
+): () => StoreApi<T> {
   return function useStore(): StoreApi<T> {
     const registry = getRegistry()
     if (registry.has(id)) return registry.get(id) as StoreApi<T>
@@ -132,7 +141,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
         initialValues.set(key, val.peek())
       } else if (isComputedLike(val)) {
         // computed — skip, just pass through
-      } else if (typeof val === "function") {
+      } else if (typeof val === 'function') {
         actionKeys.push(key)
       }
     }
@@ -140,7 +149,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
     // ─── subscribe infrastructure ───────────────────────────────────────
     const subscribers = new Set<SubscribeCallback>()
     let patchInProgress = false
-    let patchEvents: MutationInfo["events"] = []
+    let patchEvents: MutationInfo['events'] = []
 
     function getState(): Record<string, unknown> {
       const state: Record<string, unknown> = {}
@@ -158,7 +167,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
       if (subscribers.size === 0) return
       const mutation: MutationInfo = {
         storeId: id,
-        type: "direct",
+        type: 'direct',
         events: [{ key, newValue, oldValue }],
       }
       const state = getState()
@@ -205,7 +214,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
 
           // Handle async actions: if the result is a thenable, wait for
           // resolution before calling after/onError callbacks.
-          if (result != null && typeof (result as any).then === "function") {
+          if (result != null && typeof (result as any).then === 'function') {
             return (result as Promise<unknown>).then(
               (resolved) => {
                 for (const cb of afterCbs) cb(resolved)
@@ -232,7 +241,10 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
 
     for (const key of Object.keys(raw)) {
       if (actionKeys.includes(key)) {
-        userStore[key] = wrapAction(key, raw[key] as (...args: any[]) => unknown)
+        userStore[key] = wrapAction(
+          key,
+          raw[key] as (...args: any[]) => unknown,
+        )
       } else {
         userStore[key] = raw[key]
       }
@@ -248,12 +260,16 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
         return getState()
       },
 
-      patch(partialOrFn: Record<string, unknown> | ((state: Record<string, any>) => void)) {
+      patch(
+        partialOrFn:
+          | Record<string, unknown>
+          | ((state: Record<string, any>) => void),
+      ) {
         patchInProgress = true
         patchEvents = []
 
         batch(() => {
-          if (typeof partialOrFn === "function") {
+          if (typeof partialOrFn === 'function') {
             // Functional form: pass an object with the actual signals so user calls .set()
             const signalMap: Record<string, any> = {}
             for (const key of signalKeys) {
@@ -263,7 +279,12 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
           } else {
             // Object form: set values directly (skip reserved proto keys)
             for (const [key, value] of Object.entries(partialOrFn)) {
-              if (key === "__proto__" || key === "constructor" || key === "prototype") continue
+              if (
+                key === '__proto__' ||
+                key === 'constructor' ||
+                key === 'prototype'
+              )
+                continue
               if (signalKeys.includes(key)) {
                 ;(raw[key] as SignalLike).set(value)
               }
@@ -277,7 +298,7 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
         if (subscribers.size > 0 && patchEvents.length > 0) {
           const mutation: MutationInfo = {
             storeId: id,
-            type: "patch",
+            type: 'patch',
             events: patchEvents,
           }
           const state = getState()
@@ -286,12 +307,15 @@ export function defineStore<T extends Record<string, unknown>>(id: string, setup
         patchEvents = []
       },
 
-      subscribe(callback: SubscribeCallback, options?: { immediate?: boolean }): () => void {
+      subscribe(
+        callback: SubscribeCallback,
+        options?: { immediate?: boolean },
+      ): () => void {
         subscribers.add(callback)
         if (options?.immediate) {
           const mutation: MutationInfo = {
             storeId: id,
-            type: "direct",
+            type: 'direct',
             events: [],
           }
           callback(mutation, getState())

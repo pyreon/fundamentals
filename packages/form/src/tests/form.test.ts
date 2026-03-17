@@ -1,6 +1,14 @@
 import { h } from '@pyreon/core'
 import { mount } from '@pyreon/runtime-dom'
-import { useForm, useFieldArray, useField, useWatch, useFormState, FormProvider, useFormContext } from '../index'
+import {
+  useForm,
+  useFieldArray,
+  useField,
+  useWatch,
+  useFormState,
+  FormProvider,
+  useFormContext,
+} from '../index'
 import type { FormState } from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -10,13 +18,10 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(
-      () => {
-        result = fn()
-        return null
-      },
-      null,
-    ),
+    h(() => {
+      result = fn()
+      return null
+    }, null),
     el,
   )
   return {
@@ -40,7 +45,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { email: 'test@test.com', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -57,7 +64,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -72,7 +81,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -89,7 +100,9 @@ describe('useForm', () => {
         validators: {
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
       }),
     )
@@ -121,7 +134,9 @@ describe('useForm', () => {
         validators: {
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'change',
       }),
     )
@@ -234,13 +249,18 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: 'a@b.com', password: 'secret' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
     expect(form.values()).toEqual({ email: 'a@b.com', password: 'secret' })
     form.fields.email.setValue('new@email.com')
-    expect(form.values()).toEqual({ email: 'new@email.com', password: 'secret' })
+    expect(form.values()).toEqual({
+      email: 'new@email.com',
+      password: 'secret',
+    })
     unmount()
   })
 
@@ -252,7 +272,9 @@ describe('useForm', () => {
           email: (v) => (!v ? 'Required' : undefined),
           password: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -271,7 +293,9 @@ describe('useForm', () => {
         validators: {
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -295,7 +319,9 @@ describe('useForm', () => {
         validators: {
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -314,7 +340,9 @@ describe('useForm', () => {
             return v === 'taken' ? 'Already taken' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -328,7 +356,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: 'original', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -349,7 +379,9 @@ describe('useForm', () => {
           confirmPassword: (value, allValues) =>
             value !== allValues.password ? 'Passwords must match' : undefined,
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -368,7 +400,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -383,7 +417,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -403,7 +439,9 @@ describe('useForm', () => {
         validators: {
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
       }),
     )
@@ -421,7 +459,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -439,7 +479,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -464,7 +506,9 @@ describe('useForm', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
         debounceMs: 50,
       }),
@@ -497,7 +541,9 @@ describe('useForm', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         debounceMs: 500,
       }),
     )
@@ -513,7 +559,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -531,7 +579,9 @@ describe('useForm', () => {
           email: (v) => (!v ? 'Required' : undefined),
           password: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -549,7 +599,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -577,7 +629,9 @@ describe('useForm', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -593,13 +647,17 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: 'a@b.com', password: '12345678' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
     let preventDefaultCalled = false
     const fakeEvent = {
-      preventDefault: () => { preventDefaultCalled = true },
+      preventDefault: () => {
+        preventDefaultCalled = true
+      },
     } as unknown as Event
 
     await form.handleSubmit(fakeEvent)
@@ -611,7 +669,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { remember: false },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -620,7 +680,9 @@ describe('useForm', () => {
     expect(props.checked!()).toBe(false)
 
     // Simulate checkbox change
-    const fakeEvent = { target: { checked: true, value: 'on' } } as unknown as Event
+    const fakeEvent = {
+      target: { checked: true, value: 'on' },
+    } as unknown as Event
     props.onInput(fakeEvent)
 
     expect(form.fields.remember.value()).toBe(true)
@@ -632,7 +694,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm<LoginForm>({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -653,7 +717,9 @@ describe('useForm', () => {
     )
 
     expect(form.submitError()).toBeUndefined()
-    await form.handleSubmit().catch(() => { /* expected */ })
+    await form.handleSubmit().catch(() => {
+      /* expected */
+    })
     expect(form.submitError()).toBeInstanceOf(Error)
     expect((form.submitError() as Error).message).toBe('Server error')
 
@@ -667,7 +733,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { address: { city: 'NYC', zip: '10001' } },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -685,7 +753,9 @@ describe('useForm', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { tags: ['a', 'b'] },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -722,9 +792,7 @@ describe('useFieldArray', () => {
   })
 
   it('append adds to end', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a']))
 
     arr.append('b')
     expect(arr.values()).toEqual(['a', 'b'])
@@ -733,9 +801,7 @@ describe('useFieldArray', () => {
   })
 
   it('prepend adds to start', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['b']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['b']))
 
     arr.prepend('a')
     expect(arr.values()).toEqual(['a', 'b'])
@@ -743,9 +809,7 @@ describe('useFieldArray', () => {
   })
 
   it('insert at index', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a', 'c']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'c']))
 
     arr.insert(1, 'b')
     expect(arr.values()).toEqual(['a', 'b', 'c'])
@@ -783,9 +847,7 @@ describe('useFieldArray', () => {
   })
 
   it('replace replaces all items', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a', 'b']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'b']))
 
     arr.replace(['x', 'y', 'z'])
     expect(arr.values()).toEqual(['x', 'y', 'z'])
@@ -794,9 +856,7 @@ describe('useFieldArray', () => {
   })
 
   it('items have stable keys', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a', 'b']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'b']))
 
     const keysBefore = arr.items().map((i) => i.key)
     arr.append('c')
@@ -812,9 +872,7 @@ describe('useFieldArray', () => {
   })
 
   it('individual item values are reactive signals', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a', 'b']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'b']))
 
     const item = arr.items()[0]!
     expect(item.value()).toBe('a')
@@ -838,9 +896,7 @@ describe('useFieldArray', () => {
   })
 
   it('update with invalid (out-of-bounds) index is a no-op', () => {
-    const { result: arr, unmount } = mountWith(() =>
-      useFieldArray(['a', 'b']),
-    )
+    const { result: arr, unmount } = mountWith(() => useFieldArray(['a', 'b']))
 
     arr.update(99, 'nope')
     expect(arr.values()).toEqual(['a', 'b'])
@@ -890,7 +946,9 @@ describe('structuredEqual coverage via dirty tracking', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { items: ['a', 'b'] as string[] },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -912,7 +970,9 @@ describe('structuredEqual coverage via dirty tracking', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { items: ['a', 'b', 'c'] as string[] },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -932,7 +992,9 @@ describe('structuredEqual coverage via dirty tracking', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { meta: { x: 1, y: 2 } as Record<string, number> },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -954,7 +1016,9 @@ describe('structuredEqual coverage via dirty tracking', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { meta: { x: 1, y: 2 } as Record<string, number> },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -967,7 +1031,9 @@ describe('structuredEqual coverage via dirty tracking', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { data: { a: 1 } as Record<string, number> | null },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -991,7 +1057,9 @@ describe('validateOn: submit', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'submit',
       }),
     )
@@ -1057,7 +1125,9 @@ describe('debounceMs field validation', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'change',
         debounceMs: 50,
       }),
@@ -1086,7 +1156,9 @@ describe('debounceMs field validation', () => {
         validators: {
           name: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
         debounceMs: 30,
       }),
@@ -1115,7 +1187,9 @@ describe('debounceMs field validation', () => {
             return !v ? 'Required' : undefined
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
         debounceMs: 50,
       }),
@@ -1140,11 +1214,15 @@ describe('useForm nonexistent field operations', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { name: 'Alice' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
-    expect(() => form.setFieldValue('nonexistent' as any, 'value')).toThrow('[@pyreon/form] Field "nonexistent" does not exist')
+    expect(() => form.setFieldValue('nonexistent' as any, 'value')).toThrow(
+      '[@pyreon/form] Field "nonexistent" does not exist',
+    )
     expect(form.fields.name.value()).toBe('Alice')
     unmount()
   })
@@ -1153,11 +1231,15 @@ describe('useForm nonexistent field operations', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { name: 'Alice' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
-    expect(() => form.setFieldError('nonexistent' as any, 'error')).toThrow('[@pyreon/form] Field "nonexistent" does not exist')
+    expect(() => form.setFieldError('nonexistent' as any, 'error')).toThrow(
+      '[@pyreon/form] Field "nonexistent" does not exist',
+    )
     expect(form.isValid()).toBe(true)
     unmount()
   })
@@ -1166,7 +1248,9 @@ describe('useForm nonexistent field operations', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { name: 'Alice' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1183,7 +1267,9 @@ describe('dirty detection with mixed types', () => {
     const { result: form, unmount } = mountWith(() =>
       useForm({
         initialValues: { value: 0 as any },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1204,7 +1290,9 @@ describe('validate() branch coverage', () => {
           name: (v) => (!v ? 'Required' : undefined),
           email: (v) => (!v ? 'Required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1226,7 +1314,9 @@ describe('validate() branch coverage', () => {
             })
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
         validateOn: 'blur',
       }),
     )
@@ -1261,7 +1351,9 @@ describe('validate() branch coverage', () => {
             })
           },
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1311,7 +1403,9 @@ describe('validate() branch coverage', () => {
           name: (v) => (!v ? 'Required' : undefined),
           // noValidator field has no validator
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1338,7 +1432,9 @@ describe('debounceMs with validateOn change', () => {
         },
         validateOn: 'change',
         debounceMs: 50,
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -1364,7 +1460,9 @@ describe('useField', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { email: '', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const field = useField(form, 'email')
       return { form, field }
@@ -1382,7 +1480,9 @@ describe('useField', () => {
       const form = useForm({
         initialValues: { email: '' },
         validators: { email: (v) => (!v ? 'Required' : undefined) },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const field = useField(form, 'email')
       return { form, field }
@@ -1405,7 +1505,9 @@ describe('useField', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { email: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const field = useField(form, 'email')
       return { form, field }
@@ -1422,7 +1524,9 @@ describe('useField', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { remember: false },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const field = useField(form, 'remember')
       return { form, field }
@@ -1438,7 +1542,9 @@ describe('useField', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { name: 'initial' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const field = useField(form, 'name')
       return { form, field }
@@ -1464,7 +1570,9 @@ describe('useWatch', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { email: 'a@b.com', password: '' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const email = useWatch(form, 'email')
       return { form, email }
@@ -1480,7 +1588,9 @@ describe('useWatch', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { first: 'John', last: 'Doe' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const [first, last] = useWatch(form, ['first', 'last'])
       return { form, first, last }
@@ -1497,7 +1607,9 @@ describe('useWatch', () => {
     const { result, unmount } = mountWith(() => {
       const form = useForm({
         initialValues: { email: 'a@b.com', name: 'Alice' },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const all = useWatch(form)
       return { form, all }
@@ -1518,7 +1630,9 @@ describe('useFormState', () => {
       const form = useForm({
         initialValues: { email: '', password: '' },
         validators: { email: (v) => (!v ? 'Required' : undefined) },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const state = useFormState(form)
       return { form, state }
@@ -1552,7 +1666,9 @@ describe('useFormState', () => {
       const form = useForm({
         initialValues: { email: '' },
         validators: { email: (v) => (!v ? 'Required' : undefined) },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const canSubmit = useFormState(form, (s) => s.isValid && !s.isSubmitting)
       return { form, canSubmit }
@@ -1579,7 +1695,9 @@ describe('useFormState', () => {
           email: (v) => (!v ? 'Email required' : undefined),
           name: (v) => (!v ? 'Name required' : undefined),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       })
       const state = useFormState(form)
       return { form, state }
@@ -1605,7 +1723,9 @@ describe('FormProvider / useFormContext', () => {
       h(() => {
         const form = useForm({
           initialValues: { email: 'context@test.com' },
-          onSubmit: () => { /* noop */ },
+          onSubmit: () => {
+            /* noop */
+          },
         })
         return h(FormProvider as any, { form }, () =>
           h(() => {

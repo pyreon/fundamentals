@@ -1,6 +1,6 @@
-import { h, Fragment } from "@pyreon/core"
-import type { VNode, Props } from "@pyreon/core"
-import type { InterpolationValues } from "./types"
+import { h, Fragment } from '@pyreon/core'
+import type { VNode, Props } from '@pyreon/core'
+import type { InterpolationValues } from './types'
 
 const TAG_RE = /<(\w+)>(.*?)<\/\1>/gs
 
@@ -97,10 +97,10 @@ export function Trans(props: TransProps): VNode | string {
   const parts = parseRichText(translated)
 
   // If the result is a single plain string, return it directly
-  if (parts.length === 1 && typeof parts[0] === "string") return parts[0]
+  if (parts.length === 1 && typeof parts[0] === 'string') return parts[0]
 
   const children = parts.map((part) => {
-    if (typeof part === "string") return part
+    if (typeof part === 'string') return part
     const component = props.components![part.tag]
     // Unmatched tags: render children as plain text (no raw HTML markup)
     if (!component) return part.children

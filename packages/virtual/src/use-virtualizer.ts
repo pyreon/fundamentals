@@ -74,7 +74,9 @@ export function useVirtualizer<
   // Store latest user options so onChange always reads the freshest reference
   let latestUserOpts = options()
 
-  const instance = new Virtualizer<TScrollElement, TItemElement>(resolvedOptions)
+  const instance = new Virtualizer<TScrollElement, TItemElement>(
+    resolvedOptions,
+  )
 
   // Track reactive options: when signals inside options() change, update the virtualizer.
   const effectCleanup = effect(() => {

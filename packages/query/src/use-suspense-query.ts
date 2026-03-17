@@ -1,7 +1,7 @@
-import { onUnmount } from "@pyreon/core"
-import { signal, effect, batch } from "@pyreon/reactivity"
-import type { Signal } from "@pyreon/reactivity"
-import { QueryObserver, InfiniteQueryObserver } from "@tanstack/query-core"
+import { onUnmount } from '@pyreon/core'
+import { signal, effect, batch } from '@pyreon/reactivity'
+import type { Signal } from '@pyreon/reactivity'
+import { QueryObserver, InfiniteQueryObserver } from '@tanstack/query-core'
 import type {
   DefaultError,
   InfiniteData,
@@ -10,9 +10,9 @@ import type {
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
-} from "@tanstack/query-core"
-import type { VNodeChild, VNodeChildAtom } from "@pyreon/core"
-import { useQueryClient } from "./query-client"
+} from '@tanstack/query-core'
+import type { VNodeChild, VNodeChildAtom } from '@pyreon/core'
+import { useQueryClient } from './query-client'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ export interface UseSuspenseQueryResult<TData, TError = DefaultError> {
   /** Always TData — never undefined inside a QuerySuspense boundary. */
   data: Signal<TData>
   error: Signal<TError | null>
-  status: Signal<"pending" | "error" | "success">
+  status: Signal<'pending' | 'error' | 'success'>
   isPending: Signal<boolean>
   isFetching: Signal<boolean>
   isError: Signal<boolean>
@@ -39,7 +39,7 @@ export interface UseSuspenseInfiniteQueryResult<TData, TError = DefaultError> {
   /** Always InfiniteData<TData> — never undefined inside a QuerySuspense boundary. */
   data: Signal<InfiniteData<TData>>
   error: Signal<TError | null>
-  status: Signal<"pending" | "error" | "success">
+  status: Signal<'pending' | 'error' | 'success'>
   isFetching: Signal<boolean>
   isFetchingNextPage: Signal<boolean>
   isFetchingPreviousPage: Signal<boolean>
@@ -106,14 +106,18 @@ export function QuerySuspense(props: QuerySuspenseProps): VNodeChild {
     }
 
     // Pending state — show fallback
-    if (queries.some(q => q.isPending())) {
+    if (queries.some((q) => q.isPending())) {
       const fb = props.fallback
-      return (typeof fb === "function" ? (fb as () => VNodeChildAtom)() : (fb ?? null)) as VNodeChildAtom
+      return (
+        typeof fb === 'function' ? (fb as () => VNodeChildAtom)() : (fb ?? null)
+      ) as VNodeChildAtom
     }
 
     // All success — render children
     const ch = props.children
-    return (typeof ch === "function" ? (ch as () => VNodeChildAtom)() : ch) as VNodeChildAtom
+    return (
+      typeof ch === 'function' ? (ch as () => VNodeChildAtom)() : ch
+    ) as VNodeChildAtom
   }
 }
 
@@ -139,17 +143,20 @@ export function useSuspenseQuery<
   options: () => QueryObserverOptions<TData, TError, TData, TData, TKey>,
 ): UseSuspenseQueryResult<TData, TError> {
   const client = useQueryClient()
-  const observer = new QueryObserver<TData, TError, TData, TData, TKey>(client, options())
+  const observer = new QueryObserver<TData, TError, TData, TData, TKey>(
+    client,
+    options(),
+  )
   const initial = observer.getCurrentResult()
 
-  const resultSig  = signal<QueryObserverResult<TData, TError>>(initial)
-  const dataSig    = signal<TData>(initial.data as TData)
-  const errorSig   = signal<TError | null>(initial.error ?? null)
-  const statusSig  = signal<"pending" | "error" | "success">(initial.status)
-  const isPending  = signal(initial.isPending)
+  const resultSig = signal<QueryObserverResult<TData, TError>>(initial)
+  const dataSig = signal<TData>(initial.data as TData)
+  const errorSig = signal<TError | null>(initial.error ?? null)
+  const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
+  const isPending = signal(initial.isPending)
   const isFetching = signal(initial.isFetching)
-  const isError    = signal(initial.isError)
-  const isSuccess  = signal(initial.isSuccess)
+  const isError = signal(initial.isError)
+  const isSuccess = signal(initial.isSuccess)
 
   const unsub = observer.subscribe((r) => {
     batch(() => {
@@ -164,14 +171,16 @@ export function useSuspenseQuery<
     })
   })
 
-  effect(() => { observer.setOptions(options()) })
+  effect(() => {
+    observer.setOptions(options())
+  })
   onUnmount(() => unsub())
 
   return {
-    result:     resultSig,
-    data:       dataSig,
-    error:      errorSig,
-    status:     statusSig,
+    result: resultSig,
+    data: dataSig,
+    error: errorSig,
+    status: statusSig,
     isPending,
     isFetching,
     isError,
@@ -192,26 +201,39 @@ export function useSuspenseInfiniteQuery<
   TKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  options: () => InfiniteQueryObserverOptions<TData, TError, InfiniteData<TData>, TData, TKey, TPageParam>,
+  options: () => InfiniteQueryObserverOptions<
+    TData,
+    TError,
+    InfiniteData<TData>,
+    TData,
+    TKey,
+    TPageParam
+  >,
 ): UseSuspenseInfiniteQueryResult<TData, TError> {
   const client = useQueryClient()
-  const observer = new InfiniteQueryObserver<TData, TError, InfiniteData<TData>, TData, TKey, TPageParam>(
-    client,
-    options(),
-  )
+  const observer = new InfiniteQueryObserver<
+    TData,
+    TError,
+    InfiniteData<TData>,
+    TData,
+    TKey,
+    TPageParam
+  >(client, options())
   const initial = observer.getCurrentResult()
 
-  const resultSig              = signal<InfiniteQueryObserverResult<TData, TError>>(initial)
-  const dataSig                = signal<InfiniteData<TData>>(initial.data as InfiniteData<TData>)
-  const errorSig               = signal<TError | null>(initial.error ?? null)
-  const statusSig              = signal<"pending" | "error" | "success">(initial.status)
-  const isFetching             = signal(initial.isFetching)
-  const isFetchingNextPage     = signal(initial.isFetchingNextPage)
+  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial)
+  const dataSig = signal<InfiniteData<TData>>(
+    initial.data as InfiniteData<TData>,
+  )
+  const errorSig = signal<TError | null>(initial.error ?? null)
+  const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
+  const isFetching = signal(initial.isFetching)
+  const isFetchingNextPage = signal(initial.isFetchingNextPage)
   const isFetchingPreviousPage = signal(initial.isFetchingPreviousPage)
-  const isError                = signal(initial.isError)
-  const isSuccess              = signal(initial.isSuccess)
-  const hasNextPage            = signal(initial.hasNextPage)
-  const hasPreviousPage        = signal(initial.hasPreviousPage)
+  const isError = signal(initial.isError)
+  const isSuccess = signal(initial.isSuccess)
+  const hasNextPage = signal(initial.hasNextPage)
+  const hasPreviousPage = signal(initial.hasPreviousPage)
 
   const unsub = observer.subscribe((r) => {
     batch(() => {
@@ -229,7 +251,9 @@ export function useSuspenseInfiniteQuery<
     })
   })
 
-  effect(() => { observer.setOptions(options()) })
+  effect(() => {
+    observer.setOptions(options())
+  })
   onUnmount(() => unsub())
 
   return {
@@ -244,8 +268,8 @@ export function useSuspenseInfiniteQuery<
     isSuccess,
     hasNextPage,
     hasPreviousPage,
-    fetchNextPage:     () => observer.fetchNextPage(),
+    fetchNextPage: () => observer.fetchNextPage(),
     fetchPreviousPage: () => observer.fetchPreviousPage(),
-    refetch:           () => observer.refetch(),
+    refetch: () => observer.refetch(),
   }
 }

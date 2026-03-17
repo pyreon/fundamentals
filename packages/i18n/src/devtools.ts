@@ -49,10 +49,14 @@ export function getI18nInstance(name: string): object | undefined {
 }
 
 /** Safely read a property that may be a signal (callable). */
-function safeRead(obj: Record<string, unknown>, key: string, fallback: unknown = undefined): unknown {
+function safeRead(
+  obj: Record<string, unknown>,
+  key: string,
+  fallback: unknown = undefined,
+): unknown {
   try {
     const val = obj[key]
-    return typeof val === "function" ? (val as () => unknown)() : fallback
+    return typeof val === 'function' ? (val as () => unknown)() : fallback
   } catch {
     return fallback
   }
@@ -61,15 +65,17 @@ function safeRead(obj: Record<string, unknown>, key: string, fallback: unknown =
 /**
  * Get a snapshot of an i18n instance's state.
  */
-export function getI18nSnapshot(name: string): Record<string, unknown> | undefined {
+export function getI18nSnapshot(
+  name: string,
+): Record<string, unknown> | undefined {
   const instance = getI18nInstance(name) as Record<string, unknown> | undefined
   if (!instance) return undefined
-  const ns = safeRead(instance, "loadedNamespaces", new Set())
+  const ns = safeRead(instance, 'loadedNamespaces', new Set())
   return {
-    locale: safeRead(instance, "locale"),
-    availableLocales: safeRead(instance, "availableLocales", []),
+    locale: safeRead(instance, 'locale'),
+    availableLocales: safeRead(instance, 'availableLocales', []),
     loadedNamespaces: ns instanceof Set ? [...ns] : [],
-    isLoading: safeRead(instance, "isLoading", false),
+    isLoading: safeRead(instance, 'isLoading', false),
   }
 }
 

@@ -1,4 +1,8 @@
-import type { SchemaValidateFn, ValidateFn, ValidationError } from '@pyreon/form'
+import type {
+  SchemaValidateFn,
+  ValidateFn,
+  ValidationError,
+} from '@pyreon/form'
 import type { ValidationIssue } from './types'
 import { issuesToRecord } from './utils'
 
@@ -55,10 +59,13 @@ export function arktypeSchema<TValues extends Record<string, unknown>>(
   return (values: TValues) => {
     try {
       const result = schema(values)
-      if (!isArkErrors(result)) return {} as Partial<Record<keyof TValues, ValidationError>>
+      if (!isArkErrors(result))
+        return {} as Partial<Record<keyof TValues, ValidationError>>
       return issuesToRecord<TValues>(arkIssuesToGeneric(result))
     } catch (err) {
-      return { "": err instanceof Error ? err.message : String(err) } as Partial<Record<keyof TValues, ValidationError>>
+      return {
+        '': err instanceof Error ? err.message : String(err),
+      } as Partial<Record<keyof TValues, ValidationError>>
     }
   }
 }

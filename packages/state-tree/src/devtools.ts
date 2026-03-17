@@ -3,7 +3,7 @@
  * Import: `import { ... } from "@pyreon/state-tree/devtools"`
  */
 
-import { getSnapshot } from "./snapshot"
+import { getSnapshot } from './snapshot'
 
 // Track active model instances (devtools-only, opt-in)
 const _activeModels = new Map<string, WeakRef<object>>()
@@ -62,7 +62,9 @@ export function getModelInstance(name: string): object | undefined {
 /**
  * Get a snapshot of a registered model instance.
  */
-export function getModelSnapshot(name: string): Record<string, unknown> | undefined {
+export function getModelSnapshot(
+  name: string,
+): Record<string, unknown> | undefined {
   const instance = getModelInstance(name)
   if (!instance) return undefined
   return getSnapshot(instance)

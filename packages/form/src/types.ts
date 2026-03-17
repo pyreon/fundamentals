@@ -13,7 +13,9 @@ export type ValidateFn<T, TValues = Record<string, unknown>> = (
 
 export type SchemaValidateFn<TValues> = (
   values: TValues,
-) => Partial<Record<keyof TValues, ValidationError>> | Promise<Partial<Record<keyof TValues, ValidationError>>>
+) =>
+  | Partial<Record<keyof TValues, ValidationError>>
+  | Promise<Partial<Record<keyof TValues, ValidationError>>>
 
 export interface FieldState<T = unknown> {
   /** Current field value. */
@@ -95,7 +97,9 @@ export interface UseFormOptions<TValues extends Record<string, unknown>> {
   /** Called with validated values on successful submit. */
   onSubmit: (values: TValues) => void | Promise<void>
   /** Per-field validators. Receives field value and all form values. */
-  validators?: Partial<{ [K in keyof TValues]: ValidateFn<TValues[K], TValues> }>
+  validators?: Partial<{
+    [K in keyof TValues]: ValidateFn<TValues[K], TValues>
+  }>
   /** Schema-level validator (runs after field validators). */
   schema?: SchemaValidateFn<TValues>
   /** When to validate: 'blur' (default), 'change', or 'submit'. */

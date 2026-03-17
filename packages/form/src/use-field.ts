@@ -1,6 +1,11 @@
 import { computed } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
-import type { FieldState, FormState, ValidationError, FieldRegisterProps } from './types'
+import type {
+  FieldState,
+  FormState,
+  ValidationError,
+  FieldRegisterProps,
+} from './types'
 
 export interface UseFieldResult<T> {
   /** Current field value (reactive signal). */

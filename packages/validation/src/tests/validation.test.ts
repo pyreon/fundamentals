@@ -16,13 +16,10 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(
-      () => {
-        result = fn()
-        return null
-      },
-      null,
-    ),
+    h(() => {
+      result = fn()
+      return null
+    }, null),
     el,
   )
   return {
@@ -116,7 +113,9 @@ describe('zod + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: zodSchema(schema),
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -135,7 +134,9 @@ describe('zod + useForm integration', () => {
           email: zodField(z.string().email('Invalid')),
           age: zodField(z.number().min(18, 'Must be 18+')),
         },
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -169,7 +170,10 @@ describe('valibotSchema', () => {
   })
 
   it('works with sync safeParse', async () => {
-    const validate = valibotSchema(schema, v.safeParse as typeof v.safeParseAsync)
+    const validate = valibotSchema(
+      schema,
+      v.safeParse as typeof v.safeParseAsync,
+    )
     const result = await validate({ email: 'bad', password: 'short' })
     expect(result.email).toBe('Invalid email')
   })
@@ -234,7 +238,9 @@ describe('valibot + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: valibotSchema(schema, v.safeParseAsync),
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 
@@ -293,7 +299,9 @@ describe('arktype + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: arktypeSchema(schema as any),
-        onSubmit: () => { /* noop */ },
+        onSubmit: () => {
+          /* noop */
+        },
       }),
     )
 

@@ -12,7 +12,9 @@ import type { TranslationDictionary } from '../types'
 
 describe('interpolate', () => {
   it('replaces placeholders with values', () => {
-    expect(interpolate('Hello {{name}}!', { name: 'Alice' })).toBe('Hello Alice!')
+    expect(interpolate('Hello {{name}}!', { name: 'Alice' })).toBe(
+      'Hello Alice!',
+    )
   })
 
   it('handles multiple placeholders', () => {
@@ -22,7 +24,9 @@ describe('interpolate', () => {
   })
 
   it('handles whitespace inside braces', () => {
-    expect(interpolate('Hello {{ name }}!', { name: 'Alice' })).toBe('Hello Alice!')
+    expect(interpolate('Hello {{ name }}!', { name: 'Alice' })).toBe(
+      'Hello Alice!',
+    )
   })
 
   it('leaves unmatched placeholders as-is', () => {
@@ -59,7 +63,8 @@ describe('resolvePluralCategory', () => {
 
   it('uses custom plural rules when provided', () => {
     const rules = {
-      custom: (count: number) => (count === 0 ? 'zero' : count === 1 ? 'one' : 'other'),
+      custom: (count: number) =>
+        count === 0 ? 'zero' : count === 1 ? 'one' : 'other',
     }
     expect(resolvePluralCategory('custom', 0, rules)).toBe('zero')
     expect(resolvePluralCategory('custom', 1, rules)).toBe('one')
@@ -396,10 +401,7 @@ describe('createI18n namespaces', () => {
     })
 
     // Fire two loads concurrently — should only call loader once
-    await Promise.all([
-      i18n.loadNamespace('test'),
-      i18n.loadNamespace('test'),
-    ])
+    await Promise.all([i18n.loadNamespace('test'), i18n.loadNamespace('test')])
 
     expect(callCount).toBe(1)
   })
@@ -537,7 +539,10 @@ describe('createI18n namespaces', () => {
 
 describe('createI18n locale switching', () => {
   it('reloads translations when switching locale with loader', async () => {
-    const translations: Record<string, Record<string, TranslationDictionary>> = {
+    const translations: Record<
+      string,
+      Record<string, TranslationDictionary>
+    > = {
       en: { common: { hello: 'Hello' } },
       de: { common: { hello: 'Hallo' } },
     }
@@ -588,7 +593,9 @@ describe('I18nProvider / useI18n', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(I18nProvider, { instance: i18n },
+      h(
+        I18nProvider,
+        { instance: i18n },
         h(() => {
           received = useI18n()
           return null
@@ -646,7 +653,9 @@ describe('I18nProvider / useI18n', () => {
     )
 
     expect(error).toBeDefined()
-    expect(error!.message).toContain('useI18n() must be used within an <I18nProvider>')
+    expect(error!.message).toContain(
+      'useI18n() must be used within an <I18nProvider>',
+    )
     unmount()
     el.remove()
   })
@@ -661,7 +670,9 @@ describe('I18nProvider / useI18n', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(I18nProvider, { instance: i18n },
+      h(
+        I18nProvider,
+        { instance: i18n },
         h(() => {
           received = useI18n()
           return null
@@ -759,7 +770,11 @@ describe('Trans', () => {
       locale: 'en',
       messages: { en: { greeting: 'Hi {{name}}!' } },
     })
-    const result = Trans({ t: i18n.t, i18nKey: 'greeting', values: { name: 'Alice' } })
+    const result = Trans({
+      t: i18n.t,
+      i18nKey: 'greeting',
+      values: { name: 'Alice' },
+    })
     expect(result).toBe('Hi Alice!')
   })
 
@@ -779,7 +794,11 @@ describe('Trans', () => {
       t,
       i18nKey: 'action',
       components: {
-        link: (children: string) => ({ type: 'a', props: { href: '/go' }, children }),
+        link: (children: string) => ({
+          type: 'a',
+          props: { href: '/go' },
+          children,
+        }),
       },
     })
 

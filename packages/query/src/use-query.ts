@@ -1,21 +1,21 @@
-import { onUnmount } from "@pyreon/core"
-import { signal, effect, batch } from "@pyreon/reactivity"
-import type { Signal } from "@pyreon/reactivity"
-import { QueryObserver } from "@tanstack/query-core"
+import { onUnmount } from '@pyreon/core'
+import { signal, effect, batch } from '@pyreon/reactivity'
+import type { Signal } from '@pyreon/reactivity'
+import { QueryObserver } from '@tanstack/query-core'
 import type {
   DefaultError,
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
-} from "@tanstack/query-core"
-import { useQueryClient } from "./query-client"
+} from '@tanstack/query-core'
+import { useQueryClient } from './query-client'
 
 export interface UseQueryResult<TData, TError = DefaultError> {
   /** Raw signal — the full observer result. Fine-grained accessors below are preferred. */
   result: Signal<QueryObserverResult<TData, TError>>
   data: Signal<TData | undefined>
   error: Signal<TError | null>
-  status: Signal<"pending" | "error" | "success">
+  status: Signal<'pending' | 'error' | 'success'>
   isPending: Signal<boolean>
   isLoading: Signal<boolean>
   isFetching: Signal<boolean>
@@ -48,20 +48,23 @@ export function useQuery<
   options: () => QueryObserverOptions<TData, TError, TData, TData, TKey>,
 ): UseQueryResult<TData, TError> {
   const client = useQueryClient()
-  const observer = new QueryObserver<TData, TError, TData, TData, TKey>(client, options())
+  const observer = new QueryObserver<TData, TError, TData, TData, TKey>(
+    client,
+    options(),
+  )
   const initial = observer.getCurrentResult()
 
   // Fine-grained signals: each field is independent so only effects that read
   // e.g. `query.data()` re-run when data changes, not when isFetching flips.
-  const resultSig  = signal<QueryObserverResult<TData, TError>>(initial)
-  const dataSig    = signal<TData | undefined>(initial.data)
-  const errorSig   = signal<TError | null>(initial.error ?? null)
-  const statusSig  = signal<"pending" | "error" | "success">(initial.status)
-  const isPending  = signal(initial.isPending)
-  const isLoading  = signal(initial.isLoading)
+  const resultSig = signal<QueryObserverResult<TData, TError>>(initial)
+  const dataSig = signal<TData | undefined>(initial.data)
+  const errorSig = signal<TError | null>(initial.error ?? null)
+  const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)
+  const isPending = signal(initial.isPending)
+  const isLoading = signal(initial.isLoading)
   const isFetching = signal(initial.isFetching)
-  const isError    = signal(initial.isError)
-  const isSuccess  = signal(initial.isSuccess)
+  const isError = signal(initial.isError)
+  const isSuccess = signal(initial.isSuccess)
 
   // Subscribe synchronously — data flows before mount (correct for SSR pre-population).
   // batch() coalesces all signal updates into one notification flush.
@@ -81,16 +84,18 @@ export function useQuery<
 
   // Track reactive options: when signals inside options() change, update the observer.
   // effect() is auto-registered in the component's EffectScope → auto-disposed on unmount.
-  effect(() => { observer.setOptions(options()) })
+  effect(() => {
+    observer.setOptions(options())
+  })
 
   // Unsubscribe the observer on unmount (effect disposal is handled by EffectScope).
   onUnmount(() => unsub())
 
   return {
-    result:     resultSig,
-    data:       dataSig,
-    error:      errorSig,
-    status:     statusSig,
+    result: resultSig,
+    data: dataSig,
+    error: errorSig,
+    status: statusSig,
     isPending,
     isLoading,
     isFetching,

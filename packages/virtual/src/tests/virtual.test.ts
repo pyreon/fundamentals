@@ -10,13 +10,10 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(
-      () => {
-        result = fn()
-        return null
-      },
-      null,
-    ),
+    h(() => {
+      result = fn()
+      return null
+    }, null),
     el,
   )
   return {
