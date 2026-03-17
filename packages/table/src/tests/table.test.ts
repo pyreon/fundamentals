@@ -1,5 +1,5 @@
 import { h } from '@pyreon/core'
-import { signal, computed } from '@pyreon/reactivity'
+import { signal, computed, type Signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import {
   useTable,
@@ -64,9 +64,9 @@ describe('useTable', () => {
 
     const rows = table().getRowModel().rows
     expect(rows).toHaveLength(3)
-    expect(rows[0].original.name).toBe('Alice')
-    expect(rows[1].original.name).toBe('Bob')
-    expect(rows[2].original.name).toBe('Charlie')
+    expect(rows[0]!.original.name).toBe('Alice')
+    expect(rows[1]!.original.name).toBe('Bob')
+    expect(rows[2]!.original.name).toBe('Charlie')
     unmount()
   })
 
@@ -81,7 +81,7 @@ describe('useTable', () => {
 
     const headerGroups = table().getHeaderGroups()
     expect(headerGroups).toHaveLength(1)
-    expect(headerGroups[0].headers).toHaveLength(2)
+    expect(headerGroups[0]!.headers).toHaveLength(2)
     unmount()
   })
 
@@ -99,7 +99,7 @@ describe('useTable', () => {
 
     data.set([...defaultData, { name: 'Diana', age: 28 }])
     expect(table().getRowModel().rows).toHaveLength(4)
-    expect(table().getRowModel().rows[3].original.name).toBe('Diana')
+    expect(table().getRowModel().rows[3]!.original.name).toBe('Diana')
     unmount()
   })
 
@@ -159,15 +159,15 @@ describe('useTable', () => {
     // Sort by age ascending
     table().getColumn('age')!.toggleSorting(false)
     const rows = table().getRowModel().rows
-    expect(rows[0].original.age).toBe(25)
-    expect(rows[1].original.age).toBe(30)
-    expect(rows[2].original.age).toBe(35)
+    expect(rows[0]!.original.age).toBe(25)
+    expect(rows[1]!.original.age).toBe(30)
+    expect(rows[2]!.original.age).toBe(35)
 
     // Sort by age descending
     table().getColumn('age')!.toggleSorting(true)
     const desc = table().getRowModel().rows
-    expect(desc[0].original.age).toBe(35)
-    expect(desc[2].original.age).toBe(25)
+    expect(desc[0]!.original.age).toBe(35)
+    expect(desc[2]!.original.age).toBe(25)
     unmount()
   })
 
@@ -184,7 +184,7 @@ describe('useTable', () => {
     table().getColumn('name')!.setFilterValue('Ali')
     const filtered = table().getRowModel().rows
     expect(filtered).toHaveLength(1)
-    expect(filtered[0].original.name).toBe('Alice')
+    expect(filtered[0]!.original.name).toBe('Alice')
     unmount()
   })
 
@@ -210,7 +210,7 @@ describe('useTable', () => {
 
     table().nextPage()
     expect(table().getRowModel().rows).toHaveLength(10)
-    expect(table().getRowModel().rows[0].original.name).toBe('Person 10')
+    expect(table().getRowModel().rows[0]!.original.name).toBe('Person 10')
 
     table().nextPage()
     expect(table().getRowModel().rows).toHaveLength(5)
@@ -230,11 +230,11 @@ describe('useTable', () => {
 
     expect(table().getSelectedRowModel().rows).toHaveLength(0)
 
-    table().getRowModel().rows[0].toggleSelected(true)
+    table().getRowModel().rows[0]!.toggleSelected(true)
     expect(table().getSelectedRowModel().rows).toHaveLength(1)
-    expect(table().getSelectedRowModel().rows[0].original.name).toBe('Alice')
+    expect(table().getSelectedRowModel().rows[0]!.original.name).toBe('Alice')
 
-    table().getRowModel().rows[0].toggleSelected(false)
+    table().getRowModel().rows[0]!.toggleSelected(false)
     expect(table().getSelectedRowModel().rows).toHaveLength(0)
     unmount()
   })
@@ -252,7 +252,7 @@ describe('useTable', () => {
 
     table().getColumn('age')!.toggleVisibility(false)
     expect(table().getVisibleFlatColumns()).toHaveLength(1)
-    expect(table().getVisibleFlatColumns()[0].id).toBe('name')
+    expect(table().getVisibleFlatColumns()[0]!.id).toBe('name')
 
     table().getColumn('age')!.toggleVisibility(true)
     expect(table().getVisibleFlatColumns()).toHaveLength(2)
@@ -290,7 +290,7 @@ describe('useTable', () => {
       })),
     )
 
-    const headers = table().getHeaderGroups()[0].headers
+    const headers = table().getHeaderGroups()[0]!.headers
     expect(headers).toHaveLength(2)
     unmount()
   })
