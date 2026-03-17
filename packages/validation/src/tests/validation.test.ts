@@ -170,10 +170,7 @@ describe('valibotSchema', () => {
   })
 
   it('works with sync safeParse', async () => {
-    const validate = valibotSchema(
-      schema,
-      v.safeParse as any,
-    )
+    const validate = valibotSchema(schema, v.safeParse as any)
     const result = await validate({ email: 'bad', password: 'short' })
     expect(result.email).toBe('Invalid email')
   })

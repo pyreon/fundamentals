@@ -205,7 +205,9 @@ export function useSuspenseInfiniteQuery<
   const observer = new InfiniteQueryObserver(client, options() as any)
   const initial = observer.getCurrentResult()
 
-  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial as any)
+  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(
+    initial as any,
+  )
   const dataSig = signal<InfiniteData<TData>>(
     initial.data as InfiniteData<TData>,
   )

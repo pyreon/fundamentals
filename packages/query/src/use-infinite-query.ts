@@ -45,10 +45,7 @@ export interface UseInfiniteQueryResult<TData, TError = DefaultError> {
  * // query.data()?.pages  — array of pages
  * // h('button', { onClick: () => query.fetchNextPage() }, 'Load more')
  */
-export function useInfiniteQuery<
-  TData = unknown,
-  TError = DefaultError,
->(
+export function useInfiniteQuery<TData = unknown, TError = DefaultError>(
   options: () => InfiniteQueryObserverOptions<any, any, any, any, any>,
 ): UseInfiniteQueryResult<TData, TError> {
   const client = useQueryClient()
@@ -57,7 +54,9 @@ export function useInfiniteQuery<
 
   // Fine-grained signals: each field is independent so only effects that read
   // e.g. `query.isFetchingNextPage()` re-run when that specific field changes.
-  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(initial as any)
+  const resultSig = signal<InfiniteQueryObserverResult<TData, TError>>(
+    initial as any,
+  )
   const dataSig = signal<InfiniteData<TData> | undefined>(initial.data as any)
   const errorSig = signal<TError | null>((initial.error ?? null) as any)
   const statusSig = signal<'pending' | 'error' | 'success'>(initial.status)

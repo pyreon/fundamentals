@@ -672,10 +672,14 @@ describe('useSuspenseQuery + QuerySuspense', () => {
             queryKey: ['sq-pending'],
             queryFn: () => promise,
           }))
-          return h(QuerySuspense as any, { query: q, fallback: 'loading' }, () => {
-            rendered.push(q.data())
-            return null
-          })
+          return h(
+            QuerySuspense as any,
+            { query: q, fallback: 'loading' },
+            () => {
+              rendered.push(q.data())
+              return null
+            },
+          )
         }, null),
       ),
       el,
