@@ -2,6 +2,25 @@
   "name": "@pyreon/state-tree",
   "version": "0.0.1",
   "description": "Structured reactive state tree — composable models with snapshots, patches, and middleware",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pyreon/fundamentals.git",
+    "directory": "packages/state-tree"
+  },
+  "homepage": "https://github.com/pyreon/fundamentals/tree/main/packages/state-tree#readme",
+  "bugs": {
+    "url": "https://github.com/pyreon/fundamentals/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./lib/index.js",
   "module": "./lib/index.js",

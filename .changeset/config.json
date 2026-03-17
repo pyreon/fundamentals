@@ -11,7 +11,8 @@
       "@pyreon/query",
       "@pyreon/table",
       "@pyreon/virtual",
-      "@pyreon/i18n"
+      "@pyreon/i18n",
+      "@pyreon/storybook"
     ]
   ],
   "access": "public",
