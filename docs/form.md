@@ -65,8 +65,8 @@ Create a reactive form instance.
 | `fields` | `Record<keyof TValues, FieldState>` | Per-field reactive state |
 | `isSubmitting` | `Signal<boolean>` | Submission in progress |
 | `isValidating` | `Signal<boolean>` | Async validation in progress |
-| `isValid` | `Signal<boolean>` | No field errors |
-| `isDirty` | `Signal<boolean>` | Any field changed from initial |
+| `isValid` | `Accessor<boolean>` | No field errors (computed — read-only) |
+| `isDirty` | `Accessor<boolean>` | Any field changed from initial (computed — read-only) |
 | `submitCount` | `Signal<number>` | Number of submit attempts |
 | `submitError` | `Signal<unknown>` | Last error thrown by `onSubmit` |
 
@@ -95,7 +95,10 @@ const props = form.register("email")
 
 // Checkbox:
 const checkProps = form.register("agree", { type: "checkbox" })
-// Also includes: checked: Signal<boolean>
+// Also includes: checked: Accessor<boolean>
+
+// Number (uses valueAsNumber on input):
+const numProps = form.register("age", { type: "number" })
 ```
 
 ### Field State
@@ -125,12 +128,13 @@ type ValidateFn<T, TValues> = (
 // ValidationError = string | undefined
 ```
 
-**Schema validators** validate the entire form at once:
+**Schema validators** validate the entire form at once (can be sync or async):
 
 ```ts
 type SchemaValidateFn<TValues> = (
   values: TValues,
-) => Promise<Partial<Record<keyof TValues, ValidationError>>>
+) => Partial<Record<keyof TValues, ValidationError>>
+   | Promise<Partial<Record<keyof TValues, ValidationError>>>
 ```
 
 Use `@pyreon/validation` for Zod, Valibot, or ArkType integration.
@@ -162,6 +166,111 @@ useForm({
   ...
 })
 ```
+
+## useField
+
+Extract a single field's state and helpers from a form instance. Useful for building isolated field components.
+
+```tsx
+import { useField } from "@pyreon/form"
+
+function EmailField({ form }: { form: FormState<{ email: string }> }) {
+  const field = useField(form, "email")
+  return (
+    <>
+      <input {...field.register()} />
+      {field.showError() && <span>{field.error()}</span>}
+    </>
+  )
+}
+```
+
+**Returns:** `UseFieldResult<T>` with all `FieldState` properties plus:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `register(opts?)` | `(opts?) => FieldRegisterProps<T>` | Register props for input binding |
+| `hasError` | `Computed<boolean>` | Whether the field has an error |
+| `showError` | `Computed<boolean>` | Whether to show the error (touched + has error) |
+
+## useWatch
+
+Watch specific field values reactively. Returns a signal or computed that re-evaluates when watched fields change.
+
+```ts
+import { useWatch } from "@pyreon/form"
+
+// Watch a single field
+const email = useWatch(form, "email")
+// email() => current email value
+
+// Watch multiple fields
+const [first, last] = useWatch(form, ["firstName", "lastName"])
+// first() => firstName value, last() => lastName value
+
+// Watch all fields
+const all = useWatch(form)
+// all() => { email: '...', password: '...' }
+```
+
+## useFormState
+
+Subscribe to the full form state as a single computed signal. Useful for rendering form-level UI (submit button disabled state, error summaries, progress indicators).
+
+```ts
+import { useFormState } from "@pyreon/form"
+
+const state = useFormState(form)
+// state() => { isSubmitting, isValid, isDirty, errors, touchedFields, dirtyFields, ... }
+
+// Use a selector for fine-grained reactivity
+const canSubmit = useFormState(form, (s) => s.isValid && !s.isSubmitting)
+```
+
+**`FormStateSummary<TValues>`:**
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `isSubmitting` | `boolean` | Whether the form is being submitted |
+| `isValidating` | `boolean` | Whether async validation is running |
+| `isValid` | `boolean` | Whether the form has no errors |
+| `isDirty` | `boolean` | Whether any field differs from initial |
+| `submitCount` | `number` | Number of submit attempts |
+| `submitError` | `unknown` | Last submit error |
+| `touchedFields` | `Partial<Record<keyof TValues, boolean>>` | Which fields have been touched |
+| `dirtyFields` | `Partial<Record<keyof TValues, boolean>>` | Which fields are dirty |
+| `errors` | `Partial<Record<keyof TValues, ValidationError>>` | Current field errors |
+
+## Context Pattern
+
+### `FormProvider` + `useFormContext()`
+
+Provide a form instance to the component tree, then consume it in any descendant:
+
+```tsx
+import { useForm, FormProvider, useFormContext } from "@pyreon/form"
+
+const form = useForm({
+  initialValues: { email: "" },
+  onSubmit: async (values) => { ... },
+})
+
+function App() {
+  return (
+    <FormProvider form={form}>
+      <EmailField />
+      <SubmitButton />
+    </FormProvider>
+  )
+}
+
+function EmailField() {
+  const form = useFormContext<{ email: string }>()
+  return <input {...form.register("email")} />
+}
+```
+
+`useFormContext()` throws if called outside a `FormProvider`.
 
 ## useFieldArray
 
@@ -199,10 +308,13 @@ Each item has a stable `key` (number) for keyed rendering and a reactive `value`
 
 | Type | Description |
 | --- | --- |
+| `Accessor<T>` | `Signal<T> \| Computed<T>` — a reactive value that can be read by calling it |
 | `UseFormOptions<TValues>` | Form configuration options |
 | `FormState<TValues>` | Return type of `useForm` |
 | `FieldState<T>` | Per-field reactive state |
 | `FieldRegisterProps<T>` | Props returned by `register()` |
+| `UseFieldResult<T>` | Return type of `useField` |
+| `FormStateSummary<TValues>` | Shape returned by `useFormState` |
 | `ValidateFn<T, TValues>` | Per-field validator function |
 | `SchemaValidateFn<TValues>` | Schema-level validator function |
 | `ValidationError` | `string \| undefined` |
