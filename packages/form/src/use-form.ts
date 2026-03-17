@@ -82,7 +82,8 @@ export function useForm<TValues extends Record<string, unknown>>(
       const fieldValidator = validators?.[name]
       if (fieldValidator) {
         // Bump version to track this validation run
-        const currentVersion = (validationVersions[name] = (validationVersions[name] ?? 0) + 1)
+        validationVersions[name] = (validationVersions[name] ?? 0) + 1
+        const currentVersion = validationVersions[name]
         try {
           const result = await fieldValidator(value, getValues())
           // Only apply result if this is still the latest validation and not disposed
@@ -201,7 +202,8 @@ export function useForm<TValues extends Record<string, unknown>>(
           const fieldValidator = validators?.[name]
           if (fieldValidator) {
             // Bump version so any in-flight debounced validation is discarded
-            const currentVersion = (validationVersions[name] = (validationVersions[name] ?? 0) + 1)
+            validationVersions[name] = (validationVersions[name] ?? 0) + 1
+            const currentVersion = validationVersions[name]
             try {
               const error = await fieldValidator(fields[name].value.peek(), allValues)
               if (validationVersions[name] === currentVersion) {

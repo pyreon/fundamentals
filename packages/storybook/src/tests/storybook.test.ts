@@ -1,6 +1,6 @@
 import { h, Fragment } from '@pyreon/core'
 import type { ComponentFn, VNodeChild } from '@pyreon/core'
-import { signal, computed, effect } from '@pyreon/reactivity'
+import { signal, effect } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { renderToCanvas, defaultRender } from '../render'
 import { render as previewRender } from '../preview'
@@ -25,8 +25,8 @@ function makeRenderContext(overrides: {
       component: overrides.component,
       args: overrides.args ?? {},
     },
-    showMain: () => {},
-    showError: (_err: { title: string; description: string }) => {},
+    showMain: () => { /* noop */ },
+    showError: (_err: { title: string; description: string }) => { /* noop */ },
     forceRemount: false,
   }
 }
@@ -128,7 +128,7 @@ describe('renderToCanvas', () => {
     const ctx = {
       storyFn: () => { throw new Error('Boom') },
       storyContext: { args: {} },
-      showMain: () => {},
+      showMain: () => { /* noop */ },
       showError: (err: { title: string; description: string }) => { errorShown = err },
       forceRemount: false,
     }
@@ -147,7 +147,7 @@ describe('renderToCanvas', () => {
     const ctx = {
       storyFn: () => { throw 'string error' },
       storyContext: { args: {} },
-      showMain: () => {},
+      showMain: () => { /* noop */ },
       showError: (err: { title: string; description: string }) => { errorShown = err },
       forceRemount: false,
     }
@@ -222,12 +222,12 @@ describe('Meta and StoryObj types', () => {
       return h('input', { placeholder: props.placeholder, disabled: props.disabled })
     }
 
-    const meta = {
+    const _meta = {
       component: Input,
       args: { placeholder: 'Type here' },
     } satisfies Meta<typeof Input>
 
-    type Story = StoryObj<typeof meta>
+    type Story = StoryObj<typeof _meta>
 
     const primary: Story = {
       args: { disabled: true },
@@ -241,12 +241,12 @@ describe('Meta and StoryObj types', () => {
       return h('div', { class: 'card' }, h('h2', null, props.title))
     }
 
-    const meta = {
+    const _meta = {
       component: Card,
       args: { title: 'Default' },
     } satisfies Meta<typeof Card>
 
-    type Story = StoryObj<typeof meta>
+    type Story = StoryObj<typeof _meta>
 
     const withWrapper: Story = {
       render: (args) => h('div', { class: 'wrapper' }, h(Card, args)),
@@ -313,7 +313,7 @@ describe('Decorators', () => {
     // Compose: withTheme(withBorder(story))
     const story: StoryFn<{ content: string }> = (args) => h(Text, args)
     const decorated = withTheme(
-      (args, ctx) => withBorder(story, ctx),
+      (_args, ctx) => withBorder(story, ctx),
       context,
     )
 

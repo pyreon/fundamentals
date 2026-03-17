@@ -116,7 +116,7 @@ describe('zod + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: zodSchema(schema),
-        onSubmit: () => {},
+        onSubmit: () => { /* noop */ },
       }),
     )
 
@@ -135,7 +135,7 @@ describe('zod + useForm integration', () => {
           email: zodField(z.string().email('Invalid')),
           age: zodField(z.number().min(18, 'Must be 18+')),
         },
-        onSubmit: () => {},
+        onSubmit: () => { /* noop */ },
       }),
     )
 
@@ -234,7 +234,7 @@ describe('valibot + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: valibotSchema(schema, v.safeParseAsync),
-        onSubmit: () => {},
+        onSubmit: () => { /* noop */ },
       }),
     )
 
@@ -293,7 +293,7 @@ describe('arktype + useForm integration', () => {
       useForm({
         initialValues: { email: '', password: '' },
         schema: arktypeSchema(schema as any),
-        onSubmit: () => {},
+        onSubmit: () => { /* noop */ },
       }),
     )
 

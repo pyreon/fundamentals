@@ -174,7 +174,7 @@ describe("asHook", () => {
 
 describe("error guards", () => {
   it("onPatch throws for non-model-instance", () => {
-    expect(() => onPatch({} as object, () => {})).toThrow("[@pyreon/state-tree]")
+    expect(() => onPatch({} as object, () => { /* noop */ })).toThrow("[@pyreon/state-tree]")
   })
 
   it("addMiddleware throws for non-model-instance", () => {
@@ -462,7 +462,7 @@ describe("patch snapshotValue", () => {
       stateKeys: ["missing"],
       patchListeners: new Set(),
       middlewares: [],
-      emitPatch: () => {},
+      emitPatch: () => { /* noop */ },
     })
 
     outer.replaceChild(fakeInstance)

@@ -561,7 +561,7 @@ describe('createI18n locale switching', () => {
       messages: {
         en: { staticKey: 'From static' },
       },
-      loader: async (locale, ns) => {
+      loader: async (_locale, ns) => {
         if (ns === 'dynamic') return { dynamicKey: 'From loader' }
         return undefined
       },
@@ -682,7 +682,7 @@ describe('I18nProvider / useI18n', () => {
 describe('resolvePluralCategory fallback when Intl is unavailable', () => {
   it('falls back to basic one/other when Intl is undefined', () => {
     const originalIntl = globalThis.Intl
-    // @ts-ignore — temporarily remove Intl
+    // @ts-expect-error — temporarily remove Intl
     globalThis.Intl = undefined
 
     expect(resolvePluralCategory('en', 1)).toBe('one')

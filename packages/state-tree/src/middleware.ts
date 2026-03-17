@@ -11,7 +11,7 @@ import type { ActionCall, InstanceMeta, MiddlewareFn } from "./types"
 export function runAction(
   meta: InstanceMeta,
   name: string,
-  fn: (...args: unknown[]) => unknown,
+  fn: (...fnArgs: unknown[]) => unknown,
   args: unknown[],
 ): unknown {
   const call: ActionCall = { name, args, path: `/${name}` }

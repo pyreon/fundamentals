@@ -1,7 +1,5 @@
 import {
   type MutationInfo,
-  type OnActionCallback,
-  type SubscribeCallback,
   addStorePlugin,
   computed,
   defineStore,
@@ -393,7 +391,7 @@ describe("onAction", () => {
 
   test("storeId is provided in context", () => {
     const useStore = defineStore("action-store-id", () => ({
-      noop: () => {},
+      noop: () => { /* noop */ },
     }))
     const api = useStore()
     let capturedId: string | null = null
@@ -406,7 +404,7 @@ describe("onAction", () => {
 
   test("unsubscribe stops interception", () => {
     const useStore = defineStore("action-unsub", () => ({
-      noop: () => {},
+      noop: () => { /* noop */ },
     }))
     const api = useStore()
     let callCount = 0
@@ -454,7 +452,7 @@ describe("onAction", () => {
         caughtError = err
       })
     })
-    await api.store.failAsync().catch(() => {})
+    await api.store.failAsync().catch(() => { /* expected */ })
     expect(caughtError).toBeInstanceOf(Error)
     expect((caughtError as Error).message).toBe("async boom")
   })
@@ -525,9 +523,9 @@ describe("addStorePlugin", () => {
     let receivedId: string | null = null
     let receivedApi: any = null
 
-    addStorePlugin((api) => {
-      receivedId = api.id
-      receivedApi = api
+    addStorePlugin((pluginApi) => {
+      receivedId = pluginApi.id
+      receivedApi = pluginApi
     })
 
     const useStore = defineStore("plugin-test", () => ({
@@ -542,8 +540,8 @@ describe("addStorePlugin", () => {
   test("plugin can use subscribe", () => {
     const changes: MutationInfo[] = []
 
-    addStorePlugin((api) => {
-      api.subscribe((mutation: MutationInfo) => {
+    addStorePlugin((pluginApi) => {
+      pluginApi.subscribe((mutation: MutationInfo) => {
         changes.push(mutation)
       })
     })
@@ -562,8 +560,8 @@ describe("addStorePlugin", () => {
   test("plugin can use onAction", () => {
     const actionNames: string[] = []
 
-    addStorePlugin((api) => {
-      api.onAction(({ name, storeId }: { name: string; storeId: string }) => {
+    addStorePlugin((pluginApi) => {
+      pluginApi.onAction(({ name, storeId }: { name: string; storeId: string }) => {
         if (storeId === "plugin-action") {
           actionNames.push(name)
         }
@@ -572,7 +570,7 @@ describe("addStorePlugin", () => {
 
     const useStore = defineStore("plugin-action", () => ({
       count: signal(0),
-      increment: () => {},
+      increment: () => { /* noop */ },
     }))
     const api = useStore()
     api.store.increment()

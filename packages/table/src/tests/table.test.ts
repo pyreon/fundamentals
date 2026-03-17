@@ -10,7 +10,7 @@ import {
   createColumnHelper,
   flexRender,
 } from "../index"
-import type { Table, ColumnDef } from "../index"
+import type { ColumnDef } from "../index"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

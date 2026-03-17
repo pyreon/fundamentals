@@ -1,4 +1,4 @@
-import type { ComponentFn, Props, VNode, VNodeChild } from "@pyreon/core"
+import type { ComponentFn, Props, VNodeChild } from "@pyreon/core"
 
 // ─── Storybook Renderer Interface ────────────────────────────────────────────
 

@@ -1,14 +1,97 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
-  "extends": ["@vitus-labs/tools-lint/biome"],
+  "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "globals": [
+      "describe", "test", "it", "expect",
+      "beforeEach", "afterEach", "beforeAll", "afterAll",
+      "vi"
+    ],
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all",
+      "bracketSpacing": true,
+      "arrowParentheses": "always"
+    }
+  },
+  "json": {
+    "formatter": { "trailingCommas": "none" }
+  },
   "linter": {
+    "enabled": true,
     "rules": {
+      "recommended": true,
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 30 }
+        },
+        "noForEach": "off",
+        "useFlatMap": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "noUndeclaredVariables": "error",
+        "useHookAtTopLevel": "error"
+      },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "error",
+        "useDefaultParameterLast": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useConsistentArrayType": {
+          "level": "error",
+          "options": { "syntax": "shorthand" }
+        },
+        "useFilenamingConvention": "off",
+        "useNamingConvention": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "warn",
+        "noConsole": "warn",
+        "noEmptyBlockStatements": "warn"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      },
+      "nursery": {
+        "noShadow": "warn"
       }
     }
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/tests/**", "**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useHookAtTopLevel": "off"
+          }
+        }
+      }
+    }
+  ],
   "files": {
-    "ignore": ["node_modules", "lib", "dist", "*.d.ts"]
+    "ignoreUnknown": true
   }
 }

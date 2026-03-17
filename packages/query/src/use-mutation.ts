@@ -91,11 +91,10 @@ export function useMutation<
     isError,
     isIdle,
     mutate:      (vars, callbackOptions) => {
-      observer.mutate(vars, callbackOptions).catch((err) => {
+      observer.mutate(vars, callbackOptions).catch(() => {
         // Error is already captured in the error signal via the observer subscription.
         // This catch prevents an unhandled promise rejection for fire-and-forget callers.
         // Use mutateAsync() if you need to handle the error in a try/catch.
-        if (__DEV__) console.error("[pyreon/query] Mutation failed:", err)
       })
     },
     mutateAsync: (vars, callbackOptions) => observer.mutate(vars, callbackOptions),

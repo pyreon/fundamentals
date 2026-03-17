@@ -24,9 +24,9 @@ function isVNode(value: unknown): boolean {
  * // In a cell:
  * flexRender(cell.column.columnDef.cell, cell.getContext())
  */
-export function flexRender<TData extends RowData, TValue>(
+export function flexRender<_TData extends RowData, TValue>(
   component:
-    | ((props: TValue) => unknown)
+    | ((p: TValue) => unknown)
     | string
     | number
     | undefined
@@ -38,7 +38,7 @@ export function flexRender<TData extends RowData, TValue>(
   if (typeof component === "string" || typeof component === "number")
     return component
   if (typeof component === "function")
-    return (component as (props: TValue) => unknown)(props)
+    return (component as (p: TValue) => unknown)(props)
   // Pass through VNodes and other objects as-is (the renderer handles them)
   if (isVNode(component)) return component
   return null

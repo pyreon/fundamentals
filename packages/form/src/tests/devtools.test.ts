@@ -142,7 +142,7 @@ describe("form devtools", () => {
     // The cleanest way: register, then call getActiveForms which checks deref.
     // We need to actually make deref() return undefined.
     // Register a form, then replace the Map entry with a dead WeakRef.
-    const fakeDeadRef = { deref: () => undefined } as unknown as WeakRef<object>
+    const _fakeDeadRef = { deref: () => undefined } as unknown as WeakRef<object>
     // Access the internal map via the module's exports — we use registerForm to set,
     // then overwrite. Since _activeForms is private, we register and rely on
     // the WeakRef naturally. Instead, let's create a real WeakRef to a short-lived object:
