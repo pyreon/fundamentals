@@ -1,0 +1,322 @@
+# AI Building Instructions
+
+These instructions tell AI agents exactly how to use Pyreon fundamentals packages. Follow these decision trees — do not invent patterns.
+
+## Core Principle
+
+Pyreon uses **signals** for all reactivity. There are no hooks rules, no dependency arrays, no re-renders. A signal is created once, read by calling it (`count()`), and written with `.set()` or `.update()`. Effects and computeds track dependencies automatically.
+
+```tsx
+import { signal, computed, effect } from '@pyreon/reactivity'
+
+const count = signal(0)           // create
+count()                            // read (subscribes in effects/computeds)
+count.set(5)                       // write
+count.update(n => n + 1)           // write with updater
+const doubled = computed(() => count() * 2)  // derived value
+```
+
+## When building a feature that needs state management
+
+Use `defineStore()` from `@pyreon/store`. Returns `StoreApi<T>` with `.store` (user state) and framework methods.
+
+```tsx
+import { defineStore, signal, computed, batch } from '@pyreon/store'
+
+const useAuth = defineStore('auth', () => {
+  const token = signal<string | null>(null)
+  const user = signal<User | null>(null)
+  const isLoggedIn = computed(() => token() !== null)
+
+  const login = async (email: string, password: string) => {
+    const res = await fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+    const data = await res.json()
+    batch(() => {
+      token.set(data.token)
+      user.set(data.user)
+    })
+  }
+
+  const logout = () => batch(() => { token.set(null); user.set(null) })
+
+  return { token, user, isLoggedIn, login, logout }
+})
+
+// Usage in component — destructure what you need:
+const { store, patch, subscribe, reset } = useAuth()
+store.isLoggedIn()    // read user state
+store.login(email, pw) // call actions
+patch({ token: null }) // batch-update signals
+reset()                // restore initial values
+```
+
+## When building a form
+
+Use `useForm()` from `@pyreon/form`. For schema validation, combine with `zodSchema()` from `@pyreon/validation`.
+
+```tsx
+import { useForm, useField } from '@pyreon/form'
+import { zodSchema } from '@pyreon/validation'
+import { z } from 'zod'
+
+const schema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(8),
+})
+
+function RegisterForm() {
+  const form = useForm({
+    initialValues: { name: '', email: '', password: '' },
+    schema: zodSchema(schema),
+    validateOn: 'blur',
+    onSubmit: async (values) => {
+      await fetch('/api/register', { method: 'POST', body: JSON.stringify(values) })
+    },
+  })
+
+  const name = useField(form, 'name')
+  const email = useField(form, 'email')
+
+  return (
+    <form onSubmit={(e: Event) => form.handleSubmit(e)}>
+      <input placeholder="Name" {...name.register()} />
+      {() => name.showError() ? <span class="error">{name.error()}</span> : null}
+
+      <input type="email" placeholder="Email" {...email.register()} />
+      {() => email.showError() ? <span class="error">{email.error()}</span> : null}
+
+      <input type="password" {...form.register('password')} />
+
+      <button type="submit" disabled={form.isSubmitting()}>
+        {() => form.isSubmitting() ? 'Submitting...' : 'Register'}
+      </button>
+    </form>
+  )
+}
+```
+
+**Key points:**
+- `useField()` gives per-field `hasError`, `showError`, `register()`
+- `register()` returns `{ value, onInput, onBlur }` for input binding
+- Use `register('field', { type: 'checkbox' })` for booleans
+- Use `register('field', { type: 'number' })` for numbers
+- Wrap reactive expressions in `{() => ...}` for conditional rendering
+
+## When fetching API data
+
+Use `useQuery()` from `@pyreon/query`. **ALWAYS pass options as a function** for reactive tracking.
+
+```tsx
+import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@pyreon/query'
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30000 } } })
+
+// Wrap app with provider:
+<QueryClientProvider client={queryClient}>
+  <App />
+</QueryClientProvider>
+
+// Fetch data:
+function UserList() {
+  const { data, isPending, error, refetch } = useQuery(() => ({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const res = await fetch('/api/users')
+      return res.json()
+    },
+  }))
+
+  return () => {
+    if (isPending()) return <p>Loading...</p>
+    if (error()) return <p>Error: {error()!.message}</p>
+    return <ul>{data()!.map(u => <li key={u.id}>{u.name}</li>)}</ul>
+  }
+}
+
+// Mutate data:
+function CreateUser() {
+  const client = useQueryClient()
+  const { mutate, isPending } = useMutation({
+    mutationFn: (input) => fetch('/api/users', { method: 'POST', body: JSON.stringify(input) }),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['users'] }),
+  })
+
+  return <button onClick={() => mutate({ name: 'Alice' })} disabled={isPending()}>Create</button>
+}
+```
+
+## When building a data table
+
+Use `useTable()` from `@pyreon/table` with TanStack Table column helpers.
+
+```tsx
+import { useTable, flexRender, createColumnHelper, getCoreRowModel, getSortedRowModel } from '@pyreon/table'
+import { signal } from '@pyreon/reactivity'
+
+const columnHelper = createColumnHelper<User>()
+const columns = [
+  columnHelper.accessor('name', { header: 'Name' }),
+  columnHelper.accessor('email', { header: 'Email' }),
+]
+
+function UserTable({ users }: { users: User[] }) {
+  const sorting = signal([])
+
+  const table = useTable(() => ({
+    data: users,
+    columns,
+    state: { sorting: sorting() },
+    onSortingChange: (updater) => sorting.set(typeof updater === 'function' ? updater(sorting()) : updater),
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  }))
+
+  return (
+    <table>
+      <thead>
+        {() => table().getHeaderGroups().map(group =>
+          <tr key={group.id}>
+            {group.headers.map(header =>
+              <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            )}
+          </tr>
+        )}
+      </thead>
+      <tbody>
+        {() => table().getRowModel().rows.map(row =>
+          <tr key={row.id}>
+            {row.getVisibleCells().map(cell =>
+              <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+            )}
+          </tr>
+        )}
+      </tbody>
+    </table>
+  )
+}
+```
+
+## When building a large scrollable list
+
+Use `useVirtualizer()` from `@pyreon/virtual`.
+
+```tsx
+import { useVirtualizer } from '@pyreon/virtual'
+import { signal } from '@pyreon/reactivity'
+
+function VirtualList({ items }: { items: string[] }) {
+  const parentRef = signal<HTMLElement | null>(null)
+
+  const { virtualItems, totalSize } = useVirtualizer(() => ({
+    count: items.length,
+    getScrollElement: () => parentRef(),
+    estimateSize: () => 40,
+    overscan: 5,
+  }))
+
+  return (
+    <div ref={(el) => parentRef.set(el)} style="height: 400px; overflow-y: auto;">
+      <div style={`height: ${totalSize()}px; position: relative;`}>
+        {() => virtualItems().map(row =>
+          <div key={row.key} style={`position: absolute; top: 0; width: 100%; height: ${row.size}px; transform: translateY(${row.start}px);`}>
+            {items[row.index]}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+```
+
+## When adding internationalization
+
+Use `createI18n()` from `@pyreon/i18n`.
+
+```tsx
+import { createI18n, I18nProvider, useI18n, Trans } from '@pyreon/i18n'
+
+const i18n = createI18n({
+  locale: 'en',
+  fallbackLocale: 'en',
+  messages: {
+    en: { greeting: 'Hello, {{name}}!', items_one: '{{count}} item', items_other: '{{count}} items' },
+    de: { greeting: 'Hallo, {{name}}!', items_one: '{{count}} Artikel', items_other: '{{count}} Artikel' },
+  },
+})
+
+// Wrap app:
+<I18nProvider instance={i18n}><App /></I18nProvider>
+
+// Use in components:
+function Greeting({ name }: { name: string }) {
+  const { t, locale } = useI18n()
+  return (
+    <div>
+      <p>{() => t('greeting', { name })}</p>
+      <p>{() => t('items', { count: 5 })}</p>
+      <button onClick={() => locale.set('de')}>Deutsch</button>
+    </div>
+  )
+}
+```
+
+## When using structured reactive models
+
+Use `model()` from `@pyreon/state-tree` for complex domain models with snapshots and patches.
+
+```tsx
+import { computed } from '@pyreon/reactivity'
+import { model, getSnapshot, applySnapshot, onPatch } from '@pyreon/state-tree'
+
+const Todo = model({
+  state: { text: '', done: false },
+  views: (self) => ({
+    display: computed(() => `${self.done() ? '✓' : '○'} ${self.text()}`),
+  }),
+  actions: (self) => ({
+    toggle: () => self.done.update(d => !d),
+    setText: (text: string) => self.text.set(text),
+  }),
+})
+
+const todo = Todo.create({ text: 'Learn Pyreon', done: false })
+todo.toggle()
+getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
+```
+
+## NEVER do
+
+- **Never use useState/useEffect** — those are React. Use `signal()` and `effect()`.
+- **Never use useCallback/useMemo** — signals handle memoization automatically.
+- **Never create signals inside render functions** — create them in the component setup (outer function), not in the return function.
+- **Never nest `effect()` inside `effect()`** — use `computed()` for derived values.
+- **Never set 3+ signals without `batch()`** — causes multiple notification flushes.
+- **Never read `signal.peek()` inside effects/computeds** — use `signal()` (subscribing read) for proper tracking.
+- **Never forget `QueryClientProvider`** — wrap the app root when using `useQuery()`.
+- **Never forget `I18nProvider`** — wrap the app root when using `useI18n()`.
+- **Never use `h()` in app code** — use JSX. `h()` is for library internals only.
+
+## JSX patterns specific to Pyreon
+
+```tsx
+// Reactive text — wrap signal reads in JSX:
+<span>{() => count()}</span>
+
+// Conditional rendering — use function children:
+{() => isVisible() ? <Modal /> : null}
+
+// List rendering:
+{() => items().map(item => <Item key={item.id} data={item} />)}
+
+// Event handlers — no wrapping needed:
+<button onClick={() => count.update(n => n + 1)}>+</button>
+
+// Reactive attributes:
+<div class={active() ? 'active' : ''}>
+
+// Spread props from register():
+<input {...field.register()} />
+```

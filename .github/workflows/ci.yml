@@ -50,6 +50,13 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - name: Verify lib output exists
+        run: |
+          for pkg in store state-tree form validation query table virtual i18n storybook; do
+            test -f "packages/$pkg/lib/index.js" || (echo "MISSING: packages/$pkg/lib/index.js" && exit 1)
+            test -f "packages/$pkg/lib/types/index.d.ts" || (echo "MISSING: packages/$pkg/lib/types/index.d.ts" && exit 1)
+          done
+          echo "All packages have lib/ output"
 
   test:
     name: Test & Coverage
