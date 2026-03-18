@@ -1,16 +1,9 @@
-
-import type { FormState } from '@pyreon/form'
+import type { Signal, Computed } from '@pyreon/reactivity'
+import type { FormState, SchemaValidateFn } from '@pyreon/form'
 import type { UseQueryResult, UseMutationResult } from '@pyreon/query'
-import type { QueryKey } from '@tanstack/query-core'
-
-/**
- * Schema interface — duck-typed to work with Zod, Valibot, ArkType, or any
- * object that can parse/validate and infer a TypeScript type.
- *
- * For now we accept `unknown` and rely on the generic `TValues` for typing.
- * The schema is passed through to @pyreon/validation adapters.
- */
-export type FeatureSchema = unknown
+import type { QueryKey } from '@pyreon/query'
+import type { SortingState } from '@pyreon/table'
+import type { FieldInfo } from './schema'
 
 /**
  * Configuration for defining a feature.
@@ -18,59 +11,78 @@ export type FeatureSchema = unknown
 export interface FeatureConfig<TValues extends Record<string, unknown>> {
   /** Unique feature name — used for store ID and query key namespace. */
   name: string
-  /** Validation schema (Zod, Valibot, or ArkType). Passed to zodSchema/valibotSchema/arktypeSchema. */
-  schema: FeatureSchema
-  /** Schema-level validation function for forms. If not provided, schema is used with zodSchema(). */
-  validate?: (
-    values: TValues,
-  ) =>
-    | Partial<Record<keyof TValues, string | undefined>>
-    | Promise<Partial<Record<keyof TValues, string | undefined>>>
+  /** Validation schema (Zod, Valibot, or ArkType). Duck-typed — must have `safeParseAsync` for auto-validation. */
+  schema: unknown
+  /** Custom schema-level validation function. If provided, overrides auto-detection from schema. */
+  validate?: SchemaValidateFn<TValues>
   /** API base path (e.g., '/api/users'). */
   api: string
-  /** Default initial values for create forms. If not provided, uses empty strings/zeros. */
-  initialValues?: TValues
+  /** Default initial values for create forms. If not provided, auto-generated from schema field types. */
+  initialValues?: Partial<TValues>
   /** Custom fetch function. Defaults to global fetch. */
   fetcher?: typeof fetch
 }
 
 /**
- * A single item with an ID.
- */
-export interface FeatureItem<_TValues> {
-  id: string | number
-  [key: string]: unknown
-}
-
-/**
- * Query options that can be overridden per-call.
+ * Query options for useList.
  */
 export interface ListOptions {
-  /** Additional query parameters. */
+  /** Additional query parameters appended to the URL. */
   params?: Record<string, string | number | boolean>
-  /** Override stale time. */
+  /** Override stale time for this query. */
   staleTime?: number
   /** Enable/disable the query. */
   enabled?: boolean
 }
 
 /**
- * Form options that can be overridden per-call.
+ * Form options for useForm.
  */
 export interface FeatureFormOptions<TValues extends Record<string, unknown>> {
-  /** Override initial values. */
+  /** 'create' (default) or 'edit'. Edit mode uses PUT instead of POST. */
+  mode?: 'create' | 'edit'
+  /** Item ID — required when mode is 'edit'. Used to PUT to api/:id. */
+  id?: string | number
+  /** Override initial values (merged with feature defaults). */
   initialValues?: Partial<TValues>
-  /** Override validation mode. */
+  /** When to validate: 'blur' (default), 'change', or 'submit'. */
   validateOn?: 'blur' | 'change' | 'submit'
-  /** Callback after successful submit. */
+  /** Callback after successful create/update. */
   onSuccess?: (result: unknown) => void
   /** Callback on submit error. */
   onError?: (error: unknown) => void
 }
 
 /**
+ * Table options for useTable.
+ */
+export interface FeatureTableOptions<TValues extends Record<string, unknown>> {
+  /** Subset of schema fields to show as columns. If not provided, all fields are shown. */
+  columns?: (keyof TValues & string)[]
+  /** Per-column overrides (header text, cell renderer, size, etc.). */
+  columnOverrides?: Partial<
+    Record<keyof TValues & string, Record<string, unknown>>
+  >
+  /** Page size for pagination. If not provided, pagination is disabled. */
+  pageSize?: number
+}
+
+/**
+ * Return type of feature.useTable().
+ */
+export interface FeatureTableResult<TValues extends Record<string, unknown>> {
+  /** The reactive TanStack Table instance. */
+  table: Computed<import('@tanstack/table-core').Table<TValues>>
+  /** Sorting state signal — bind to UI controls. */
+  sorting: Signal<SortingState>
+  /** Global filter signal — bind to search input. */
+  globalFilter: Signal<string>
+  /** Column metadata from schema introspection. */
+  columns: FieldInfo[]
+}
+
+/**
  * The feature object returned by defineFeature().
- * Provides typed hooks for queries, mutations, forms, and tables.
  */
 export interface Feature<TValues extends Record<string, unknown>> {
   /** Feature name. */
@@ -78,7 +90,9 @@ export interface Feature<TValues extends Record<string, unknown>> {
   /** API base path. */
   api: string
   /** The schema passed to defineFeature. */
-  schema: FeatureSchema
+  schema: unknown
+  /** Introspected field information from the schema. */
+  fields: FieldInfo[]
 
   /** Fetch a paginated/filtered list. */
   useList: (options?: ListOptions) => UseQueryResult<TValues[], unknown>
@@ -86,22 +100,34 @@ export interface Feature<TValues extends Record<string, unknown>> {
   /** Fetch a single item by ID. */
   useById: (id: string | number) => UseQueryResult<TValues, unknown>
 
-  /** Create mutation — POST to api. Invalidates list query on success. */
+  /** Search with a reactive signal term. */
+  useSearch: (
+    searchTerm: Signal<string>,
+    options?: ListOptions,
+  ) => UseQueryResult<TValues[], unknown>
+
+  /** Create mutation — POST to api. */
   useCreate: () => UseMutationResult<TValues, unknown, Partial<TValues>>
 
-  /** Update mutation — PUT to api/:id. Invalidates list + item queries on success. */
+  /** Update mutation — PUT to api/:id. */
   useUpdate: () => UseMutationResult<
     TValues,
     unknown,
     { id: string | number; data: Partial<TValues> }
   >
 
-  /** Delete mutation — DELETE to api/:id. Invalidates list query on success. */
+  /** Delete mutation — DELETE to api/:id. */
   useDelete: () => UseMutationResult<void, unknown, string | number>
 
-  /** Create a form pre-wired with schema validation and submit handler. */
+  /** Create a form pre-wired with schema validation and API submit. */
   useForm: (options?: FeatureFormOptions<TValues>) => FormState<TValues>
 
-  /** Query key namespace for manual cache operations. */
+  /** Create a reactive table with columns inferred from schema. */
+  useTable: (
+    data: TValues[] | (() => TValues[]),
+    options?: FeatureTableOptions<TValues>,
+  ) => FeatureTableResult<TValues>
+
+  /** Generate namespaced query keys. */
   queryKey: (suffix?: string | number) => QueryKey
 }

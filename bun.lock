@@ -60,8 +60,6 @@
         "@pyreon/core": "^0.2.1",
         "@pyreon/reactivity": "^0.2.1",
         "@pyreon/runtime-dom": "^0.2.1",
-        "@tanstack/query-core": "^5.90.20",
-        "@tanstack/table-core": "^8.21.3",
         "zod": "^4.3.6",
       },
       "peerDependencies": {
