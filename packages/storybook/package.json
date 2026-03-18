@@ -51,16 +51,9 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/core": "^0.2.1",
-    "@pyreon/reactivity": "^0.2.1",
-    "@pyreon/runtime-dom": "^0.2.1",
+    "@pyreon/core": "^0.3.1",
+    "@pyreon/reactivity": "^0.3.1",
+    "@pyreon/runtime-dom": "^0.3.1",
     "storybook": ">=8.0.0"
-  },
-  "devDependencies": {
-    "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/core": "^0.2.1",
-    "@pyreon/reactivity": "^0.2.1",
-    "@pyreon/runtime-dom": "^0.2.1",
-    "storybook": "^8.6.0"
   }
 }
