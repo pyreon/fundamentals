@@ -2,7 +2,7 @@ import { h, Fragment } from '@pyreon/core'
 import type { VNode, Props } from '@pyreon/core'
 import type { InterpolationValues } from './types'
 
-const TAG_RE = /<(\w+)>(.*?)<\/\1>/gs
+const TAG_RE = /<(\w+)>([^<]*)<\/\1>/g
 
 interface RichPart {
   tag: string
