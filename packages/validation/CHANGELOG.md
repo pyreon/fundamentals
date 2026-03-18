@@ -1,6 +1,6 @@
 # @pyreon/validation
 
-## 1.0.0
+## 0.1.0
 
 ### Minor Changes
 
@@ -20,4 +20,4 @@
 ### Patch Changes
 
 - Updated dependencies [[`9fe5b51`](https://github.com/pyreon/fundamentals/commit/9fe5b51868c50c3bcab1961f94df27846921b739)]:
-  - @pyreon/form@1.0.0
+  - @pyreon/form@0.1.0
