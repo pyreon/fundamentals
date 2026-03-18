@@ -8,12 +8,14 @@
 export interface FieldInfo {
   /** Field name (key in the schema object). */
   name: string
-  /** Inferred type: 'string' | 'number' | 'boolean' | 'date' | 'enum' | 'array' | 'object' | 'unknown'. */
+  /** Inferred type: 'string' | 'number' | 'boolean' | 'date' | 'enum' | 'array' | 'object' | 'reference' | 'unknown'. */
   type: FieldType
   /** Whether the field is optional. */
   optional: boolean
   /** For enum fields, the list of allowed values. */
   enumValues?: (string | number)[]
+  /** For reference fields, the name of the referenced feature. */
+  referenceTo?: string
   /** Human-readable label derived from field name. */
   label: string
 }
@@ -26,7 +28,94 @@ export type FieldType =
   | 'enum'
   | 'array'
   | 'object'
+  | 'reference'
   | 'unknown'
+
+/** Symbol used to tag reference schema objects. */
+const REFERENCE_TAG = Symbol.for('pyreon:feature:reference')
+
+/**
+ * Metadata carried by a reference schema.
+ */
+export interface ReferenceSchema {
+  /** Marker symbol for detection. */
+  [key: symbol]: true
+  /** Name of the referenced feature. */
+  _featureName: string
+  /** Duck-typed Zod-like interface: validates as string | number. */
+  safeParse: (value: unknown) => {
+    success: boolean
+    error?: { issues: { message: string }[] }
+  }
+  /** Async variant for compatibility. */
+  safeParseAsync: (
+    value: unknown,
+  ) => Promise<{ success: boolean; error?: { issues: { message: string }[] } }>
+  /** Shape-like marker for schema introspection. */
+  _def: { typeName: string }
+}
+
+/**
+ * Check if a value is a reference schema created by `reference()`.
+ */
+export function isReference(value: unknown): value is ReferenceSchema {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    (value as Record<symbol, unknown>)[REFERENCE_TAG] === true
+  )
+}
+
+/**
+ * Create a reference field that links to another feature.
+ *
+ * Returns a Zod-compatible schema that validates as `string | number` and
+ * carries metadata about the referenced feature for form dropdowns and table links.
+ *
+ * @example
+ * ```ts
+ * import { defineFeature, reference } from '@pyreon/feature'
+ *
+ * const posts = defineFeature({
+ *   name: 'posts',
+ *   schema: z.object({
+ *     title: z.string(),
+ *     authorId: reference(users),
+ *   }),
+ *   api: '/api/posts',
+ * })
+ * ```
+ */
+export function reference(feature: { name: string }): ReferenceSchema {
+  const featureName = feature.name
+
+  function validateRef(value: unknown): {
+    success: boolean
+    error?: { issues: { message: string }[] }
+  } {
+    if (typeof value === 'string' || typeof value === 'number') {
+      return { success: true }
+    }
+    return {
+      success: false,
+      error: {
+        issues: [
+          {
+            message: `Expected string or number reference to ${featureName}, got ${typeof value}`,
+          },
+        ],
+      },
+    }
+  }
+
+  return {
+    [REFERENCE_TAG]: true,
+    _featureName: featureName,
+    safeParse: validateRef,
+    safeParseAsync: async (value: unknown) => validateRef(value),
+    _def: { typeName: 'ZodString' },
+  }
+}
 
 /**
  * Convert a field name to a human-readable label.
@@ -47,7 +136,17 @@ function detectFieldType(zodField: unknown): {
   type: FieldType
   optional: boolean
   enumValues?: (string | number)[]
+  referenceTo?: string
 } {
+  // Check for reference fields first
+  if (isReference(zodField)) {
+    return {
+      type: 'reference',
+      optional: false,
+      referenceTo: zodField._featureName,
+    }
+  }
+
   if (!zodField || typeof zodField !== 'object') {
     return { type: 'unknown', optional: false }
   }
@@ -189,14 +288,17 @@ export function extractFields(schema: unknown): FieldInfo[] {
   if (!shape) return []
 
   return Object.entries(shape).map(([name, fieldSchema]) => {
-    const { type, optional, enumValues } = detectFieldType(fieldSchema)
-    return {
+    const { type, optional, enumValues, referenceTo } =
+      detectFieldType(fieldSchema)
+    const info: FieldInfo = {
       name,
       type,
       optional,
-      enumValues,
       label: nameToLabel(name),
     }
+    if (enumValues) info.enumValues = enumValues
+    if (referenceTo) info.referenceTo = referenceTo
+    return info
   })
 }
 

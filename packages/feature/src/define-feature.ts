@@ -1,4 +1,4 @@
-import { signal } from '@pyreon/reactivity'
+import { signal, batch } from '@pyreon/reactivity'
 import { useForm as _useForm } from '@pyreon/form'
 import type { SchemaValidateFn } from '@pyreon/form'
 import { zodSchema } from '@pyreon/validation'
@@ -16,11 +16,13 @@ import {
   getPaginationRowModel,
 } from '@pyreon/table'
 import type { ColumnDef, SortingState } from '@pyreon/table'
+import { defineStore } from '@pyreon/store'
 import { extractFields, defaultInitialValues } from './schema'
 import type {
   Feature,
   FeatureConfig,
   FeatureFormOptions,
+  FeatureStore,
   FeatureTableOptions,
   ListOptions,
 } from './types'
@@ -107,6 +109,16 @@ function createValidator<TValues extends Record<string, unknown>>(
   return undefined
 }
 
+// ─── Resolve page value ───────────────────────────────────────────────────────
+
+function resolvePageValue(
+  page: number | (() => number) | undefined,
+): number | undefined {
+  if (page === undefined) return undefined
+  if (typeof page === 'function') return page()
+  return page
+}
+
 // ─── defineFeature ────────────────────────────────────────────────────────────
 
 /**
@@ -147,6 +159,28 @@ export function defineFeature<TValues extends Record<string, unknown>>(
   const queryKey = (suffix?: string | number): QueryKey =>
     suffix !== undefined ? [name, suffix] : [name]
 
+  // ─── Store definition ──────────────────────────────────────────────
+
+  const useStoreHook = defineStore<FeatureStore<TValues>>(name, () => {
+    const items = signal<TValues[]>([])
+    const selected = signal<TValues | null>(null)
+    const loading = signal(false)
+
+    const select = (id: string | number) => {
+      const found = items.peek().find((item) => {
+        const record = item as Record<string, unknown>
+        return record.id === id
+      })
+      selected.set(found ?? null)
+    }
+
+    const clear = () => {
+      selected.set(null)
+    }
+
+    return { items, selected, loading, select, clear }
+  })
+
   return {
     name,
     api,
@@ -154,15 +188,39 @@ export function defineFeature<TValues extends Record<string, unknown>>(
     fields,
     queryKey,
 
+    // ─── Store ───────────────────────────────────────────────────────
+
+    useStore: useStoreHook,
+
     // ─── Queries ────────────────────────────────────────────────────
 
     useList(options?: ListOptions) {
-      return _useQuery(() => ({
-        queryKey: [...queryKeyBase, 'list', options?.params ?? {}],
-        queryFn: () => http.list<TValues>(api, options?.params),
-        staleTime: options?.staleTime,
-        enabled: options?.enabled,
-      }))
+      return _useQuery(() => {
+        const pageValue = resolvePageValue(options?.page)
+        const pageSize = options?.pageSize ?? 20
+
+        const params: Record<string, string | number | boolean> = {
+          ...(options?.params ?? {}),
+        }
+
+        if (pageValue !== undefined) {
+          params.page = pageValue
+          params.pageSize = pageSize
+        }
+
+        const queryKeyParts: unknown[] = [...queryKeyBase, 'list', params]
+
+        return {
+          queryKey: queryKeyParts as QueryKey,
+          queryFn: () =>
+            http.list<TValues>(
+              api,
+              Object.keys(params).length > 0 ? params : undefined,
+            ),
+          staleTime: options?.staleTime,
+          enabled: options?.enabled,
+        }
+      })
     },
 
     useById(id: string | number) {
@@ -198,22 +256,36 @@ export function defineFeature<TValues extends Record<string, unknown>>(
     },
 
     useUpdate() {
+      type TVariables = { id: string | number; data: Partial<TValues> }
       const client = useQueryClient()
-      return _useMutation({
-        mutationFn: ({
-          id,
-          data,
-        }: {
-          id: string | number
-          data: Partial<TValues>
-        }) => http.update<TValues>(api, id, data),
-        onSuccess: (_data, variables) => {
-          client.invalidateQueries({
-            queryKey: queryKeyBase as unknown as QueryKey,
-          })
-          client.invalidateQueries({ queryKey: [name, variables.id] })
+      return _useMutation<TValues, unknown, TVariables, { previous?: unknown }>(
+        {
+          mutationFn: ({ id, data }: TVariables) =>
+            http.update<TValues>(api, id, data),
+          onMutate: async (variables) => {
+            await client.cancelQueries({ queryKey: [name, variables.id] })
+            const previous = client.getQueryData([name, variables.id])
+            client.setQueryData([name, variables.id], (old: unknown) => {
+              if (old && typeof old === 'object') {
+                return { ...old, ...variables.data }
+              }
+              return variables.data
+            })
+            return { previous }
+          },
+          onError: (_err, variables, context) => {
+            if (context?.previous) {
+              client.setQueryData([name, variables.id], context.previous)
+            }
+          },
+          onSuccess: (_data, variables) => {
+            client.invalidateQueries({
+              queryKey: queryKeyBase as unknown as QueryKey,
+            })
+            client.invalidateQueries({ queryKey: [name, variables.id] })
+          },
         },
-      })
+      ) as ReturnType<Feature<TValues>['useUpdate']>
     },
 
     useDelete() {
@@ -237,7 +309,7 @@ export function defineFeature<TValues extends Record<string, unknown>>(
         ...(options?.initialValues ?? {}),
       } as TValues
 
-      return _useForm<TValues>({
+      const form = _useForm<TValues>({
         initialValues: mergedInitial,
         schema: validate,
         validateOn: options?.validateOn ?? 'blur',
@@ -256,6 +328,31 @@ export function defineFeature<TValues extends Record<string, unknown>>(
           }
         },
       })
+
+      // Auto-fetch in edit mode
+      if (mode === 'edit' && options?.id !== undefined) {
+        form.isSubmitting.set(true)
+        http.getById<TValues>(api, options.id).then(
+          (data) => {
+            batch(() => {
+              for (const key of Object.keys(data)) {
+                form.setFieldValue(
+                  key as keyof TValues & string,
+                  (data as Record<string, unknown>)[
+                    key
+                  ] as TValues[keyof TValues],
+                )
+              }
+              form.isSubmitting.set(false)
+            })
+          },
+          () => {
+            form.isSubmitting.set(false)
+          },
+        )
+      }
+
+      return form
     },
 
     // ─── Table ──────────────────────────────────────────────────────

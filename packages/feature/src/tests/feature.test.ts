@@ -2,9 +2,15 @@ import { h } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { QueryClient, QueryClientProvider } from '@pyreon/query'
+import { resetAllStores } from '@pyreon/store'
 import { z } from 'zod'
 import { defineFeature } from '../define-feature'
-import { extractFields, defaultInitialValues } from '../schema'
+import {
+  extractFields,
+  defaultInitialValues,
+  reference,
+  isReference,
+} from '../schema'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,6 +85,12 @@ function createMockFetch(
     )
   }
 }
+
+// ─── Cleanup ──────────────────────────────────────────────────────────────────
+
+afterEach(() => {
+  resetAllStores()
+})
 
 // ─── Schema introspection ──────────────────────────────────────────────────────
 
@@ -186,6 +198,7 @@ describe('defineFeature', () => {
     expect(typeof users.useDelete).toBe('function')
     expect(typeof users.useForm).toBe('function')
     expect(typeof users.useTable).toBe('function')
+    expect(typeof users.useStore).toBe('function')
   })
 
   it('auto-generates initial values from schema', () => {
@@ -252,6 +265,96 @@ describe('useList', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(capturedUrl).toContain('page=2')
     unmount()
+  })
+})
+
+// ─── useList pagination ─────────────────────────────────────────────────────────
+
+describe('useList pagination', () => {
+  it('appends page and pageSize when page is provided as number', async () => {
+    let capturedUrl = ''
+    const users = defineFeature<UserValues>({
+      name: 'users-page-num',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: (async (url: string) => {
+        capturedUrl = url
+        return new Response('[]', { status: 200 })
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const { unmount } = mountWith(client, () =>
+      users.useList({ page: 1, pageSize: 10 }),
+    )
+    await new Promise((r) => setTimeout(r, 50))
+    expect(capturedUrl).toContain('page=1')
+    expect(capturedUrl).toContain('pageSize=10')
+    unmount()
+  })
+
+  it('defaults pageSize to 20 when page is provided', async () => {
+    let capturedUrl = ''
+    const users = defineFeature<UserValues>({
+      name: 'users-page-default-size',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: (async (url: string) => {
+        capturedUrl = url
+        return new Response('[]', { status: 200 })
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const { unmount } = mountWith(client, () => users.useList({ page: 3 }))
+    await new Promise((r) => setTimeout(r, 50))
+    expect(capturedUrl).toContain('page=3')
+    expect(capturedUrl).toContain('pageSize=20')
+    unmount()
+  })
+
+  it('accepts reactive page signal', async () => {
+    const capturedUrls: string[] = []
+    const users = defineFeature<UserValues>({
+      name: 'users-page-signal',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: (async (url: string) => {
+        capturedUrls.push(url)
+        return new Response('[]', { status: 200 })
+      }) as typeof fetch,
+    })
+
+    const page = signal(1)
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const { unmount } = mountWith(client, () =>
+      users.useList({ page, pageSize: 5 }),
+    )
+    await new Promise((r) => setTimeout(r, 50))
+    expect(capturedUrls.some((u) => u.includes('page=1'))).toBe(true)
+    unmount()
+  })
+
+  it('includes page in query key for independent caching', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-page-key',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: (async () => {
+        return new Response('[]', { status: 200 })
+      }) as typeof fetch,
+    })
+
+    // Different pages should produce different query keys
+    const key1 = users.queryKey(1)
+    const key2 = users.queryKey(2)
+    expect(key1).not.toEqual(key2)
   })
 })
 
@@ -339,6 +442,134 @@ describe('useUpdate', () => {
     expect(capturedUrl).toBe('/api/users/42')
     expect(capturedMethod).toBe('PUT')
     expect(mutation.isSuccess()).toBe(true)
+    unmount()
+  })
+})
+
+// ─── Optimistic updates ─────────────────────────────────────────────────────────
+
+describe('optimistic updates', () => {
+  it('updates cache optimistically before server responds', async () => {
+    let resolveUpdate: ((value: Response) => void) | undefined
+    const mockUser = {
+      id: 1,
+      name: 'Alice',
+      email: 'a@t.com',
+      role: 'admin',
+      active: true,
+    }
+
+    const users = defineFeature<UserValues & { id: number }>({
+      name: 'users-optimistic',
+      schema: z.object({
+        id: z.number(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        role: z.enum(['admin', 'editor', 'viewer']),
+        active: z.boolean(),
+      }),
+      api: '/api/users',
+      fetcher: (async (_url: string, init?: RequestInit) => {
+        if (init?.method === 'PUT') {
+          return new Promise<Response>((resolve) => {
+            resolveUpdate = resolve
+          })
+        }
+        return new Response(JSON.stringify(mockUser), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    // Pre-populate cache
+    client.setQueryData(['users-optimistic', 1], mockUser)
+
+    const { result: mutation, unmount } = mountWith(client, () =>
+      users.useUpdate(),
+    )
+
+    // Start mutation — should optimistically update cache
+    mutation.mutate({ id: 1, data: { name: 'Bob' } })
+    await new Promise((r) => setTimeout(r, 20))
+
+    // Cache should be optimistically updated
+    const cached = client.getQueryData(['users-optimistic', 1]) as Record<
+      string,
+      unknown
+    >
+    expect(cached.name).toBe('Bob')
+
+    // Resolve server response
+    resolveUpdate!(
+      new Response(JSON.stringify({ ...mockUser, name: 'Bob' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    await new Promise((r) => setTimeout(r, 50))
+
+    unmount()
+  })
+
+  it('rolls back cache on server error', async () => {
+    const mockUser = {
+      id: 2,
+      name: 'Alice',
+      email: 'a@t.com',
+      role: 'admin',
+      active: true,
+    }
+
+    const users = defineFeature<UserValues & { id: number }>({
+      name: 'users-rollback',
+      schema: z.object({
+        id: z.number(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        role: z.enum(['admin', 'editor', 'viewer']),
+        active: z.boolean(),
+      }),
+      api: '/api/users',
+      fetcher: (async (_url: string, init?: RequestInit) => {
+        if (init?.method === 'PUT') {
+          return new Response(JSON.stringify({ message: 'Server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+        return new Response(JSON.stringify(mockUser), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    })
+
+    // Pre-populate cache
+    client.setQueryData(['users-rollback', 2], mockUser)
+
+    const { result: mutation, unmount } = mountWith(client, () =>
+      users.useUpdate(),
+    )
+
+    mutation.mutate({ id: 2, data: { name: 'Should rollback' } })
+    await new Promise((r) => setTimeout(r, 100))
+
+    // Should roll back to original
+    const cached = client.getQueryData(['users-rollback', 2]) as Record<
+      string,
+      unknown
+    >
+    expect(cached.name).toBe('Alice')
+    expect(mutation.isError()).toBe(true)
     unmount()
   })
 })
@@ -448,6 +679,9 @@ describe('useForm', () => {
       }),
     )
 
+    // Wait for auto-fetch to complete (will 404 with mock, but form still works)
+    await new Promise((r) => setTimeout(r, 50))
+
     await form.handleSubmit()
     await new Promise((r) => setTimeout(r, 50))
 
@@ -485,6 +719,239 @@ describe('useForm', () => {
 
     expect(successResult).toEqual({ id: 1 })
     unmount()
+  })
+})
+
+// ─── Auto-fetch edit form ────────────────────────────────────────────────────
+
+describe('auto-fetch edit form', () => {
+  it('populates form fields from API when mode is edit', async () => {
+    const mockUser = {
+      name: 'Alice',
+      email: 'alice@example.com',
+      role: 'admin',
+      active: true,
+    }
+
+    const users = defineFeature<UserValues>({
+      name: 'users-form-autofetch',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: createMockFetch({
+        'GET /api/users/42': { body: mockUser },
+        'PUT /api/users/42': { body: mockUser },
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient()
+    const { result: form, unmount } = mountWith(client, () =>
+      users.useForm({ mode: 'edit', id: 42 }),
+    )
+
+    // Should be loading initially
+    expect(form.isSubmitting()).toBe(true)
+
+    await new Promise((r) => setTimeout(r, 100))
+
+    // Should have populated values
+    expect(form.isSubmitting()).toBe(false)
+    expect(form.values().name).toBe('Alice')
+    expect(form.values().email).toBe('alice@example.com')
+    expect(form.values().role).toBe('admin')
+    expect(form.values().active).toBe(true)
+    unmount()
+  })
+
+  it('clears loading state on fetch error', async () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-form-autofetch-err',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: createMockFetch({
+        'GET /api/users/999': { status: 404, body: { message: 'Not found' } },
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient()
+    const { result: form, unmount } = mountWith(client, () =>
+      users.useForm({ mode: 'edit', id: 999 }),
+    )
+
+    expect(form.isSubmitting()).toBe(true)
+    await new Promise((r) => setTimeout(r, 100))
+    expect(form.isSubmitting()).toBe(false)
+    unmount()
+  })
+})
+
+// ─── useStore ──────────────────────────────────────────────────────────────────
+
+describe('useStore', () => {
+  it('returns a store with items, selected, and loading signals', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-store',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: storeApi, unmount } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    expect(storeApi.store.items()).toEqual([])
+    expect(storeApi.store.selected()).toBe(null)
+    expect(storeApi.store.loading()).toBe(false)
+    unmount()
+  })
+
+  it('select() finds item by id from items list', () => {
+    const users = defineFeature<UserValues & { id: number }>({
+      name: 'users-store-select',
+      schema: z.object({
+        id: z.number(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        role: z.enum(['admin', 'editor', 'viewer']),
+        active: z.boolean(),
+      }),
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: storeApi, unmount } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    const items = [
+      {
+        id: 1,
+        name: 'Alice',
+        email: 'a@t.com',
+        role: 'admin' as const,
+        active: true,
+      },
+      {
+        id: 2,
+        name: 'Bob',
+        email: 'b@t.com',
+        role: 'editor' as const,
+        active: false,
+      },
+    ]
+    storeApi.store.items.set(items)
+    storeApi.store.select(2)
+
+    expect(storeApi.store.selected()?.name).toBe('Bob')
+    unmount()
+  })
+
+  it('select() sets null when id not found', () => {
+    const users = defineFeature<UserValues & { id: number }>({
+      name: 'users-store-select-miss',
+      schema: z.object({
+        id: z.number(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        role: z.enum(['admin', 'editor', 'viewer']),
+        active: z.boolean(),
+      }),
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: storeApi, unmount } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    storeApi.store.items.set([
+      {
+        id: 1,
+        name: 'Alice',
+        email: 'a@t.com',
+        role: 'admin' as const,
+        active: true,
+      },
+    ])
+    storeApi.store.select(999)
+
+    expect(storeApi.store.selected()).toBe(null)
+    unmount()
+  })
+
+  it('clear() resets selection to null', () => {
+    const users = defineFeature<UserValues & { id: number }>({
+      name: 'users-store-clear',
+      schema: z.object({
+        id: z.number(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        role: z.enum(['admin', 'editor', 'viewer']),
+        active: z.boolean(),
+      }),
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: storeApi, unmount } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    storeApi.store.items.set([
+      {
+        id: 1,
+        name: 'Alice',
+        email: 'a@t.com',
+        role: 'admin' as const,
+        active: true,
+      },
+    ])
+    storeApi.store.select(1)
+    expect(storeApi.store.selected()).not.toBe(null)
+
+    storeApi.store.clear()
+    expect(storeApi.store.selected()).toBe(null)
+    unmount()
+  })
+
+  it('loading signal reflects loading state', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-store-loading',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: storeApi, unmount } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    expect(storeApi.store.loading()).toBe(false)
+    storeApi.store.loading.set(true)
+    expect(storeApi.store.loading()).toBe(true)
+    unmount()
+  })
+
+  it('is singleton — same store returned on multiple calls', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-store-singleton',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const client = new QueryClient()
+    const { result: store1, unmount: unmount1 } = mountWith(client, () =>
+      users.useStore(),
+    )
+    const { result: store2, unmount: unmount2 } = mountWith(client, () =>
+      users.useStore(),
+    )
+
+    expect(store1.id).toBe(store2.id)
+    store1.store.loading.set(true)
+    expect(store2.store.loading()).toBe(true)
+    unmount1()
+    unmount2()
   })
 })
 
@@ -650,5 +1117,98 @@ describe('error handling', () => {
     expect(err.message).toBe('Validation failed')
     expect(err.errors).toEqual({ email: 'Taken' })
     unmount()
+  })
+})
+
+// ─── References ─────────────────────────────────────────────────────────────────
+
+describe('reference', () => {
+  it('creates a reference schema object', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-ref',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const ref = reference(users)
+    expect(isReference(ref)).toBe(true)
+    expect(ref._featureName).toBe('users-ref')
+  })
+
+  it('validates string and number IDs', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-ref-validate',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const ref = reference(users)
+    expect(ref.safeParse(42).success).toBe(true)
+    expect(ref.safeParse('abc-123').success).toBe(true)
+    expect(ref.safeParse(null).success).toBe(false)
+    expect(ref.safeParse(undefined).success).toBe(false)
+    expect(ref.safeParse({}).success).toBe(false)
+  })
+
+  it('safeParseAsync works the same as safeParse', async () => {
+    const ref = reference({ name: 'test' })
+    const result = await ref.safeParseAsync(42)
+    expect(result.success).toBe(true)
+
+    const fail = await ref.safeParseAsync(null)
+    expect(fail.success).toBe(false)
+  })
+
+  it('isReference returns false for non-reference objects', () => {
+    expect(isReference(null)).toBe(false)
+    expect(isReference(undefined)).toBe(false)
+    expect(isReference(42)).toBe(false)
+    expect(isReference('string')).toBe(false)
+    expect(isReference({})).toBe(false)
+    expect(isReference(z.string())).toBe(false)
+  })
+
+  it('reference fields detected in schema introspection', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-ref-introspect',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const postSchema = z.object({
+      title: z.string(),
+      body: z.string(),
+      authorId: reference(users) as any,
+    })
+
+    const fields = extractFields(postSchema)
+    const authorField = fields.find((f) => f.name === 'authorId')
+    expect(authorField).toBeDefined()
+    expect(authorField!.type).toBe('reference')
+    expect(authorField!.referenceTo).toBe('users-ref-introspect')
+  })
+
+  it('reference fields in defineFeature schema produce reference FieldInfo', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-ref-in-feat',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    type PostValues = { title: string; body: string; authorId: string }
+    const posts = defineFeature<PostValues>({
+      name: 'posts-ref',
+      schema: z.object({
+        title: z.string(),
+        body: z.string(),
+        authorId: reference(users) as any,
+      }),
+      api: '/api/posts',
+    })
+
+    const authorField = posts.fields.find((f) => f.name === 'authorId')
+    expect(authorField).toBeDefined()
+    expect(authorField!.type).toBe('reference')
+    expect(authorField!.referenceTo).toBe('users-ref-in-feat')
   })
 })

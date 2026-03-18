@@ -3,6 +3,7 @@ import type { FormState, SchemaValidateFn } from '@pyreon/form'
 import type { UseQueryResult, UseMutationResult } from '@pyreon/query'
 import type { QueryKey } from '@pyreon/query'
 import type { SortingState } from '@pyreon/table'
+import type { StoreApi } from '@pyreon/store'
 import type { FieldInfo } from './schema'
 
 /**
@@ -29,6 +30,10 @@ export interface FeatureConfig<TValues extends Record<string, unknown>> {
 export interface ListOptions {
   /** Additional query parameters appended to the URL. */
   params?: Record<string, string | number | boolean>
+  /** Reactive page number. When provided, `page` and `pageSize` are appended to query params. */
+  page?: number | Signal<number>
+  /** Items per page. Defaults to 20 when `page` is provided. */
+  pageSize?: number
   /** Override stale time for this query. */
   staleTime?: number
   /** Enable/disable the query. */
@@ -41,7 +46,7 @@ export interface ListOptions {
 export interface FeatureFormOptions<TValues extends Record<string, unknown>> {
   /** 'create' (default) or 'edit'. Edit mode uses PUT instead of POST. */
   mode?: 'create' | 'edit'
-  /** Item ID — required when mode is 'edit'. Used to PUT to api/:id. */
+  /** Item ID — required when mode is 'edit'. Used to PUT to api/:id and auto-fetch data. */
   id?: string | number
   /** Override initial values (merged with feature defaults). */
   initialValues?: Partial<TValues>
@@ -82,6 +87,24 @@ export interface FeatureTableResult<TValues extends Record<string, unknown>> {
 }
 
 /**
+ * Reactive store for a feature's cached data.
+ */
+export interface FeatureStore<TValues extends Record<string, unknown>> {
+  /** Cached list of items. */
+  items: Signal<TValues[]>
+  /** Currently selected item. */
+  selected: Signal<TValues | null>
+  /** Loading state. */
+  loading: Signal<boolean>
+  /** Set the selected item by ID (finds from items list). */
+  select: (id: string | number) => void
+  /** Clear the current selection. */
+  clear: () => void
+  /** Index signature for Record<string, unknown> compatibility. */
+  [key: string]: unknown
+}
+
+/**
  * The feature object returned by defineFeature().
  */
 export interface Feature<TValues extends Record<string, unknown>> {
@@ -109,7 +132,7 @@ export interface Feature<TValues extends Record<string, unknown>> {
   /** Create mutation — POST to api. */
   useCreate: () => UseMutationResult<TValues, unknown, Partial<TValues>>
 
-  /** Update mutation — PUT to api/:id. */
+  /** Update mutation — PUT to api/:id with optimistic updates. */
   useUpdate: () => UseMutationResult<
     TValues,
     unknown,
@@ -119,7 +142,7 @@ export interface Feature<TValues extends Record<string, unknown>> {
   /** Delete mutation — DELETE to api/:id. */
   useDelete: () => UseMutationResult<void, unknown, string | number>
 
-  /** Create a form pre-wired with schema validation and API submit. */
+  /** Create a form pre-wired with schema validation and API submit. In edit mode with an ID, auto-fetches data. */
   useForm: (options?: FeatureFormOptions<TValues>) => FormState<TValues>
 
   /** Create a reactive table with columns inferred from schema. */
@@ -127,6 +150,9 @@ export interface Feature<TValues extends Record<string, unknown>> {
     data: TValues[] | (() => TValues[]),
     options?: FeatureTableOptions<TValues>,
   ) => FeatureTableResult<TValues>
+
+  /** Reactive store for cached items, selection, and loading state. */
+  useStore: () => StoreApi<FeatureStore<TValues>>
 
   /** Generate namespaced query keys. */
   queryKey: (suffix?: string | number) => QueryKey
