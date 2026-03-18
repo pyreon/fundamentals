@@ -41,7 +41,8 @@
       "bun": "./src/preview.ts",
       "import": "./lib/preview.js",
       "types": "./lib/types/preview.d.ts"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "vl_rolldown_build",

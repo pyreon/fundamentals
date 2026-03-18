@@ -11,10 +11,10 @@
         "@types/bun": "^1.3.10",
         "@types/node": "^25.5.0",
         "@vitest/coverage-v8": "^4.0.18",
-        "@vitus-labs/tools-lint": "1.14.0",
-        "@vitus-labs/tools-rolldown": "1.14.0",
-        "@vitus-labs/tools-typescript": "1.14.0",
-        "@vitus-labs/tools-vitest": "1.14.0",
+        "@vitus-labs/tools-lint": "1.15.0",
+        "@vitus-labs/tools-rolldown": "1.15.0",
+        "@vitus-labs/tools-typescript": "1.15.0",
+        "@vitus-labs/tools-vitest": "1.15.0",
         "typescript": "^5.9.3",
         "vitest": "^4.0.18",
       },
@@ -561,15 +561,15 @@
 
     "@vitest/utils": ["@vitest/utils@4.1.0", "", { "dependencies": { "@vitest/pretty-format": "4.1.0", "convert-source-map": "^2.0.0", "tinyrainbow": "^3.0.3" } }, "sha512-XfPXT6a8TZY3dcGY8EdwsBulFCIw+BeeX0RZn2x/BtiY/75YGh8FeWGG8QISN/WhaqSrE2OrlDgtF8q5uhOTmw=="],
 
-    "@vitus-labs/tools-core": ["@vitus-labs/tools-core@1.13.0", "", {}, "sha512-aeF5CgBlFR4kJL/iU3xO7mBfdb9I37uzsKqj6TLGC2n1OJawK84AdTzZUIQduou9LbvoTDxOJOAB84B9O2B1gg=="],
+    "@vitus-labs/tools-core": ["@vitus-labs/tools-core@1.15.0", "", {}, "sha512-tvRdnu8Y2eWEvGC9pVnWf/N2rEAuZPIjSq9nvDLHF5hEE8t1jA32m7lErWS5tTKBhv+QPA0uMUqQY2EUAZglEQ=="],
 
-    "@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.14.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-IcJjd+8l+H8X8DkGLvO6JlREJpjK06umbtdV2B7Dh/FT/0peicYIk/zmuSkPxsIHt/ZyYt6Sa8IALSxP1hx3DA=="],
+    "@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
 
-    "@vitus-labs/tools-rolldown": ["@vitus-labs/tools-rolldown@1.14.0", "", { "dependencies": { "@vitus-labs/tools-core": "^1.12.0", "chalk": "^5.6.2", "rimraf": "^6.1.3", "rolldown": "^1.0.0-rc.9", "rolldown-plugin-dts": "^0.22.5", "rollup-plugin-filesize": "^10.0.0", "rollup-plugin-visualizer": "^7.0.1" }, "bin": { "vl_rolldown_build": "lib/bin/run-build.js", "vl_rolldown_build-watch": "lib/bin/run-watch.js" } }, "sha512-IFIDSUjsl7OpuYx2e/oXLzZy18ferFDNHxUoTA7tb54ByDZFR9ELr8amvfwpqqJu6lTk1K8ICLFsAZGBWRqLMw=="],
+    "@vitus-labs/tools-rolldown": ["@vitus-labs/tools-rolldown@1.15.0", "", { "dependencies": { "@vitus-labs/tools-core": "^1.14.0", "chalk": "^5.6.2", "rimraf": "^6.1.3", "rolldown": "^1.0.0-rc.9", "rolldown-plugin-dts": "^0.22.5", "rollup-plugin-filesize": "^10.0.0", "rollup-plugin-visualizer": "^7.0.1" }, "bin": { "vl_rolldown_build": "lib/bin/run-build.js", "vl_rolldown_build-watch": "lib/bin/run-watch.js" } }, "sha512-JH13noy72vkqu7lxMQEhSB2u3xMjuZ5Fb4KHZxQrUNAJbXXFTuV2fMf14doFMpOCNNXq08RZuE4JLNBa7HM7PA=="],
 
-    "@vitus-labs/tools-typescript": ["@vitus-labs/tools-typescript@1.14.0", "", { "peerDependencies": { "typescript": ">=5" } }, "sha512-7xMZBqCLmtLOqQQWvh3u0SN/kmOe4RMOwjLUo6RkySBJJyuTSGus2afddMbYIGeGY5eS4pOp5DYF+wptT5JqeA=="],
+    "@vitus-labs/tools-typescript": ["@vitus-labs/tools-typescript@1.15.0", "", { "peerDependencies": { "typescript": ">=5" } }, "sha512-LERU+gjg3yaer0IvpwcX+20UarctLzObqkg7n4D9lD+rSTEO578EFntrCkDs8kp4lqlEGFQn9GObDKxKO7N7MA=="],
 
-    "@vitus-labs/tools-vitest": ["@vitus-labs/tools-vitest@1.14.0", "", { "peerDependencies": { "vite": ">=6", "vitest": ">=4" } }, "sha512-dMkevJRkXe8goZxKzsMOcqHUS9vdCBDkgrk67/FPlqk54rn+6ZPD4lDb4EnEQunkEOwLCT6R9UQ+ufHh8mAzSQ=="],
+    "@vitus-labs/tools-vitest": ["@vitus-labs/tools-vitest@1.15.0", "", { "peerDependencies": { "vite": ">=8", "vitest": ">=4" } }, "sha512-F4fnG9U9aYZQxgP+gaGdfR4WfCiywA2ygSf6ci9ErMoWGDMDWMGXrlNPc8xxKQ2A6KKxujr6c9WCOPVX2MqTgA=="],
 
     "abbrev": ["abbrev@1.1.1", "", {}, "sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q=="],
 
