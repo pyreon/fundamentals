@@ -9,5 +9,10 @@ export default mergeConfig(
     resolve: {
       conditions: ['bun'],
     },
+    test: {
+      coverage: {
+        exclude: ['src/types.ts'],
+      },
+    },
   }),
 )

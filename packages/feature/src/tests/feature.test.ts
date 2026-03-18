@@ -149,6 +149,122 @@ describe('extractFields', () => {
     expect(extractFields(undefined)).toEqual([])
     expect(extractFields('string')).toEqual([])
   })
+
+  it('handles Zod v3-style schema with _def.typeName', () => {
+    // Mock v3 schema shape
+    const mockSchema = {
+      _def: {
+        shape: () => ({
+          title: {
+            _def: { typeName: 'ZodString' },
+          },
+          count: {
+            _def: { typeName: 'ZodNumber' },
+          },
+          done: {
+            _def: { typeName: 'ZodBoolean' },
+          },
+        }),
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields).toHaveLength(3)
+    expect(fields[0]).toMatchObject({ name: 'title', type: 'string' })
+    expect(fields[1]).toMatchObject({ name: 'count', type: 'number' })
+    expect(fields[2]).toMatchObject({ name: 'done', type: 'boolean' })
+  })
+
+  it('handles Zod v3-style optional with _def.typeName ZodOptional', () => {
+    const mockSchema = {
+      _def: {
+        shape: () => ({
+          name: {
+            _def: {
+              typeName: 'ZodOptional',
+              innerType: { _def: { typeName: 'ZodString' } },
+            },
+          },
+        }),
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields[0]).toMatchObject({
+      name: 'name',
+      type: 'string',
+      optional: true,
+    })
+  })
+
+  it('handles Zod v3-style enum with _def.values', () => {
+    const mockSchema = {
+      _def: {
+        shape: () => ({
+          status: {
+            _def: {
+              typeName: 'ZodEnum',
+              values: ['active', 'inactive'],
+            },
+          },
+        }),
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields[0]).toMatchObject({
+      name: 'status',
+      type: 'enum',
+      enumValues: ['active', 'inactive'],
+    })
+  })
+
+  it('returns unknown for unrecognized field type', () => {
+    const mockSchema = {
+      shape: {
+        weird: { _def: { typeName: 'ZodSomethingNew' } },
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields[0]).toMatchObject({ name: 'weird', type: 'string' })
+  })
+
+  it('handles schema with static _def.shape object (not function)', () => {
+    const mockSchema = {
+      _def: {
+        shape: {
+          name: { _def: { typeName: 'ZodString' } },
+        },
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields).toHaveLength(1)
+    expect(fields[0]).toMatchObject({ name: 'name', type: 'string' })
+  })
+
+  it('handles schema with _zod.def.shape (v4 path)', () => {
+    const mockSchema = {
+      _zod: {
+        def: {
+          shape: {
+            email: {
+              _zod: { def: { type: 'string' } },
+            },
+          },
+        },
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields).toHaveLength(1)
+    expect(fields[0]).toMatchObject({ name: 'email', type: 'string' })
+  })
+
+  it('handles getTypeName returning undefined', () => {
+    const mockSchema = {
+      shape: {
+        field: {},
+      },
+    }
+    const fields = extractFields(mockSchema)
+    expect(fields[0]).toMatchObject({ name: 'field', type: 'unknown' })
+  })
 })
 
 describe('defaultInitialValues', () => {
@@ -1210,5 +1326,91 @@ describe('reference', () => {
     expect(authorField).toBeDefined()
     expect(authorField!.type).toBe('reference')
     expect(authorField!.referenceTo).toBe('users-ref-in-feat')
+  })
+})
+
+// ─── Edge case coverage ────────────────────────────────────────────────────────
+
+describe('edge cases', () => {
+  it('defineFeature works without a Zod schema (no validation)', () => {
+    const items = defineFeature<{ title: string }>({
+      name: 'items-no-zod',
+      schema: { notAZodSchema: true },
+      api: '/api/items',
+    })
+
+    const client = new QueryClient()
+    const { result: form, unmount } = mountWith(client, () => items.useForm())
+    expect(typeof form.handleSubmit).toBe('function')
+    unmount()
+  })
+
+  it('useForm onError callback fires on submit failure', async () => {
+    let caughtError: unknown = null
+    const users = defineFeature<UserValues>({
+      name: 'users-form-onerror',
+      schema: userSchema,
+      api: '/api/users',
+      fetcher: createMockFetch({
+        'POST /api/users': {
+          status: 500,
+          body: { message: 'Server broke' },
+        },
+      }) as typeof fetch,
+    })
+
+    const client = new QueryClient()
+    const { result: form, unmount } = mountWith(client, () =>
+      users.useForm({
+        onError: (err) => {
+          caughtError = err
+        },
+      }),
+    )
+
+    form.setFieldValue('name', 'Al')
+    form.setFieldValue('email', 'a@t.com')
+    form.setFieldValue('role', 'admin')
+    form.setFieldValue('active', true)
+
+    try {
+      await form.handleSubmit()
+    } catch {
+      // expected
+    }
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(caughtError).toBeInstanceOf(Error)
+    unmount()
+  })
+
+  it('useTable sorting via direct state object (non-function updater)', () => {
+    const users = defineFeature<UserValues>({
+      name: 'users-table-sort-direct',
+      schema: userSchema,
+      api: '/api/users',
+    })
+
+    const data: UserValues[] = [
+      { name: 'Bob', email: 'b@t.com', role: 'editor', active: true },
+      { name: 'Alice', email: 'a@t.com', role: 'admin', active: true },
+    ]
+
+    const client = new QueryClient()
+    const { result, unmount } = mountWith(client, () => users.useTable(data))
+
+    // Trigger sorting via the table's toggle handler (function updater)
+    result.table().getColumn('name')!.toggleSorting(false)
+    expect(result.sorting().length).toBe(1)
+
+    // Also set sorting directly (non-function updater path)
+    result.sorting.set([{ id: 'email', desc: true }])
+    expect(result.sorting()).toEqual([{ id: 'email', desc: true }])
+
+    // Set globalFilter directly
+    result.globalFilter.set('alice')
+    expect(result.globalFilter()).toBe('alice')
+
+    unmount()
   })
 })

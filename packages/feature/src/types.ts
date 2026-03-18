@@ -77,7 +77,7 @@ export interface FeatureTableOptions<TValues extends Record<string, unknown>> {
  */
 export interface FeatureTableResult<TValues extends Record<string, unknown>> {
   /** The reactive TanStack Table instance. */
-  table: Computed<import('@tanstack/table-core').Table<TValues>>
+  table: Computed<import('@pyreon/table').Table<TValues>>
   /** Sorting state signal — bind to UI controls. */
   sorting: Signal<SortingState>
   /** Global filter signal — bind to search input. */
