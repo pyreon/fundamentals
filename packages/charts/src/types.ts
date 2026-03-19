@@ -33,6 +33,24 @@ export type {
 } from 'echarts'
 export type { ComposeOption, ECharts, EChartsOption, SetOptionOpts }
 
+// ─── Event types (duck-typed to avoid echarts dual-package type conflicts) ───
+
+/** Chart event params — duck-typed to work across echarts entry points */
+export interface ChartEventParams {
+  componentType?: string
+  seriesType?: string
+  seriesIndex?: number
+  seriesName?: string
+  name?: string
+  dataIndex?: number
+  data?: unknown
+  dataType?: string
+  value?: unknown
+  color?: string
+  event?: Event
+  [key: string]: unknown
+}
+
 // ─── Chart config ────────────────────────────────────────────────────────────
 
 /**
@@ -92,9 +110,9 @@ export interface ChartProps<TOption extends EChartsOption = EChartsOption>
   /** CSS class for the container div */
   class?: string
   /** Click event handler */
-  onClick?: (params: unknown) => void
+  onClick?: (params: ChartEventParams) => void
   /** Mouseover event handler */
-  onMouseover?: (params: unknown) => void
+  onMouseover?: (params: ChartEventParams) => void
   /** Mouseout event handler */
-  onMouseout?: (params: unknown) => void
+  onMouseout?: (params: ChartEventParams) => void
 }

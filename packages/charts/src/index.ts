@@ -31,6 +31,7 @@ export type {
   BarSeriesOption,
   BoxplotSeriesOption,
   CandlestickSeriesOption,
+  ChartEventParams,
   ChartProps,
   ComposeOption,
   DataZoomComponentOption,

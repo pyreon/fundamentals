@@ -42,6 +42,8 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
     const inst = chart.instance()
     if (!inst) return
 
+    // Handlers are duck-typed ChartEventParams — cast needed because
+    // echarts/core and echarts export incompatible private class types
     if (props.onClick) inst.on('click', props.onClick as any)
     if (props.onMouseover) inst.on('mouseover', props.onMouseover as any)
     if (props.onMouseout) inst.on('mouseout', props.onMouseout as any)
