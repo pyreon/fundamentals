@@ -124,6 +124,7 @@ packages/[name]/
 - Suspense: `useSuspenseQuery`, `useSuspenseInfiniteQuery`, `QuerySuspense` boundary
 - `useIsFetching`, `useIsMutating`, `QueryErrorResetBoundary`, `useQueryErrorResetBoundary`
 - Fine-grained signals per field (data, error, isFetching independent), reactive options via function getter
+- `useSubscription(options)` — reactive WebSocket with auto-reconnect, integrates with QueryClient for cache invalidation
 
 ### @pyreon/table
 
