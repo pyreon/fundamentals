@@ -17,16 +17,18 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/store` | Global state management — composition stores returning `StoreApi<T>` |
 | `@pyreon/state-tree` | Structured reactive state tree — models, snapshots, patches, middleware |
 | `@pyreon/i18n` | Reactive i18n with async namespace loading, plurals, interpolation |
+| `@pyreon/feature` | Schema-driven CRUD primitives — auto-generated queries, forms, tables, stores |
+| `@pyreon/charts` | Reactive ECharts bridge with lazy loading, auto-detection, and typed options |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
 
-This repo depends on the core Pyreon framework at `../pyreon` (linked via `overrides` in root `package.json`):
+This repo depends on the core Pyreon framework packages published on npm (>=0.4.0 <1.0.0):
 
 - `@pyreon/reactivity` — signals, computed, effect, batch
 - `@pyreon/core` — h(), VNode, Fragment, lifecycle, context
 
-The meta-framework at `../zero` (Pyreon Zero) consumes packages from both repos.
+The meta-framework Pyreon Zero consumes packages from both repos.
 
 ## Workspace Resolution
 
@@ -73,8 +75,8 @@ packages/[name]/
 
 ### Dependencies
 
-- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (^0.2.1)
-- Dev dependencies use npm versions (^0.2.1) for `@pyreon/core`, `@pyreon/reactivity`, `@pyreon/runtime-dom`
+- Most packages peer on `@pyreon/core` and `@pyreon/reactivity` (>=0.4.0 <1.0.0)
+- Dev dependencies use npm versions (>=0.4.0 <1.0.0) for `@pyreon/core`, `@pyreon/reactivity`, `@pyreon/runtime-dom`
 - TanStack packages (`query`, `table`, `virtual`) have `@tanstack/*-core` as direct deps
 
 ### Testing & Linting
@@ -138,6 +140,25 @@ packages/[name]/
 - `valibotSchema(schema, safeParseFn)` / `valibotField()` — Valibot standalone-function style
 - `arktypeSchema()` / `arktypeField()` — ArkType sync adapter
 
+### @pyreon/feature
+
+- `defineFeature({ name, schema, api })` — schema-driven CRUD primitives
+- Auto-generates: `useList`, `useById`, `useSearch`, `useCreate`, `useUpdate`, `useDelete`, `useForm`, `useTable`, `useStore`
+- Schema introspection: `extractFields()`, `FieldInfo`, `reference()`
+- Optimistic updates in `useUpdate`, auto-fetch edit form, pagination
+- Composes `@pyreon/query`, `@pyreon/form`, `@pyreon/validation`, `@pyreon/store`, `@pyreon/table`
+
+### @pyreon/charts
+
+- `useChart<TOption>(optionsFn, config?)` — reactive ECharts bridge with lazy loading
+- `<Chart />` component with event binding
+- Auto-detects chart types and components from config, dynamically imports
+- Canvas renderer by default, SVG optional
+- Generic `TOption` for strict type narrowing via `ComposeOption<>`
+- Re-exports all ECharts series/component option types
+- Error signal for init/setOption failures
+- `@pyreon/charts/manual` entry for tree-shaking control
+
 ### @pyreon/storybook
 
 - `renderToCanvas(context, canvasElement)` — core renderer: mounts VNode, cleans up previous, shows errors
@@ -153,9 +174,9 @@ Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`
 
 ## CI & Release
 
-- Changesets for fixed versioning (all 9 packages share one version)
+- Changesets for fixed versioning (all 11 packages share one version)
 - CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
-- Release via `changesets/action` in GitHub Actions
+- Release via `changesets/action` in GitHub Actions with OIDC publishing
 
 ## Scripts
 
