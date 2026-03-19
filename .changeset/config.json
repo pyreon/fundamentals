@@ -15,7 +15,8 @@
       "@pyreon/storybook",
       "@pyreon/feature",
       "@pyreon/charts",
-      "@pyreon/storage"
+      "@pyreon/storage",
+      "@pyreon/hotkeys"
     ]
   ],
   "access": "public",

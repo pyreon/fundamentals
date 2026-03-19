@@ -20,6 +20,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/feature` | Schema-driven CRUD primitives — auto-generated queries, forms, tables, stores |
 | `@pyreon/charts` | Reactive ECharts bridge with lazy loading, auto-detection, and typed options |
 | `@pyreon/storage` | Reactive client-side storage — localStorage, sessionStorage, cookies, IndexedDB |
+| `@pyreon/hotkeys` | Keyboard shortcut management — scope-aware, modifier keys, conflict detection |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -174,6 +175,17 @@ packages/[name]/
 - All hooks return `StorageSignal<T>` — extends `Signal<T>` with `.remove()`
 - Signal deduplication — same key returns same signal instance across components
 
+### @pyreon/hotkeys
+
+- `useHotkey(shortcut, handler, options?)` — component-scoped keyboard shortcut, auto-unregisters on unmount
+- `useHotkeyScope(scope)` — activate a scope for a component's lifetime
+- `registerHotkey(shortcut, handler, options?)` — imperative registration, returns unregister fn
+- `enableScope(scope)` / `disableScope(scope)` — control which scopes are active
+- `getRegisteredHotkeys()` — list all hotkeys (for help dialogs)
+- `parseShortcut(str)` / `formatCombo(combo)` / `matchesCombo(event, combo)` — utilities
+- Supports `mod` (⌘ on Mac, Ctrl elsewhere), aliases (esc, space, del), input filtering
+- Scope-based activation — hotkeys only fire when their scope is active
+
 ### @pyreon/storybook
 
 - `renderToCanvas(context, canvasElement)` — core renderer: mounts VNode, cleans up previous, shows errors
@@ -189,7 +201,7 @@ Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`
 
 ## CI & Release
 
-- Changesets for fixed versioning (all 12 packages share one version)
+- Changesets for fixed versioning (all 13 packages share one version)
 - CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
 - Release via `changesets/action` in GitHub Actions with OIDC publishing
 
