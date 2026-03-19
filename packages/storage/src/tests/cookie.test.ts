@@ -82,6 +82,54 @@ describe('useCookie', () => {
     token.set('abc123')
     expect(token()).toBe('abc123')
   })
+
+  it('respects expires option', () => {
+    const future = new Date(Date.now() + 86400000)
+    const sig = useCookie('exp', 'val', { expires: future })
+    sig.set('updated')
+    expect(sig()).toBe('updated')
+  })
+
+  it('respects domain option on set and remove', () => {
+    const sig = useCookie('dom', 'val', { domain: 'example.com' })
+    sig.set('updated')
+    expect(sig()).toBe('updated')
+    sig.remove()
+    expect(sig()).toBe('val')
+  })
+
+  it('.subscribe() works', () => {
+    const sig = useCookie('sub', 'a')
+    let called = false
+    const unsub = sig.subscribe(() => {
+      called = true
+    })
+    sig.set('b')
+    expect(called).toBe(true)
+    unsub()
+  })
+
+  it('.direct() works', () => {
+    const sig = useCookie('dir', 'a')
+    let called = false
+    const unsub = sig.direct(() => {
+      called = true
+    })
+    sig.set('b')
+    expect(called).toBe(true)
+    unsub()
+  })
+
+  it('.debug() returns debug info', () => {
+    const sig = useCookie('dbg', 'test')
+    expect(sig.debug().value).toBe('test')
+  })
+
+  it('.label can be set and read', () => {
+    const sig = useCookie('lbl', 'val')
+    sig.label = 'my-cookie'
+    expect(sig.label).toBe('my-cookie')
+  })
 })
 
 describe('setCookieSource (SSR)', () => {

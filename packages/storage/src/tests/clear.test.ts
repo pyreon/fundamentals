@@ -43,6 +43,17 @@ describe('removeStorage', () => {
     removeStorage('orphan')
     expect(localStorage.getItem('orphan')).toBeNull()
   })
+
+  it('removes raw sessionStorage even without a signal', () => {
+    sessionStorage.setItem('orphan', 'value')
+    removeStorage('orphan', { type: 'session' })
+    expect(sessionStorage.getItem('orphan')).toBeNull()
+  })
+
+  it('removes cookie without a signal', () => {
+    removeStorage('orphan-cookie', { type: 'cookie' })
+    // Should not throw even when cookie doesn't exist
+  })
 })
 
 describe('clearStorage', () => {

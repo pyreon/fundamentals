@@ -106,6 +106,56 @@ describe('createStorage', () => {
     expect(sig()).toBe('new-value')
   })
 
+  it('.subscribe() delegates to underlying signal', () => {
+    const store = new Map<string, string>()
+    const useCustom = createStorage({
+      get: (k) => store.get(k) ?? null,
+      set: (k, v) => store.set(k, v),
+      remove: (k) => store.delete(k),
+    })
+
+    const sig = useCustom('sub-key', 'a')
+    let called = false
+    const unsub = sig.subscribe(() => {
+      called = true
+    })
+    sig.set('b')
+    expect(called).toBe(true)
+    unsub()
+  })
+
+  it('.direct() delegates to underlying signal', () => {
+    const store = new Map<string, string>()
+    const useCustom = createStorage({
+      get: (k) => store.get(k) ?? null,
+      set: (k, v) => store.set(k, v),
+      remove: (k) => store.delete(k),
+    })
+
+    const sig = useCustom('dir-key', 'a')
+    let called = false
+    const unsub = sig.direct(() => {
+      called = true
+    })
+    sig.set('b')
+    expect(called).toBe(true)
+    unsub()
+  })
+
+  it('.debug() and .label work', () => {
+    const store = new Map<string, string>()
+    const useCustom = createStorage({
+      get: (k) => store.get(k) ?? null,
+      set: (k, v) => store.set(k, v),
+      remove: (k) => store.delete(k),
+    })
+
+    const sig = useCustom('debug-key', 'test')
+    sig.label = 'my-signal'
+    expect(sig.label).toBe('my-signal')
+    expect(sig.debug().value).toBe('test')
+  })
+
   it('supports custom serializer/deserializer', () => {
     const store = new Map<string, string>()
     const useCustom = createStorage({
