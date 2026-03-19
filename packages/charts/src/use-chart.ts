@@ -9,25 +9,27 @@ import { ensureModules } from './loader'
  * element, with automatic module lazy-loading, signal tracking, resize
  * handling, error capture, and cleanup.
  *
- * @param optionsFn — reactive function returning fully-typed ECharts config.
- *   Signal reads inside this function are tracked automatically. When any
- *   signal changes, setOption() is called with the new config.
- * @param config — optional chart configuration (theme, renderer, etc.)
+ * Generic parameter `TOption` narrows the option type for exact autocomplete.
+ * Use `ComposeOption<SeriesUnion>` from ECharts to restrict to specific chart types.
  *
  * @example
  * ```tsx
+ * // Default — accepts any ECharts option
  * const chart = useChart(() => ({
- *   xAxis: { type: 'category', data: months() },
- *   yAxis: { type: 'value' },
  *   series: [{ type: 'bar', data: revenue() }],
- *   tooltip: { trigger: 'axis' },
  * }))
  *
- * return <div ref={chart.ref} style="height: 400px" />
+ * // Strict — only bar + line allowed, full autocomplete
+ * import type { ComposeOption, BarSeriesOption, LineSeriesOption } from '@pyreon/charts'
+ * type MyChartOption = ComposeOption<BarSeriesOption | LineSeriesOption>
+ *
+ * const chart = useChart<MyChartOption>(() => ({
+ *   series: [{ type: 'bar', data: revenue() }],  // ✓
+ * }))
  * ```
  */
-export function useChart(
-  optionsFn: () => EChartsOption,
+export function useChart<TOption extends EChartsOption = EChartsOption>(
+  optionsFn: () => TOption,
   config?: UseChartConfig,
 ): UseChartResult {
   const instance = signal<import('echarts/core').ECharts | null>(null)

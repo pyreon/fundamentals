@@ -81,10 +81,12 @@ export interface UseChartResult {
 
 /**
  * Props for the <Chart /> component.
+ * Generic parameter narrows the option type for exact autocomplete.
  */
-export interface ChartProps extends Props {
+export interface ChartProps<TOption extends EChartsOption = EChartsOption>
+  extends Props {
   /** Reactive ECharts option config — fully typed */
-  options: () => EChartsOption
+  options: () => TOption
   /** ECharts theme */
   theme?: string | Record<string, unknown>
   /** Renderer — 'canvas' (default) or 'svg' */

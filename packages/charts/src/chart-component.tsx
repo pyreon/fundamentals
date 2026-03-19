@@ -1,6 +1,7 @@
 import { h } from '@pyreon/core'
 import { effect } from '@pyreon/reactivity'
 import type { VNodeChild } from '@pyreon/core'
+import type { EChartsOption } from 'echarts'
 import type { ChartProps } from './types'
 import { useChart } from './use-chart'
 
@@ -10,19 +11,28 @@ import { useChart } from './use-chart'
  *
  * @example
  * ```tsx
+ * // Default — any chart type
  * <Chart
  *   options={() => ({
- *     xAxis: { data: months() },
  *     series: [{ type: 'bar', data: revenue() }],
  *     tooltip: {},
  *   })}
- *   theme="dark"
  *   style="height: 400px"
- *   onClick={(params) => console.log(params.name)}
+ * />
+ *
+ * // Strict — only specific chart types
+ * import type { ComposeOption, BarSeriesOption } from '@pyreon/charts'
+ * <Chart<ComposeOption<BarSeriesOption>>
+ *   options={() => ({
+ *     series: [{ type: 'bar', data: revenue() }],
+ *   })}
+ *   style="height: 400px"
  * />
  * ```
  */
-export function Chart(props: ChartProps): () => VNodeChild {
+export function Chart<TOption extends EChartsOption = EChartsOption>(
+  props: ChartProps<TOption>,
+): () => VNodeChild {
   const chart = useChart(props.options, {
     theme: props.theme,
     renderer: props.renderer,
