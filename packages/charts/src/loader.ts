@@ -6,7 +6,13 @@
  * on first use — zero ECharts bytes until a chart actually renders.
  */
 
-import type { EChartOption } from './types'
+/**
+ * Loose option type for internal module analysis.
+ * The strict EChartsOption type is used at the consumer-facing API level.
+ */
+type LooseOption = Record<string, unknown> & {
+  series?: unknown
+}
 
 type ModuleLoader = () => Promise<unknown>
 
@@ -132,7 +138,7 @@ async function loadAndRegister(
  * cached — subsequent calls with the same types are instant.
  */
 export async function ensureModules(
-  option: EChartOption,
+  option: LooseOption,
   renderer: 'canvas' | 'svg' = 'canvas',
 ): Promise<typeof import('echarts/core')> {
   const core = await getCore()
@@ -143,9 +149,18 @@ export async function ensureModules(
     loadAndRegister(core, `renderer:${renderer}`, RENDERERS[renderer]!),
   )
 
+  // Normalize series to array for analysis
+  const rawSeries = option.series
+  const seriesList: Record<string, unknown>[] = rawSeries
+    ? ((Array.isArray(rawSeries) ? rawSeries : [rawSeries]) as Record<
+        string,
+        unknown
+      >[])
+    : []
+
   // Chart types from series[].type
-  for (const s of option.series ?? []) {
-    const type = s.type
+  for (const s of seriesList) {
+    const type = s.type as string | undefined
     if (type && CHARTS[type]) {
       loads.push(loadAndRegister(core, `chart:${type}`, CHARTS[type]!))
     }
@@ -159,7 +174,7 @@ export async function ensureModules(
   }
 
   // Series-level features (markPoint, markLine, markArea)
-  for (const s of option.series ?? []) {
+  for (const s of seriesList) {
     for (const key of Object.keys(s)) {
       if (SERIES_FEATURES[key]) {
         loads.push(

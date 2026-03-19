@@ -31,7 +31,7 @@ export { manualUse as use } from './loader'
 
 export type {
   ChartProps,
-  EChartOption,
+  EChartsOption,
   UseChartConfig,
   UseChartResult,
 } from './types'
