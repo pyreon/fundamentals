@@ -49,7 +49,5 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
     if (props.onMouseout) inst.on('mouseout', props.onMouseout as any)
   })
 
-  return () => (
-    <div ref={chart.ref} style={props.style} class={props.class} />
-  )
+  return () => <div ref={chart.ref} style={props.style} class={props.class} />
 }
