@@ -1,41 +1,37 @@
-import type { Signal } from '@pyreon/reactivity'
 import type { Props } from '@pyreon/core'
+import type { Signal } from '@pyreon/reactivity'
+import type { ComposeOption, EChartsOption, SetOptionOpts } from 'echarts'
 import type { ECharts } from 'echarts/core'
-import type { EChartsOption, SetOptionOpts, ComposeOption } from 'echarts'
 
 // ─── Re-export ECharts types for consumer convenience ────────────────────────
 
-export type { EChartsOption, SetOptionOpts, ComposeOption, ECharts }
-
 // Re-export series option types
+// Re-export component option types
 export type {
   BarSeriesOption,
-  LineSeriesOption,
-  PieSeriesOption,
-  ScatterSeriesOption,
-  RadarSeriesOption,
-  HeatmapSeriesOption,
-  TreemapSeriesOption,
-  SunburstSeriesOption,
-  SankeySeriesOption,
+  BoxplotSeriesOption,
+  CandlestickSeriesOption,
+  DataZoomComponentOption,
   FunnelSeriesOption,
   GaugeSeriesOption,
   GraphSeriesOption,
-  TreeSeriesOption,
-  BoxplotSeriesOption,
-  CandlestickSeriesOption,
-} from 'echarts'
-
-// Re-export component option types
-export type {
-  TitleComponentOption,
-  TooltipComponentOption,
-  LegendComponentOption,
   GridComponentOption,
+  HeatmapSeriesOption,
+  LegendComponentOption,
+  LineSeriesOption,
+  PieSeriesOption,
+  RadarSeriesOption,
+  SankeySeriesOption,
+  ScatterSeriesOption,
+  SunburstSeriesOption,
+  TitleComponentOption,
   ToolboxComponentOption,
-  DataZoomComponentOption,
+  TooltipComponentOption,
+  TreemapSeriesOption,
+  TreeSeriesOption,
   VisualMapComponentOption,
 } from 'echarts'
+export type { ComposeOption, ECharts, EChartsOption, SetOptionOpts }
 
 // ─── Chart config ────────────────────────────────────────────────────────────
 
@@ -68,7 +64,7 @@ export interface UseChartConfig {
  */
 export interface UseChartResult {
   /** Bind to container element via ref */
-  ref: (el: HTMLElement | null) => void
+  ref: (el: Element | null) => void
   /** The ECharts instance — null until mounted and modules loaded */
   instance: Signal<ECharts | null>
   /** True while ECharts modules are being dynamically imported */

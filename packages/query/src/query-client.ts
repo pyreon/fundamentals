@@ -1,14 +1,13 @@
+import type { Props, VNode, VNodeChild } from '@pyreon/core'
 import {
   createContext,
-  pushContext,
-  popContext,
   onMount,
   onUnmount,
+  popContext,
+  pushContext,
   useContext,
 } from '@pyreon/core'
-import type { VNodeChild, VNode } from '@pyreon/core'
 import type { QueryClient } from '@tanstack/query-core'
-import type { Props } from '@pyreon/core'
 
 export interface QueryClientProviderProps extends Props {
   client: QueryClient

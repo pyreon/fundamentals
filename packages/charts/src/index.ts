@@ -22,42 +22,42 @@
  * ```
  */
 
-export { useChart } from './use-chart'
 export { Chart } from './chart-component'
-
 // Chart configuration types
-export type { ChartProps, UseChartConfig, UseChartResult } from './types'
-
 // Re-exported ECharts types for consumer convenience —
 // consumers get full autocomplete without importing echarts directly
 export type {
-  // Core option types
-  EChartsOption,
-  SetOptionOpts,
-  ComposeOption,
-  ECharts,
   // Series option types
   BarSeriesOption,
-  LineSeriesOption,
-  PieSeriesOption,
-  ScatterSeriesOption,
-  RadarSeriesOption,
-  HeatmapSeriesOption,
-  TreemapSeriesOption,
-  SunburstSeriesOption,
-  SankeySeriesOption,
+  BoxplotSeriesOption,
+  CandlestickSeriesOption,
+  ChartProps,
+  ComposeOption,
+  DataZoomComponentOption,
+  ECharts,
+  // Core option types
+  EChartsOption,
   FunnelSeriesOption,
   GaugeSeriesOption,
   GraphSeriesOption,
-  TreeSeriesOption,
-  BoxplotSeriesOption,
-  CandlestickSeriesOption,
+  GridComponentOption,
+  HeatmapSeriesOption,
+  LegendComponentOption,
+  LineSeriesOption,
+  PieSeriesOption,
+  RadarSeriesOption,
+  SankeySeriesOption,
+  ScatterSeriesOption,
+  SetOptionOpts,
+  SunburstSeriesOption,
   // Component option types
   TitleComponentOption,
-  TooltipComponentOption,
-  LegendComponentOption,
-  GridComponentOption,
   ToolboxComponentOption,
-  DataZoomComponentOption,
+  TooltipComponentOption,
+  TreemapSeriesOption,
+  TreeSeriesOption,
+  UseChartConfig,
+  UseChartResult,
   VisualMapComponentOption,
 } from './types'
+export { useChart } from './use-chart'

@@ -1,6 +1,6 @@
 import { onUnmount } from '@pyreon/core'
-import { signal } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
+import { signal } from '@pyreon/reactivity'
 import type { MutationFilters, QueryFilters } from '@tanstack/query-core'
 import { useQueryClient } from './query-client'
 

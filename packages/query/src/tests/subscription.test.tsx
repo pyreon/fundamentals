@@ -1,4 +1,3 @@
-import { h } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { QueryClient } from '@tanstack/query-core'
@@ -100,10 +99,12 @@ function withProvider(client: QueryClient, component: () => void): () => void {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(QueryClientProvider, { client }, () => {
-      component()
-      return null
-    }),
+    <QueryClientProvider client={client}>
+      {() => {
+        component()
+        return null
+      }}
+    </QueryClientProvider>,
     el,
   )
   return () => {

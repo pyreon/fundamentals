@@ -1,5 +1,5 @@
-import { h } from '@pyreon/core'
 import { mount } from '@pyreon/runtime-dom'
+import { Chart } from '../chart-component'
 import {
   _resetLoader,
   ensureModules,
@@ -7,7 +7,6 @@ import {
   getCoreSync,
   manualUse,
 } from '../loader'
-import { Chart } from '../chart-component'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,13 +14,11 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   let result: T | undefined
   const el = document.createElement('div')
   document.body.appendChild(el)
-  const unmount = mount(
-    h(() => {
-      result = fn()
-      return null
-    }, null),
-    el,
-  )
+  const Child = () => {
+    result = fn()
+    return null
+  }
+  const unmount = mount(<Child />, el)
   return {
     result: result!,
     unmount: () => {
@@ -203,12 +200,12 @@ describe('Chart component', () => {
     document.body.appendChild(container)
 
     const unmount = mount(
-      h(Chart as any, {
-        options: () => ({
+      <Chart
+        options={() => ({
           series: [{ type: 'bar', data: [1, 2, 3] }],
-        }),
-        style: 'height: 300px',
-      }),
+        })}
+        style="height: 300px"
+      />,
       container,
     )
 
@@ -224,13 +221,13 @@ describe('Chart component', () => {
     document.body.appendChild(container)
 
     const unmount = mount(
-      h(Chart as any, {
-        options: () => ({
+      <Chart
+        options={() => ({
           series: [{ type: 'bar', data: [1] }],
-        }),
-        style: 'height: 400px; width: 100%',
-        class: 'revenue-chart',
-      }),
+        })}
+        style="height: 400px; width: 100%"
+        class="revenue-chart"
+      />,
       container,
     )
 

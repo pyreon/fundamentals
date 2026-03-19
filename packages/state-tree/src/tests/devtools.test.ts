@@ -1,13 +1,13 @@
-import { model } from '../index'
 import {
-  registerInstance,
-  unregisterInstance,
+  _resetDevtools,
   getActiveModels,
   getModelInstance,
   getModelSnapshot,
   onModelChange,
-  _resetDevtools,
+  registerInstance,
+  unregisterInstance,
 } from '../devtools'
+import { model } from '../index'
 
 const Counter = model({
   state: { count: 0 },

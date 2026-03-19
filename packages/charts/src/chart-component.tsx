@@ -1,6 +1,5 @@
-import { h } from '@pyreon/core'
-import { effect } from '@pyreon/reactivity'
 import type { VNodeChild } from '@pyreon/core'
+import { effect } from '@pyreon/reactivity'
 import type { EChartsOption } from 'echarts'
 import type { ChartProps } from './types'
 import { useChart } from './use-chart'
@@ -32,7 +31,7 @@ import { useChart } from './use-chart'
  */
 export function Chart<TOption extends EChartsOption = EChartsOption>(
   props: ChartProps<TOption>,
-): () => VNodeChild {
+): VNodeChild {
   const chart = useChart(props.options, {
     theme: props.theme,
     renderer: props.renderer,
@@ -48,10 +47,7 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
     if (props.onMouseout) inst.on('mouseout', props.onMouseout as any)
   })
 
-  return () =>
-    h('div', {
-      ref: chart.ref,
-      style: props.style,
-      class: props.class,
-    })
+  return () => (
+    <div ref={chart.ref} style={props.style} class={props.class} />
+  )
 }

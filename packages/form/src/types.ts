@@ -1,4 +1,4 @@
-import type { Signal, Computed } from '@pyreon/reactivity'
+import type { Computed, Signal } from '@pyreon/reactivity'
 
 export type ValidationError = string | undefined
 

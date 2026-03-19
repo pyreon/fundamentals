@@ -1,10 +1,10 @@
+import type { Computed, Signal } from '@pyreon/reactivity'
 import { computed } from '@pyreon/reactivity'
-import type { Signal, Computed } from '@pyreon/reactivity'
 import type {
+  FieldRegisterProps,
   FieldState,
   FormState,
   ValidationError,
-  FieldRegisterProps,
 } from './types'
 
 export interface UseFieldResult<T> {

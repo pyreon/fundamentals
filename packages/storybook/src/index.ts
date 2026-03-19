@@ -35,11 +35,11 @@ export type {
 
 // ─── Renderer ────────────────────────────────────────────────────────────────
 
-export { renderToCanvas, defaultRender } from './render'
+export { defaultRender, renderToCanvas } from './render'
 
 // ─── Pyreon re-exports for convenience ───────────────────────────────────────
 
-export { h, Fragment } from '@pyreon/core'
 export type { ComponentFn, Props, VNode, VNodeChild } from '@pyreon/core'
-export { signal, computed, effect } from '@pyreon/reactivity'
+export { Fragment, h } from '@pyreon/core'
+export { computed, effect, signal } from '@pyreon/reactivity'
 export { mount } from '@pyreon/runtime-dom'

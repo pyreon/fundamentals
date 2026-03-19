@@ -1,16 +1,15 @@
-import { h } from '@pyreon/core'
-import { signal, computed, type Computed } from '@pyreon/reactivity'
+import { type Computed, computed, signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
+import type { ColumnDef } from '../index'
 import {
-  useTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   createColumnHelper,
   flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useTable,
 } from '../index'
-import type { ColumnDef } from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -34,13 +33,11 @@ function mountWithTable<T>(fn: () => T): { result: T; unmount: () => void } {
   let result: T | undefined
   const el = document.createElement('div')
   document.body.appendChild(el)
-  const unmount = mount(
-    h(() => {
-      result = fn()
-      return null
-    }, null),
-    el,
-  )
+  const Wrapper = () => {
+    result = fn()
+    return null
+  }
+  const unmount = mount(<Wrapper />, el)
   return {
     result: result!,
     unmount: () => {
@@ -318,7 +315,7 @@ describe('flexRender', () => {
   })
 
   it('passes through VNodes as-is', () => {
-    const vnode = h('span', null, 'cell content')
+    const vnode = <span>cell content</span>
     const result = flexRender(vnode as unknown, {})
     expect(result).toBe(vnode)
   })

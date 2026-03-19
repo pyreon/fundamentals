@@ -1,8 +1,8 @@
 import {
-  type MutationInfo,
   addStorePlugin,
   computed,
   defineStore,
+  type MutationInfo,
   resetAllStores,
   resetStore,
   setStoreRegistryProvider,

@@ -1,23 +1,22 @@
-import { QueryClient } from '@tanstack/query-core'
-import { h } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
+import { QueryClient } from '@tanstack/query-core'
 import {
-  QueryClientProvider,
-  useQueryClient,
-  useQuery,
-  useMutation,
-  useIsFetching,
-  useIsMutating,
-  useQueries,
-  useSuspenseQuery,
-  useSuspenseInfiniteQuery,
-  useInfiniteQuery,
-  QuerySuspense,
-  QueryErrorResetBoundary,
-  useQueryErrorResetBoundary,
   dehydrate,
   hydrate,
+  QueryClientProvider,
+  QueryErrorResetBoundary,
+  QuerySuspense,
+  useInfiniteQuery,
+  useIsFetching,
+  useIsMutating,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  useQueryErrorResetBoundary,
+  useSuspenseInfiniteQuery,
+  useSuspenseQuery,
 } from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -33,10 +32,12 @@ function _withProvider(client: QueryClient, component: () => void): () => void {
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(QueryClientProvider, { client }, () => {
-      component()
-      return null
-    }),
+    <QueryClientProvider client={client}>
+      {() => {
+        component()
+        return null
+      }}
+    </QueryClientProvider>,
     el,
   )
   return () => {
@@ -70,14 +71,12 @@ describe('QueryClientProvider / useQueryClient', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           received = useQueryClient()
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     unmount()
@@ -92,18 +91,14 @@ describe('QueryClientProvider / useQueryClient', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client: outer },
-        h(
-          QueryClientProvider,
-          { client: inner },
-          h(() => {
+      <QueryClientProvider client={outer}>
+        <QueryClientProvider client={inner}>
+          {() => {
             received = useQueryClient()
             return null
-          }, null),
-        ),
-      ),
+          }}
+        </QueryClientProvider>
+      </QueryClientProvider>,
       el,
     )
     unmount()
@@ -126,10 +121,8 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['test-pending'],
             queryFn: () =>
@@ -138,8 +131,8 @@ describe('useQuery', () => {
               }), // never resolves
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(query!.isPending()).toBe(true)
@@ -155,17 +148,15 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['test-success'],
             queryFn: () => promise,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -188,17 +179,15 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['test-error'],
             queryFn: () => promise,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -221,18 +210,16 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['test-disabled'],
             queryFn,
             enabled: false,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -252,10 +239,8 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['user', userId()],
             queryFn: async () => {
@@ -265,8 +250,8 @@ describe('useQuery', () => {
             },
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -287,10 +272,8 @@ describe('useQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           useQuery(() => ({
             queryKey: ['invalidate-test'],
             queryFn: async () => {
@@ -299,8 +282,8 @@ describe('useQuery', () => {
             },
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -327,14 +310,12 @@ describe('useMutation', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation({ mutationFn: () => Promise.resolve('ok') })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(mut!.isIdle()).toBe(true)
@@ -348,16 +329,14 @@ describe('useMutation', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation<string, Error, string>({
             mutationFn: async (input: string) => `result:${input}`,
           })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -375,18 +354,16 @@ describe('useMutation', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation({
             mutationFn: async () => {
               throw new Error('mutation failed')
             },
           })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -404,16 +381,14 @@ describe('useMutation', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation<string, Error, void>({
             mutationFn: async () => 'done',
           })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -439,14 +414,12 @@ describe('useIsFetching', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           count = useIsFetching()
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(count!()).toBe(0)
@@ -463,18 +436,16 @@ describe('useIsFetching', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           isFetching = useIsFetching()
           useQuery(() => ({
             queryKey: ['fetch-count'],
             queryFn: () => promise,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -504,15 +475,13 @@ describe('useIsMutating', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           isMutating = useIsMutating()
           mut = useMutation<void, Error, void>({ mutationFn: () => promise })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -551,10 +520,8 @@ describe('dehydrate / hydrate', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client: clientClient },
-        h(() => {
+      <QueryClientProvider client={clientClient}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['ssr-user'],
             queryFn: async () => {
@@ -564,8 +531,8 @@ describe('dehydrate / hydrate', () => {
             staleTime: Infinity, // treat hydrated data as fresh
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -589,17 +556,15 @@ describe('useQueries', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           results = useQueries(() => [
             { queryKey: ['a'], queryFn: async () => 'alpha' },
             { queryKey: ['b'], queryFn: async () => 'beta' },
           ])
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -621,10 +586,8 @@ describe('useQueries', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           results = useQueries(() =>
             ids().map((id) => ({
               queryKey: ['item', id],
@@ -632,8 +595,8 @@ describe('useQueries', () => {
             })),
           )
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -664,24 +627,22 @@ describe('useSuspenseQuery + QuerySuspense', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           const q = useSuspenseQuery(() => ({
             queryKey: ['sq-pending'],
             queryFn: () => promise,
           }))
-          return h(
-            QuerySuspense as any,
-            { query: q, fallback: 'loading' },
-            () => {
-              rendered.push(q.data())
-              return null
-            },
+          return (
+            <QuerySuspense query={q} fallback="loading">
+              {() => {
+                rendered.push(q.data())
+                return null
+              }}
+            </QuerySuspense>
           )
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -704,28 +665,26 @@ describe('useSuspenseQuery + QuerySuspense', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           const q = useSuspenseQuery(() => ({
             queryKey: ['sq-error'],
             queryFn: () => promise,
           }))
-          return h(
-            QuerySuspense as any,
-            {
-              query: q,
-              fallback: 'loading',
-              error: (err: unknown) => {
+          return (
+            <QuerySuspense
+              query={q}
+              fallback="loading"
+              error={(err: unknown) => {
                 errorMsg = (err as Error).message
                 return null
-              },
-            },
-            () => null,
+              }}
+            >
+              {() => null}
+            </QuerySuspense>
           )
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -747,10 +706,8 @@ describe('useSuspenseQuery + QuerySuspense', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           const q1 = useSuspenseQuery(() => ({
             queryKey: ['mq1'],
             queryFn: () => d1.promise,
@@ -759,16 +716,16 @@ describe('useSuspenseQuery + QuerySuspense', () => {
             queryKey: ['mq2'],
             queryFn: () => d2.promise,
           }))
-          return h(
-            QuerySuspense as any,
-            { query: [q1, q2], fallback: 'loading' },
-            () => {
-              childrenRendered = true
-              return null
-            },
+          return (
+            <QuerySuspense query={[q1, q2]} fallback="loading">
+              {() => {
+                childrenRendered = true
+                return null
+              }}
+            </QuerySuspense>
           )
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -799,13 +756,9 @@ describe('QueryErrorResetBoundary', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(
-          QueryErrorResetBoundary,
-          null,
-          h(() => {
+      <QueryClientProvider client={client}>
+        <QueryErrorResetBoundary>
+          {() => {
             const { reset } = useQueryErrorResetBoundary()
             resetFn = reset
             useQuery(() => ({
@@ -817,9 +770,9 @@ describe('QueryErrorResetBoundary', () => {
               },
             }))
             return null
-          }, null),
-        ),
-      ),
+          }}
+        </QueryErrorResetBoundary>
+      </QueryClientProvider>,
       el,
     )
 
@@ -841,15 +794,13 @@ describe('QueryErrorResetBoundary', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           const boundary = useQueryErrorResetBoundary()
           reset = boundary.reset
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -873,10 +824,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-pending'],
             queryFn: () =>
@@ -887,8 +836,8 @@ describe('useInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(query!.isPending()).toBe(true)
@@ -911,10 +860,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-success'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -927,8 +874,8 @@ describe('useInfiniteQuery', () => {
             ) => (lastParam < 2 ? lastParam + 1 : undefined),
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -948,10 +895,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-next'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -964,8 +909,8 @@ describe('useInfiniteQuery', () => {
             ) => (lastParam < 2 ? lastParam + 1 : undefined),
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -990,10 +935,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-prev'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -1007,8 +950,8 @@ describe('useInfiniteQuery', () => {
             ) => (firstParam > 3 ? firstParam - 1 : undefined),
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1027,10 +970,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-error'],
             queryFn: () => Promise.reject(new Error('inf failed')),
@@ -1038,8 +979,8 @@ describe('useInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1057,10 +998,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-refetch'],
             queryFn: () => {
@@ -1071,8 +1010,8 @@ describe('useInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1090,10 +1029,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-result'],
             queryFn: () => Promise.resolve('val'),
@@ -1101,8 +1038,8 @@ describe('useInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1120,10 +1057,8 @@ describe('useInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useInfiniteQuery(() => ({
             queryKey: ['inf-reactive', key()],
             queryFn: () => Promise.resolve(`data-${key()}`),
@@ -1131,8 +1066,8 @@ describe('useInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1160,10 +1095,8 @@ describe('useSuspenseInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-1'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -1173,8 +1106,8 @@ describe('useSuspenseInfiniteQuery', () => {
               lp < 1 ? lp + 1 : undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1198,10 +1131,8 @@ describe('useSuspenseInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-pages'],
             queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -1213,8 +1144,8 @@ describe('useSuspenseInfiniteQuery', () => {
               fp > 0 ? fp - 1 : undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1236,10 +1167,8 @@ describe('useSuspenseInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-refetch'],
             queryFn: () => {
@@ -1250,8 +1179,8 @@ describe('useSuspenseInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1269,10 +1198,8 @@ describe('useSuspenseInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-result'],
             queryFn: () => Promise.resolve('v'),
@@ -1280,8 +1207,8 @@ describe('useSuspenseInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1297,10 +1224,8 @@ describe('useSuspenseInfiniteQuery', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseInfiniteQuery(() => ({
             queryKey: ['sinf-reactive', key()],
             queryFn: () => Promise.resolve(`val-${key()}`),
@@ -1308,8 +1233,8 @@ describe('useSuspenseInfiniteQuery', () => {
             getNextPageParam: () => undefined,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1336,17 +1261,15 @@ describe('useSuspenseQuery — additional', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-data-type'],
             queryFn: () => Promise.resolve({ name: 'test' }),
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1368,10 +1291,8 @@ describe('useSuspenseQuery — additional', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-refetch'],
             queryFn: () => {
@@ -1380,8 +1301,8 @@ describe('useSuspenseQuery — additional', () => {
             },
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1400,17 +1321,15 @@ describe('useSuspenseQuery — additional', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-reactive', key()],
             queryFn: () => Promise.resolve(`data-${key()}`),
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1432,17 +1351,15 @@ describe('useSuspenseQuery — additional', () => {
 
     let query: ReturnType<typeof useSuspenseQuery> | undefined
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-rethrow2'],
             queryFn: () => promise,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1462,10 +1379,8 @@ describe('useSuspenseQuery — additional', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-fn-fallback'],
             queryFn: () =>
@@ -1473,13 +1388,13 @@ describe('useSuspenseQuery — additional', () => {
                 /* never resolves */
               }),
           }))
-          return h(
-            QuerySuspense as any,
-            { query: query!, fallback: () => 'loading fn' },
-            () => null,
+          return (
+            <QuerySuspense query={query!} fallback={() => 'loading fn'}>
+              {() => null}
+            </QuerySuspense>
           )
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1501,14 +1416,12 @@ describe('QueryClientProvider — VNode children branch', () => {
     document.body.appendChild(el)
     // Pass children as a direct VNode, not wrapped in a function
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           received = useQueryClient()
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(received).toBe(client)
@@ -1522,12 +1435,14 @@ describe('QueryClientProvider — VNode children branch', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(QueryClientProvider, { client }, () => {
-        return h(() => {
-          received = useQueryClient()
-          return null
-        }, null)
-      }),
+      <QueryClientProvider client={client}>
+        {() => {
+          return (() => {
+            received = useQueryClient()
+            return null
+          })()
+        }}
+      </QueryClientProvider>,
       el,
     )
     expect(received).toBe(client)
@@ -1547,16 +1462,14 @@ describe('useMutation — mutateAsync', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation<string, Error, string>({
             mutationFn: async (input: string) => `async-result:${input}`,
           })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1573,18 +1486,16 @@ describe('useMutation — mutateAsync', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           mut = useMutation<string, Error, void>({
             mutationFn: async () => {
               throw new Error('async-fail')
             },
           })
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1609,10 +1520,8 @@ describe('useQuery — refetch', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useQuery(() => ({
             queryKey: ['refetch-test'],
             queryFn: async () => {
@@ -1621,8 +1530,8 @@ describe('useQuery — refetch', () => {
             },
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1648,19 +1557,15 @@ describe('QueryErrorResetBoundary — VNode children branch', () => {
     document.body.appendChild(el)
     // Pass children as a direct VNode, not a function
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(
-          QueryErrorResetBoundary,
-          null,
-          h(() => {
+      <QueryClientProvider client={client}>
+        <QueryErrorResetBoundary>
+          {() => {
             const { reset } = useQueryErrorResetBoundary()
             resetFn = reset
             return null
-          }, null),
-        ),
-      ),
+          }}
+        </QueryErrorResetBoundary>
+      </QueryClientProvider>,
       el,
     )
 
@@ -1687,22 +1592,20 @@ describe('useSuspenseQuery — error without handler (QuerySuspense throw branch
     let query: ReturnType<typeof useSuspenseQuery> | undefined
 
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-throw-no-handler'],
             queryFn: () => promise,
           }))
           // QuerySuspense with NO error handler — should throw
-          return h(
-            QuerySuspense as any,
-            { query: query!, fallback: 'loading' },
-            () => null,
+          return (
+            <QuerySuspense query={query!} fallback="loading">
+              {() => null}
+            </QuerySuspense>
           )
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 
@@ -1732,17 +1635,15 @@ describe('useSuspenseQuery — error without handler (QuerySuspense throw branch
     let query: ReturnType<typeof useSuspenseQuery> | undefined
 
     const unmount = mount(
-      h(
-        QueryClientProvider,
-        { client },
-        h(() => {
+      <QueryClientProvider client={client}>
+        {() => {
           query = useSuspenseQuery(() => ({
             queryKey: ['sq-rethrow-direct'],
             queryFn: () => promise,
           }))
           return null
-        }, null),
-      ),
+        }}
+      </QueryClientProvider>,
       el,
     )
 

@@ -1,12 +1,12 @@
-import { signal, computed } from '@pyreon/reactivity'
-import type {
-  I18nOptions,
-  I18nInstance,
-  TranslationDictionary,
-  InterpolationValues,
-} from './types'
+import { computed, signal } from '@pyreon/reactivity'
 import { interpolate } from './interpolation'
 import { resolvePluralCategory } from './pluralization'
+import type {
+  I18nInstance,
+  I18nOptions,
+  InterpolationValues,
+  TranslationDictionary,
+} from './types'
 
 /**
  * Resolve a dot-separated key path in a nested dictionary.

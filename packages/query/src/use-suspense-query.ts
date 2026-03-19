@@ -1,7 +1,7 @@
+import type { VNodeChild, VNodeChildAtom } from '@pyreon/core'
 import { onUnmount } from '@pyreon/core'
-import { signal, effect, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
-import { QueryObserver, InfiniteQueryObserver } from '@tanstack/query-core'
+import { batch, effect, signal } from '@pyreon/reactivity'
 import type {
   DefaultError,
   InfiniteData,
@@ -11,7 +11,7 @@ import type {
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
-import type { VNodeChild, VNodeChildAtom } from '@pyreon/core'
+import { InfiniteQueryObserver, QueryObserver } from '@tanstack/query-core'
 import { useQueryClient } from './query-client'
 
 // ─── Types ─────────────────────────────────────────────────────────────────

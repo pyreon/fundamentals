@@ -1,5 +1,5 @@
-import { computed } from '@pyreon/reactivity'
 import type { Computed } from '@pyreon/reactivity'
+import { computed } from '@pyreon/reactivity'
 import type { FormState, ValidationError } from './types'
 
 export interface FormStateSummary<TValues extends Record<string, unknown>> {

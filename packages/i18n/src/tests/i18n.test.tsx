@@ -1,8 +1,7 @@
-import { h } from '@pyreon/core'
-import { mount } from '@pyreon/runtime-dom'
 import { effect } from '@pyreon/reactivity'
-import { createI18n } from '../create-i18n'
+import { mount } from '@pyreon/runtime-dom'
 import { I18nProvider, useI18n } from '../context'
+import { createI18n } from '../create-i18n'
 import { interpolate } from '../interpolation'
 import { resolvePluralCategory } from '../pluralization'
 import { parseRichText, Trans } from '../trans'
@@ -593,15 +592,14 @@ describe('I18nProvider / useI18n', () => {
     let received: ReturnType<typeof useI18n> | undefined
     const el = document.createElement('div')
     document.body.appendChild(el)
+    const Child = () => {
+      received = useI18n()
+      return null
+    }
     const unmount = mount(
-      h(
-        I18nProvider,
-        { instance: i18n },
-        h(() => {
-          received = useI18n()
-          return null
-        }, null),
-      ),
+      <I18nProvider instance={i18n}>
+        <Child />
+      </I18nProvider>,
       el,
     )
 
@@ -620,13 +618,12 @@ describe('I18nProvider / useI18n', () => {
     let received: ReturnType<typeof useI18n> | undefined
     const el = document.createElement('div')
     document.body.appendChild(el)
+    const Child = () => {
+      received = useI18n()
+      return null
+    }
     const unmount = mount(
-      h(I18nProvider, { instance: i18n }, () => {
-        return h(() => {
-          received = useI18n()
-          return null
-        }, null)
-      }),
+      <I18nProvider instance={i18n}>{() => <Child />}</I18nProvider>,
       el,
     )
 
@@ -641,17 +638,15 @@ describe('I18nProvider / useI18n', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
 
-    const unmount = mount(
-      h(() => {
-        try {
-          useI18n()
-        } catch (e) {
-          error = e as Error
-        }
-        return null
-      }, null),
-      el,
-    )
+    const Child = () => {
+      try {
+        useI18n()
+      } catch (e) {
+        error = e as Error
+      }
+      return null
+    }
+    const unmount = mount(<Child />, el)
 
     expect(error).toBeDefined()
     expect(error!.message).toContain(
@@ -670,15 +665,14 @@ describe('I18nProvider / useI18n', () => {
     let received: ReturnType<typeof useI18n> | undefined
     const el = document.createElement('div')
     document.body.appendChild(el)
+    const Child = () => {
+      received = useI18n()
+      return null
+    }
     const unmount = mount(
-      h(
-        I18nProvider,
-        { instance: i18n },
-        h(() => {
-          received = useI18n()
-          return null
-        }, null),
-      ),
+      <I18nProvider instance={i18n}>
+        <Child />
+      </I18nProvider>,
       el,
     )
 

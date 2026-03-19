@@ -25,7 +25,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 
 ## Ecosystem Context
 
-This repo depends on the core Pyreon framework packages published on npm (>=0.4.0 <1.0.0):
+This repo depends on the core Pyreon framework packages published on npm (>=0.5.0 <1.0.0):
 
 - `@pyreon/reactivity` — signals, computed, effect, batch
 - `@pyreon/core` — h(), VNode, Fragment, lifecycle, context

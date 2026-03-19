@@ -1,12 +1,12 @@
-import { signal, computed } from '@pyreon/reactivity'
+import { computed, signal } from '@pyreon/reactivity'
 import {
-  registerForm,
-  unregisterForm,
+  _resetDevtools,
   getActiveForms,
   getFormInstance,
   getFormSnapshot,
   onFormChange,
-  _resetDevtools,
+  registerForm,
+  unregisterForm,
 } from '../devtools'
 
 // Minimal form-like object for testing (avoids needing the full useForm + DOM)

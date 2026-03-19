@@ -1,27 +1,32 @@
-import { h } from '@pyreon/core'
 import { mount } from '@pyreon/runtime-dom'
-import {
-  useForm,
-  useFieldArray,
-  useField,
-  useWatch,
-  useFormState,
-  FormProvider,
-  useFormContext,
-} from '../index'
 import type { FormState } from '../index'
+import {
+  FormProvider,
+  useField,
+  useFieldArray,
+  useForm,
+  useFormContext,
+  useFormState,
+  useWatch,
+} from '../index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function Capture<T>({ fn }: { fn: () => T }) {
+  fn()
+  return null
+}
 
 function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   let result: T | undefined
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(() => {
-      result = fn()
-      return null
-    }, null),
+    <Capture
+      fn={() => {
+        result = fn()
+      }}
+    />,
     el,
   )
   return {
@@ -1810,23 +1815,26 @@ describe('FormProvider / useFormContext', () => {
     const el = document.createElement('div')
     document.body.appendChild(el)
 
-    const unmount = mount(
-      h(() => {
-        const form = useForm({
-          initialValues: { email: 'context@test.com' },
-          onSubmit: () => {
-            /* noop */
-          },
-        })
-        return h(FormProvider as any, { form }, () =>
-          h(() => {
-            contextForm = useFormContext<{ email: string }>()
-            return null
-          }, null),
-        )
-      }, null),
-      el,
-    )
+    function ContextConsumer() {
+      contextForm = useFormContext() as FormState<{ email: string }>
+      return null
+    }
+
+    function ContextTest() {
+      const form = useForm({
+        initialValues: { email: 'context@test.com' },
+        onSubmit: () => {
+          /* noop */
+        },
+      })
+      return (
+        <FormProvider form={form as any}>
+          {() => <ContextConsumer />}
+        </FormProvider>
+      )
+    }
+
+    const unmount = mount(<ContextTest />, el)
 
     expect(contextForm).toBeDefined()
     expect(contextForm!.fields.email.value()).toBe('context@test.com')
@@ -1840,14 +1848,15 @@ describe('FormProvider / useFormContext', () => {
 
     let error: Error | undefined
     const unmount = mount(
-      h(() => {
-        try {
-          useFormContext()
-        } catch (e) {
-          error = e as Error
-        }
-        return null
-      }, null),
+      <Capture
+        fn={() => {
+          try {
+            useFormContext()
+          } catch (e) {
+            error = e as Error
+          }
+        }}
+      />,
       el,
     )
 

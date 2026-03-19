@@ -1,7 +1,7 @@
 // ─── Core ─────────────────────────────────────────────────────────────────────
 
 export type { ModelDefinition } from './model'
-export { model, resetHook, resetAllHooks } from './model'
+export { model, resetAllHooks, resetHook } from './model'
 
 // ─── Snapshot ─────────────────────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ export { applySnapshot, getSnapshot } from './snapshot'
 
 // ─── Patches ─────────────────────────────────────────────────────────────────
 
-export { onPatch, applyPatch } from './patch'
+export { applyPatch, onPatch } from './patch'
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 

@@ -25,13 +25,12 @@
  * ```
  */
 
-export { useChart } from './use-chart'
 export { Chart } from './chart-component'
 export { manualUse as use } from './loader'
-
 export type {
   ChartProps,
   EChartsOption,
   UseChartConfig,
   UseChartResult,
 } from './types'
+export { useChart } from './use-chart'
