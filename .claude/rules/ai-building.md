@@ -100,6 +100,71 @@ sankey, gauge, funnel, candlestick, graph.
 The config is standard ECharts -- any ECharts example from the docs works.
 Just wrap signal reads in the options function for reactivity.
 
+## When persisting state client-side
+
+Use `@pyreon/storage` for any client-side persistence. Every stored value is a reactive signal.
+
+```tsx
+import { useStorage, useCookie, useSessionStorage, useIndexedDB } from '@pyreon/storage'
+
+// localStorage — persistent, cross-tab synced
+const theme = useStorage('theme', 'light')
+theme()            // read reactively
+theme.set('dark')  // updates signal + localStorage
+
+// Cookie — SSR-readable, configurable expiry
+const locale = useCookie('locale', 'en', { maxAge: 365 * 86400 })
+
+// sessionStorage — tab-scoped
+const wizardStep = useSessionStorage('wizard-step', 0)
+
+// IndexedDB — large data, debounced writes
+const draft = useIndexedDB('article-draft', { title: '', body: '' })
+```
+
+Same key returns the same signal instance — no drift between components.
+
+## When adding keyboard shortcuts
+
+Use `useHotkey()` from `@pyreon/hotkeys`. Component-scoped, auto-unregisters on unmount.
+
+```tsx
+import { useHotkey, useHotkeyScope } from '@pyreon/hotkeys'
+
+// Global shortcuts
+useHotkey('mod+s', () => save(), { description: 'Save document' })
+useHotkey('mod+k', () => openCommandPalette())
+
+// Scoped shortcuts — only active when scope is enabled
+useHotkeyScope('editor')
+useHotkey('ctrl+z', () => undo(), { scope: 'editor' })
+useHotkey('escape', () => closeModal(), { scope: 'modal' })
+```
+
+`mod` = ⌘ on Mac, Ctrl elsewhere. Shortcuts are ignored in inputs by default.
+
+## When adding realtime/WebSocket features
+
+Use `useSubscription()` from `@pyreon/query` to connect WebSockets with the query cache.
+
+```tsx
+import { useSubscription } from '@pyreon/query'
+
+const sub = useSubscription({
+  url: 'wss://api.example.com/ws',
+  onMessage: (event, queryClient) => {
+    const data = JSON.parse(event.data)
+    if (data.type === 'order-updated') {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    }
+  },
+})
+// sub.status() — 'connecting' | 'connected' | 'disconnected' | 'error'
+// sub.send(JSON.stringify({ subscribe: 'orders' }))
+```
+
+Auto-reconnects with exponential backoff. Reactive `url` and `enabled` options.
+
 ## Core Principle
 
 Pyreon uses **signals** for all reactivity. There are no hooks rules, no dependency arrays, no re-renders. A signal is created once, read by calling it (`count()`), and written with `.set()` or `.update()`. Effects and computeds track dependencies automatically.
@@ -398,6 +463,9 @@ getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
 - **Never use `h()` in app code** — use JSX. `h()` is for library internals only.
 - **Never import from 'echarts' directly in app code** — use `@pyreon/charts` which lazy-loads.
 - **Never use individual `@pyreon/*` packages when `defineFeature()` covers the use case** — it composes them for you.
+- **Never use raw `localStorage`/`sessionStorage`/`document.cookie`** — use `@pyreon/storage` for reactive, type-safe persistence.
+- **Never add manual `keydown` event listeners** — use `@pyreon/hotkeys` for scoped, lifecycle-managed shortcuts.
+- **Never use raw `WebSocket` for query invalidation** — use `useSubscription()` from `@pyreon/query`.
 
 ## JSX patterns specific to Pyreon
 
