@@ -1,22 +1,49 @@
 import type { Signal } from '@pyreon/reactivity'
 import type { Props } from '@pyreon/core'
-import type * as echarts from 'echarts/core'
+import type { ECharts } from 'echarts/core'
+import type { EChartsOption, SetOptionOpts, ComposeOption } from 'echarts'
 
-/**
- * ECharts option type — the config object passed to setOption.
- * Uses `Record<string, unknown>` to avoid importing the full ECharts types
- * while still allowing IDE autocomplete when echarts is installed.
- */
-export type EChartOption = Record<string, unknown> & {
-  series?: Array<{ type?: string; [key: string]: unknown }>
-  [key: string]: unknown
-}
+// ─── Re-export ECharts types for consumer convenience ────────────────────────
+
+export type { EChartsOption, SetOptionOpts, ComposeOption, ECharts }
+
+// Re-export series option types
+export type {
+  BarSeriesOption,
+  LineSeriesOption,
+  PieSeriesOption,
+  ScatterSeriesOption,
+  RadarSeriesOption,
+  HeatmapSeriesOption,
+  TreemapSeriesOption,
+  SunburstSeriesOption,
+  SankeySeriesOption,
+  FunnelSeriesOption,
+  GaugeSeriesOption,
+  GraphSeriesOption,
+  TreeSeriesOption,
+  BoxplotSeriesOption,
+  CandlestickSeriesOption,
+} from 'echarts'
+
+// Re-export component option types
+export type {
+  TitleComponentOption,
+  TooltipComponentOption,
+  LegendComponentOption,
+  GridComponentOption,
+  ToolboxComponentOption,
+  DataZoomComponentOption,
+  VisualMapComponentOption,
+} from 'echarts'
+
+// ─── Chart config ────────────────────────────────────────────────────────────
 
 /**
  * Configuration for useChart.
  */
 export interface UseChartConfig {
-  /** ECharts theme — 'dark', a theme name, or a theme object */
+  /** ECharts theme — 'dark', a registered theme name, or a theme object */
   theme?: string | Record<string, unknown>
   /** Renderer — 'canvas' (default, best performance) or 'svg' */
   renderer?: 'canvas' | 'svg'
@@ -33,7 +60,7 @@ export interface UseChartConfig {
   /** Height override — default: container height */
   height?: number
   /** Called when chart instance is created */
-  onInit?: (instance: echarts.ECharts) => void
+  onInit?: (instance: ECharts) => void
 }
 
 /**
@@ -43,9 +70,11 @@ export interface UseChartResult {
   /** Bind to container element via ref */
   ref: (el: HTMLElement | null) => void
   /** The ECharts instance — null until mounted and modules loaded */
-  instance: Signal<echarts.ECharts | null>
+  instance: Signal<ECharts | null>
   /** True while ECharts modules are being dynamically imported */
   loading: Signal<boolean>
+  /** Error signal — set if chart init or setOption throws */
+  error: Signal<Error | null>
   /** Manually trigger resize */
   resize: () => void
 }
@@ -54,8 +83,8 @@ export interface UseChartResult {
  * Props for the <Chart /> component.
  */
 export interface ChartProps extends Props {
-  /** Reactive ECharts option config */
-  options: () => EChartOption
+  /** Reactive ECharts option config — fully typed */
+  options: () => EChartsOption
   /** ECharts theme */
   theme?: string | Record<string, unknown>
   /** Renderer — 'canvas' (default) or 'svg' */

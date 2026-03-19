@@ -84,7 +84,7 @@ describe('loader', () => {
     expect(core).toBeDefined()
   })
 
-  it('auto-detects series features (markPoint, markLine)', async () => {
+  it('auto-detects series features (markPoint, markLine, markArea)', async () => {
     const core = await ensureModules({
       series: [
         {
@@ -92,6 +92,7 @@ describe('loader', () => {
           data: [1, 2, 3],
           markPoint: { data: [{ type: 'max' }] },
           markLine: { data: [{ type: 'average' }] },
+          markArea: { data: [[{ xAxis: 'A' }, { xAxis: 'B' }]] },
         },
       ],
     })
@@ -118,6 +119,13 @@ describe('loader', () => {
     const duration = performance.now() - start
     // Should be near-instant since modules are cached
     expect(duration).toBeLessThan(50)
+  })
+
+  it('handles series as single object (not array)', async () => {
+    const core = await ensureModules({
+      series: { type: 'bar', data: [1, 2, 3] },
+    })
+    expect(core).toBeDefined()
   })
 
   it('handles empty series gracefully', async () => {
