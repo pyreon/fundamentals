@@ -1,5 +1,4 @@
-import { h, Fragment } from '@pyreon/core'
-import type { VNode, Props } from '@pyreon/core'
+import type { Props, VNode } from '@pyreon/core'
 import type { InterpolationValues } from './types'
 
 const TAG_RE = /<(\w+)>([^<]*)<\/\1>/g
@@ -107,5 +106,5 @@ export function Trans(props: TransProps): VNode | string {
     return component(part.children)
   })
 
-  return h(Fragment, null, ...children)
+  return <>{children}</>
 }

@@ -1,13 +1,13 @@
 import { onUnmount } from '@pyreon/core'
-import { signal, computed, effect, batch } from '@pyreon/reactivity'
 import type { Computed } from '@pyreon/reactivity'
+import { batch, computed, effect, signal } from '@pyreon/reactivity'
 import {
   createTable,
   type RowData,
+  type Table,
   type TableOptions,
   type TableOptionsResolved,
   type TableState,
-  type Table,
   type Updater,
 } from '@tanstack/table-core'
 

@@ -1,6 +1,6 @@
 import { onUnmount } from '@pyreon/core'
-import { signal, computed, effect } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
+import { computed, effect, signal } from '@pyreon/reactivity'
 import type {
   FieldRegisterProps,
   FieldState,

@@ -1,11 +1,11 @@
 export { defineFeature } from './define-feature'
+export type { FieldInfo, FieldType, ReferenceSchema } from './schema'
 export {
-  extractFields,
   defaultInitialValues,
-  reference,
+  extractFields,
   isReference,
+  reference,
 } from './schema'
-
 export type {
   Feature,
   FeatureConfig,
@@ -15,5 +15,3 @@ export type {
   FeatureTableResult,
   ListOptions,
 } from './types'
-
-export type { FieldInfo, FieldType, ReferenceSchema } from './schema'

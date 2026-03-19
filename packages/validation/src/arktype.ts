@@ -22,9 +22,7 @@ interface ArkErrors extends Array<ArkError> {
  * Internal callable interface matching ArkType's Type.
  * Not exposed publicly — consumers pass their ArkType schema directly.
  */
-interface ArkTypeCallable {
-  (data: unknown): unknown
-}
+type ArkTypeCallable = (data: unknown) => unknown
 
 function isArkErrors(result: unknown): result is ArkErrors {
   return Array.isArray(result) && 'summary' in (result as object)

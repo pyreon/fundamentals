@@ -1,18 +1,22 @@
-import { h } from '@pyreon/core'
+import { QueryClient, QueryClientProvider } from '@pyreon/query'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
-import { QueryClient, QueryClientProvider } from '@pyreon/query'
 import { resetAllStores } from '@pyreon/store'
 import { z } from 'zod'
 import { defineFeature } from '../define-feature'
 import {
-  extractFields,
   defaultInitialValues,
-  reference,
+  extractFields,
   isReference,
+  reference,
 } from '../schema'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function Capture<T>({ fn }: { fn: () => T }) {
+  fn()
+  return null
+}
 
 function mountWith<T>(
   client: QueryClient,
@@ -22,14 +26,13 @@ function mountWith<T>(
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(
-      QueryClientProvider as any,
-      { client },
-      h(() => {
-        result = fn()
-        return null
-      }, null),
-    ),
+    <QueryClientProvider client={client}>
+      <Capture
+        fn={() => {
+          result = fn()
+        }}
+      />
+    </QueryClientProvider>,
     el,
   )
   return {

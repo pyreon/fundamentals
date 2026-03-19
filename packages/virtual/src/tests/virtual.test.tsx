@@ -1,4 +1,3 @@
-import { h } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { useVirtualizer, useWindowVirtualizer } from '../index'
@@ -9,13 +8,11 @@ function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   let result: T | undefined
   const el = document.createElement('div')
   document.body.appendChild(el)
-  const unmount = mount(
-    h(() => {
-      result = fn()
-      return null
-    }, null),
-    el,
-  )
+  const Wrapper = () => {
+    result = fn()
+    return null
+  }
+  const unmount = mount(<Wrapper />, el)
   return {
     result: result!,
     unmount: () => {

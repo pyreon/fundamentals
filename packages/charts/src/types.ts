@@ -1,41 +1,55 @@
-import type { Signal } from '@pyreon/reactivity'
 import type { Props } from '@pyreon/core'
+import type { Signal } from '@pyreon/reactivity'
+import type { ComposeOption, EChartsOption, SetOptionOpts } from 'echarts'
 import type { ECharts } from 'echarts/core'
-import type { EChartsOption, SetOptionOpts, ComposeOption } from 'echarts'
 
 // ─── Re-export ECharts types for consumer convenience ────────────────────────
 
-export type { EChartsOption, SetOptionOpts, ComposeOption, ECharts }
-
 // Re-export series option types
+// Re-export component option types
 export type {
   BarSeriesOption,
-  LineSeriesOption,
-  PieSeriesOption,
-  ScatterSeriesOption,
-  RadarSeriesOption,
-  HeatmapSeriesOption,
-  TreemapSeriesOption,
-  SunburstSeriesOption,
-  SankeySeriesOption,
+  BoxplotSeriesOption,
+  CandlestickSeriesOption,
+  DataZoomComponentOption,
   FunnelSeriesOption,
   GaugeSeriesOption,
   GraphSeriesOption,
-  TreeSeriesOption,
-  BoxplotSeriesOption,
-  CandlestickSeriesOption,
-} from 'echarts'
-
-// Re-export component option types
-export type {
-  TitleComponentOption,
-  TooltipComponentOption,
-  LegendComponentOption,
   GridComponentOption,
+  HeatmapSeriesOption,
+  LegendComponentOption,
+  LineSeriesOption,
+  PieSeriesOption,
+  RadarSeriesOption,
+  SankeySeriesOption,
+  ScatterSeriesOption,
+  SunburstSeriesOption,
+  TitleComponentOption,
   ToolboxComponentOption,
-  DataZoomComponentOption,
+  TooltipComponentOption,
+  TreemapSeriesOption,
+  TreeSeriesOption,
   VisualMapComponentOption,
 } from 'echarts'
+export type { ComposeOption, ECharts, EChartsOption, SetOptionOpts }
+
+// ─── Event types (duck-typed to avoid echarts dual-package type conflicts) ───
+
+/** Chart event params — duck-typed to work across echarts entry points */
+export interface ChartEventParams {
+  componentType?: string
+  seriesType?: string
+  seriesIndex?: number
+  seriesName?: string
+  name?: string
+  dataIndex?: number
+  data?: unknown
+  dataType?: string
+  value?: unknown
+  color?: string
+  event?: Event
+  [key: string]: unknown
+}
 
 // ─── Chart config ────────────────────────────────────────────────────────────
 
@@ -68,7 +82,7 @@ export interface UseChartConfig {
  */
 export interface UseChartResult {
   /** Bind to container element via ref */
-  ref: (el: HTMLElement | null) => void
+  ref: (el: Element | null) => void
   /** The ECharts instance — null until mounted and modules loaded */
   instance: Signal<ECharts | null>
   /** True while ECharts modules are being dynamically imported */
@@ -96,9 +110,9 @@ export interface ChartProps<TOption extends EChartsOption = EChartsOption>
   /** CSS class for the container div */
   class?: string
   /** Click event handler */
-  onClick?: (params: unknown) => void
+  onClick?: (params: ChartEventParams) => void
   /** Mouseover event handler */
-  onMouseover?: (params: unknown) => void
+  onMouseover?: (params: ChartEventParams) => void
   /** Mouseout event handler */
-  onMouseout?: (params: unknown) => void
+  onMouseout?: (params: ChartEventParams) => void
 }

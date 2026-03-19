@@ -1,13 +1,13 @@
 import { onUnmount } from '@pyreon/core'
-import { signal, effect, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
-import { QueryObserver } from '@tanstack/query-core'
+import { batch, effect, signal } from '@pyreon/reactivity'
 import type {
   DefaultError,
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
+import { QueryObserver } from '@tanstack/query-core'
 import { useQueryClient } from './query-client'
 
 export interface UseQueryResult<TData, TError = DefaultError> {

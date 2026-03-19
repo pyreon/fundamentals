@@ -5,7 +5,6 @@ export * from '@tanstack/table-core'
 
 // ─── Pyreon adapter ─────────────────────────────────────────────────────────────
 
-export { useTable } from './use-table'
-export type { UseTableOptions } from './use-table'
-
 export { flexRender } from './flex-render'
+export type { UseTableOptions } from './use-table'
+export { useTable } from './use-table'

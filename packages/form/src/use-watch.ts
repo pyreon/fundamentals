@@ -1,5 +1,5 @@
+import type { Computed, Signal } from '@pyreon/reactivity'
 import { computed } from '@pyreon/reactivity'
-import type { Signal, Computed } from '@pyreon/reactivity'
 import type { FormState } from './types'
 
 /**

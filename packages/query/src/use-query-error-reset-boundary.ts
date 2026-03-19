@@ -1,12 +1,11 @@
+import type { Props, VNode, VNodeChild } from '@pyreon/core'
 import {
   createContext,
-  pushContext,
-  popContext,
   onUnmount,
+  popContext,
+  pushContext,
   useContext,
 } from '@pyreon/core'
-import type { VNodeChild, VNode } from '@pyreon/core'
-import type { Props } from '@pyreon/core'
 import { useQueryClient } from './query-client'
 
 // ─── Context ────────────────────────────────────────────────────────────────

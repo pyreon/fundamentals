@@ -1,25 +1,30 @@
-import { z } from 'zod'
-import * as v from 'valibot'
-import { type } from 'arktype'
-import { h } from '@pyreon/core'
-import { mount } from '@pyreon/runtime-dom'
 import { useForm } from '@pyreon/form'
-import { zodSchema, zodField } from '../zod'
-import { valibotSchema, valibotField } from '../valibot'
-import { arktypeSchema, arktypeField } from '../arktype'
+import { mount } from '@pyreon/runtime-dom'
+import { type } from 'arktype'
+import * as v from 'valibot'
+import { z } from 'zod'
+import { arktypeField, arktypeSchema } from '../arktype'
 import { issuesToRecord } from '../utils'
+import { valibotField, valibotSchema } from '../valibot'
+import { zodField, zodSchema } from '../zod'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function Capture<T>({ fn }: { fn: () => T }) {
+  fn()
+  return null
+}
 
 function mountWith<T>(fn: () => T): { result: T; unmount: () => void } {
   let result: T | undefined
   const el = document.createElement('div')
   document.body.appendChild(el)
   const unmount = mount(
-    h(() => {
-      result = fn()
-      return null
-    }, null),
+    <Capture
+      fn={() => {
+        result = fn()
+      }}
+    />,
     el,
   )
   return {

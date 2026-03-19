@@ -1,12 +1,12 @@
 import { createI18n } from '../create-i18n'
 import {
-  registerI18n,
-  unregisterI18n,
+  _resetDevtools,
   getActiveI18nInstances,
   getI18nInstance,
   getI18nSnapshot,
   onI18nChange,
-  _resetDevtools,
+  registerI18n,
+  unregisterI18n,
 } from '../devtools'
 
 afterEach(() => _resetDevtools())

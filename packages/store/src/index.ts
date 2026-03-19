@@ -26,11 +26,13 @@
 
 export type { Signal } from '@pyreon/reactivity'
 export { batch, computed, effect, signal } from '@pyreon/reactivity'
+
 import { batch } from '@pyreon/reactivity'
 
 export { setRegistryProvider as setStoreRegistryProvider } from './registry'
-import { getRegistry } from './registry'
+
 import { _notifyChange } from './devtools'
+import { getRegistry } from './registry'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

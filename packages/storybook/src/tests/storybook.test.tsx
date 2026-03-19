@@ -1,15 +1,14 @@
-import { h, Fragment } from '@pyreon/core'
 import type { ComponentFn, VNodeChild } from '@pyreon/core'
-import { signal, effect } from '@pyreon/reactivity'
+import { effect, signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
-import { renderToCanvas, defaultRender } from '../render'
 import { render as previewRender } from '../preview'
+import { defaultRender, renderToCanvas } from '../render'
 import type {
-  Meta,
-  StoryObj,
   DecoratorFn,
-  StoryFn,
+  Meta,
   StoryContext,
+  StoryFn,
+  StoryObj,
 } from '../types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -26,7 +25,7 @@ function makeRenderContext(overrides: {
   args?: Record<string, unknown>
 }) {
   return {
-    storyFn: overrides.storyFn ?? (() => h('div', null, 'default')),
+    storyFn: overrides.storyFn ?? (() => <div>default</div>),
     storyContext: {
       component: overrides.component,
       args: overrides.args ?? {},
@@ -47,7 +46,7 @@ describe('renderToCanvas', () => {
   it('mounts a simple VNode into the canvas', () => {
     const canvas = createCanvas()
     const ctx = makeRenderContext({
-      storyFn: () => h('button', null, 'Click me'),
+      storyFn: () => <button>Click me</button>,
     })
 
     renderToCanvas(ctx, canvas)
@@ -59,12 +58,12 @@ describe('renderToCanvas', () => {
 
   it('mounts a Pyreon component with props', () => {
     function Button(props: { label: string; disabled?: boolean }) {
-      return h('button', { disabled: props.disabled ?? false }, props.label)
+      return <button disabled={props.disabled ?? false}>{props.label}</button>
     }
 
     const canvas = createCanvas()
     const ctx = makeRenderContext({
-      storyFn: () => h(Button, { label: 'Submit', disabled: true }),
+      storyFn: () => <Button label="Submit" disabled={true} />,
     })
 
     renderToCanvas(ctx, canvas)
@@ -80,13 +79,13 @@ describe('renderToCanvas', () => {
     const canvas = createCanvas()
 
     renderToCanvas(
-      makeRenderContext({ storyFn: () => h('div', null, 'First') }),
+      makeRenderContext({ storyFn: () => <div>First</div> }),
       canvas,
     )
     expect(canvas.textContent).toBe('First')
 
     renderToCanvas(
-      makeRenderContext({ storyFn: () => h('div', null, 'Second') }),
+      makeRenderContext({ storyFn: () => <div>Second</div> }),
       canvas,
     )
     expect(canvas.textContent).toBe('Second')
@@ -105,13 +104,10 @@ describe('renderToCanvas', () => {
         count()
         effectRunCount++
       })
-      return h('span', null, () => `${count()}`)
+      return <span>{() => `${count()}`}</span>
     }
 
-    renderToCanvas(
-      makeRenderContext({ storyFn: () => h(Counter, null) }),
-      canvas,
-    )
+    renderToCanvas(makeRenderContext({ storyFn: () => <Counter /> }), canvas)
 
     const initialCount = effectRunCount
     count.set(1)
@@ -119,7 +115,7 @@ describe('renderToCanvas', () => {
 
     // Re-render with a different story — should dispose previous effects
     renderToCanvas(
-      makeRenderContext({ storyFn: () => h('div', null, 'New story') }),
+      makeRenderContext({ storyFn: () => <div>New story</div> }),
       canvas,
     )
 
@@ -186,13 +182,10 @@ describe('renderToCanvas', () => {
     const count = signal(0)
 
     function Counter() {
-      return h('span', { 'data-testid': 'count' }, () => `Count: ${count()}`)
+      return <span data-testid="count">{() => `Count: ${count()}`}</span>
     }
 
-    renderToCanvas(
-      makeRenderContext({ storyFn: () => h(Counter, null) }),
-      canvas,
-    )
+    renderToCanvas(makeRenderContext({ storyFn: () => <Counter /> }), canvas)
 
     expect(canvas.textContent).toBe('Count: 0')
 
@@ -207,7 +200,7 @@ describe('renderToCanvas', () => {
 describe('defaultRender', () => {
   it('creates a VNode from component + args', () => {
     function Greeting(props: { name: string }) {
-      return h('p', null, `Hello, ${props.name}!`)
+      return <p>Hello, {props.name}!</p>
     }
 
     const canvas = createCanvas()
@@ -228,7 +221,7 @@ describe('Meta and StoryObj types', () => {
       label: string
       variant?: 'primary' | 'secondary'
     }) {
-      return h('button', { class: props.variant }, props.label)
+      return <button class={props.variant}>{props.label}</button>
     }
 
     const meta = {
@@ -244,10 +237,7 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj inherits args from Meta', () => {
     function Input(props: { placeholder: string; disabled?: boolean }) {
-      return h('input', {
-        placeholder: props.placeholder,
-        disabled: props.disabled,
-      })
+      return <input placeholder={props.placeholder} disabled={props.disabled} />
     }
 
     const _meta = {
@@ -266,7 +256,11 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj supports custom render function', () => {
     function Card(props: { title: string }) {
-      return h('div', { class: 'card' }, h('h2', null, props.title))
+      return (
+        <div class="card">
+          <h2>{props.title}</h2>
+        </div>
+      )
     }
 
     const _meta = {
@@ -277,7 +271,11 @@ describe('Meta and StoryObj types', () => {
     type Story = StoryObj<typeof _meta>
 
     const withWrapper: Story = {
-      render: (args) => h('div', { class: 'wrapper' }, h(Card, args)),
+      render: (args) => (
+        <div class="wrapper">
+          <Card {...args} />
+        </div>
+      ),
     }
 
     const canvas = createCanvas()
@@ -297,19 +295,15 @@ describe('Meta and StoryObj types', () => {
 describe('Decorators', () => {
   it('decorator wraps a story', () => {
     function Button(props: { label: string }) {
-      return h('button', null, props.label)
+      return <button>{props.label}</button>
     }
 
     const withPadding: DecoratorFn<{ label: string }> = (storyFn, context) => {
-      return h(
-        'div',
-        { style: 'padding: 1rem' },
-        storyFn(context.args, context),
-      )
+      return <div style="padding: 1rem">{storyFn(context.args, context)}</div>
     }
 
     const canvas = createCanvas()
-    const storyResult = withPadding((args) => h(Button, args), {
+    const storyResult = withPadding((args) => <Button {...args} />, {
       args: { label: 'Wrapped' },
       argTypes: {},
       globals: {},
@@ -328,14 +322,16 @@ describe('Decorators', () => {
 
   it('multiple decorators compose correctly', () => {
     function Text(props: { content: string }) {
-      return h('span', null, props.content)
+      return <span>{props.content}</span>
     }
 
-    const withBorder: DecoratorFn<{ content: string }> = (storyFn, ctx) =>
-      h('div', { class: 'border' }, storyFn(ctx.args, ctx))
+    const withBorder: DecoratorFn<{ content: string }> = (storyFn, ctx) => (
+      <div class="border">{storyFn(ctx.args, ctx)}</div>
+    )
 
-    const withTheme: DecoratorFn<{ content: string }> = (storyFn, ctx) =>
-      h('div', { class: 'theme-dark' }, storyFn(ctx.args, ctx))
+    const withTheme: DecoratorFn<{ content: string }> = (storyFn, ctx) => (
+      <div class="theme-dark">{storyFn(ctx.args, ctx)}</div>
+    )
 
     const context: StoryContext<{ content: string }> = {
       args: { content: 'Hello' },
@@ -348,7 +344,7 @@ describe('Decorators', () => {
     }
 
     // Compose: withTheme(withBorder(story))
-    const story: StoryFn<{ content: string }> = (args) => h(Text, args)
+    const story: StoryFn<{ content: string }> = (args) => <Text {...args} />
     const decorated = withTheme((_args, ctx) => withBorder(story, ctx), context)
 
     const canvas = createCanvas()
@@ -368,8 +364,12 @@ describe('Fragment stories', () => {
     const canvas = createCanvas()
     renderToCanvas(
       makeRenderContext({
-        storyFn: () =>
-          h(Fragment, null, h('p', null, 'Line 1'), h('p', null, 'Line 2')),
+        storyFn: () => (
+          <>
+            <p>Line 1</p>
+            <p>Line 2</p>
+          </>
+        ),
       }),
       canvas,
     )
@@ -387,7 +387,7 @@ describe('Fragment stories', () => {
 describe('preview render', () => {
   it('renders a component with args', () => {
     function Badge(props: { text: string }) {
-      return h('span', { class: 'badge' }, props.text)
+      return <span class="badge">{props.text}</span>
     }
 
     const canvas = createCanvas()

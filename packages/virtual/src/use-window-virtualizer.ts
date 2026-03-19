@@ -1,13 +1,13 @@
 import { onMount, onUnmount } from '@pyreon/core'
-import { signal, effect, batch } from '@pyreon/reactivity'
 import type { Signal } from '@pyreon/reactivity'
+import { batch, effect, signal } from '@pyreon/reactivity'
 import {
-  Virtualizer,
-  windowScroll,
   observeWindowOffset,
   observeWindowRect,
-  type VirtualizerOptions,
   type VirtualItem,
+  Virtualizer,
+  type VirtualizerOptions,
+  windowScroll,
 } from '@tanstack/virtual-core'
 
 export type UseWindowVirtualizerOptions<TItemElement extends Element> =

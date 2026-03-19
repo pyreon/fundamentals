@@ -1,11 +1,11 @@
+import type { Props, VNode, VNodeChild } from '@pyreon/core'
 import {
   createContext,
-  pushContext,
-  popContext,
   onUnmount,
+  popContext,
+  pushContext,
   useContext,
 } from '@pyreon/core'
-import type { VNodeChild, VNode, Props } from '@pyreon/core'
 import type { I18nInstance } from './types'
 
 export const I18nContext = createContext<I18nInstance | null>(null)

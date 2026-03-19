@@ -1,8 +1,8 @@
-import { signal, effect } from '@pyreon/reactivity'
 import { onUnmount } from '@pyreon/core'
+import { effect, signal } from '@pyreon/reactivity'
 import type { EChartsOption } from 'echarts'
-import type { UseChartConfig, UseChartResult } from './types'
 import { ensureModules } from './loader'
+import type { UseChartConfig, UseChartResult } from './types'
 
 /**
  * Reactive ECharts hook. Creates a chart instance bound to a container
@@ -127,7 +127,7 @@ export function useChart<TOption extends EChartsOption = EChartsOption>(
   })
 
   return {
-    ref: (el: HTMLElement | null) => container.set(el),
+    ref: (el: Element | null) => container.set(el as HTMLElement | null),
     instance,
     loading,
     error,
