@@ -19,6 +19,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/i18n` | Reactive i18n with async namespace loading, plurals, interpolation |
 | `@pyreon/feature` | Schema-driven CRUD primitives — auto-generated queries, forms, tables, stores |
 | `@pyreon/charts` | Reactive ECharts bridge with lazy loading, auto-detection, and typed options |
+| `@pyreon/storage` | Reactive client-side storage — localStorage, sessionStorage, cookies, IndexedDB |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -159,6 +160,19 @@ packages/[name]/
 - Error signal for init/setOption failures
 - `@pyreon/charts/manual` entry for tree-shaking control
 
+### @pyreon/storage
+
+- `useStorage(key, default, options?)` — reactive signal backed by localStorage, cross-tab synced
+- `useSessionStorage(key, default, options?)` — session-scoped storage signal
+- `useCookie(key, default, options?)` — cookie-backed signal with maxAge, path, sameSite, secure options
+- `useIndexedDB(key, default, options?)` — IndexedDB-backed signal for large data, debounced writes
+- `createStorage(backend)` — factory for custom storage backends (encrypted, remote, etc.)
+- `useMemoryStorage(key, default)` — in-memory storage for SSR/testing
+- `setCookieSource(header)` — SSR cookie source for server-side rendering
+- `removeStorage(key, options?)` / `clearStorage(type?)` — cleanup utilities
+- All hooks return `StorageSignal<T>` — extends `Signal<T>` with `.remove()`
+- Signal deduplication — same key returns same signal instance across components
+
 ### @pyreon/storybook
 
 - `renderToCanvas(context, canvasElement)` — core renderer: mounts VNode, cleans up previous, shows errors
@@ -174,7 +188,7 @@ Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`
 
 ## CI & Release
 
-- Changesets for fixed versioning (all 11 packages share one version)
+- Changesets for fixed versioning (all 12 packages share one version)
 - CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
 - Release via `changesets/action` in GitHub Actions with OIDC publishing
 

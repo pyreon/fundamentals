@@ -14,7 +14,8 @@
       "@pyreon/i18n",
       "@pyreon/storybook",
       "@pyreon/feature",
-      "@pyreon/charts"
+      "@pyreon/charts",
+      "@pyreon/storage"
     ]
   ],
   "access": "public",
