@@ -1,5 +1,20 @@
 # @pyreon/feature
 
+## 1.0.0
+
+### Minor Changes
+
+- Add @pyreon/storage (reactive localStorage, sessionStorage, cookies, IndexedDB) and @pyreon/hotkeys (keyboard shortcut management). Add useSubscription to @pyreon/query for WebSocket integration. Upgrade to pyreon core 0.5.4. Convert all tests and source to JSX.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @pyreon/store@1.0.0
+  - @pyreon/form@1.0.0
+  - @pyreon/validation@1.0.0
+  - @pyreon/query@1.0.0
+  - @pyreon/table@1.0.0
+
 ## 0.1.0
 
 ### Minor Changes
