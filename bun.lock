@@ -96,6 +96,20 @@
         "@pyreon/reactivity": ">=0.4.0 <1.0.0",
       },
     },
+    "packages/hotkeys": {
+      "name": "@pyreon/hotkeys",
+      "version": "0.3.0",
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.8.3",
+        "@pyreon/core": ">=0.4.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+        "@vitus-labs/tools-lint": "^1.11.0",
+      },
+      "peerDependencies": {
+        "@pyreon/core": ">=0.4.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+      },
+    },
     "packages/i18n": {
       "name": "@pyreon/i18n",
       "version": "0.3.0",
@@ -416,6 +430,8 @@
     "@pyreon/feature": ["@pyreon/feature@workspace:packages/feature"],
 
     "@pyreon/form": ["@pyreon/form@workspace:packages/form"],
+
+    "@pyreon/hotkeys": ["@pyreon/hotkeys@workspace:packages/hotkeys"],
 
     "@pyreon/i18n": ["@pyreon/i18n@workspace:packages/i18n"],
 
