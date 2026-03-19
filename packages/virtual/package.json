@@ -43,13 +43,13 @@
     "@tanstack/virtual-core": "^3.0.0"
   },
   "peerDependencies": {
-    "@pyreon/core": "^0.3.1",
-    "@pyreon/reactivity": "^0.3.1"
+    "@pyreon/core": ">=0.4.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.4.0 <1.0.0"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/core": "^0.3.1",
-    "@pyreon/reactivity": "^0.3.1",
-    "@pyreon/runtime-dom": "^0.3.1"
+    "@pyreon/core": ">=0.4.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+    "@pyreon/runtime-dom": ">=0.4.0 <1.0.0"
   }
 }

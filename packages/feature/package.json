@@ -40,8 +40,8 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/core": "^0.3.1",
-    "@pyreon/reactivity": "^0.3.1"
+    "@pyreon/core": ">=0.4.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.4.0 <1.0.0"
   },
   "dependencies": {
     "@pyreon/form": "workspace:^",
@@ -52,9 +52,9 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/core": "^0.3.1",
-    "@pyreon/reactivity": "^0.3.1",
-    "@pyreon/runtime-dom": "^0.3.1",
+    "@pyreon/core": ">=0.4.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+    "@pyreon/runtime-dom": ">=0.4.0 <1.0.0",
     "zod": "^4.3.6"
   }
 }
