@@ -179,7 +179,7 @@ describe('useStorage (localStorage)', () => {
     const theme = useStorage('theme', 'light')
 
     // Simulate storage event from another tab
-    const event = new StorageEvent('storage', {
+    const event = Object.assign(new Event('storage'), {
       key: 'theme',
       newValue: JSON.stringify('dark'),
       storageArea: localStorage,
@@ -193,7 +193,7 @@ describe('useStorage (localStorage)', () => {
     const theme = useStorage('theme', 'light')
     theme.set('dark')
 
-    const event = new StorageEvent('storage', {
+    const event = Object.assign(new Event('storage'), {
       key: 'theme',
       newValue: null,
       storageArea: localStorage,
