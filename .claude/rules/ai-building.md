@@ -2,6 +2,104 @@
 
 These instructions tell AI agents exactly how to use Pyreon fundamentals packages. Follow these decision trees — do not invent patterns.
 
+## When building a complete CRUD feature (PREFERRED)
+
+Use `defineFeature()` from @pyreon/feature. One schema definition gives you
+everything -- queries, mutations, forms, tables, store.
+
+```tsx
+import { defineFeature } from '@pyreon/feature'
+import { z } from 'zod'
+
+const users = defineFeature({
+  name: 'users',
+  schema: z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    role: z.enum(['admin', 'editor', 'viewer']),
+  }),
+  api: '/api/users',
+})
+
+// List page
+function UsersPage() {
+  const { data, isPending } = users.useList()
+  if (isPending()) return <p>Loading...</p>
+  return <ul>{data()!.map(u => <li key={u.email}>{u.name}</li>)}</ul>
+}
+
+// Create form
+function CreateUser() {
+  const form = users.useForm()
+  return (
+    <form onSubmit={(e: Event) => form.handleSubmit(e)}>
+      <input {...form.register('name')} />
+      <input {...form.register('email')} />
+      <button type="submit">Create</button>
+    </form>
+  )
+}
+
+// Edit form (auto-fetches item)
+function EditUser({ id }: { id: number }) {
+  const form = users.useForm({ mode: 'edit', id })
+  return (
+    <form onSubmit={(e: Event) => form.handleSubmit(e)}>
+      <input {...form.register('name')} />
+      <button type="submit">Save</button>
+    </form>
+  )
+}
+```
+
+This is the PREFERRED approach for any data entity. Only drop to individual
+packages (useQuery, useForm, useTable) when you need custom behavior that
+defineFeature doesn't cover.
+
+## When adding charts or data visualizations
+
+Use `<Chart />` or `useChart()` from @pyreon/charts. ECharts modules are
+lazy-loaded automatically -- zero bundle cost until a chart renders.
+
+```tsx
+import { Chart } from '@pyreon/charts'
+
+function RevenueChart() {
+  return (
+    <Chart
+      options={() => ({
+        xAxis: { type: 'category', data: months() },
+        yAxis: { type: 'value' },
+        tooltip: { trigger: 'axis' },
+        series: [
+          { name: 'Revenue', type: 'bar', data: revenue() },
+          { name: 'Profit', type: 'line', data: profit() },
+        ],
+      })}
+      style="height: 400px"
+    />
+  )
+}
+```
+
+For strict typing:
+```tsx
+import { useChart } from '@pyreon/charts'
+import type { ComposeOption, BarSeriesOption, LineSeriesOption } from '@pyreon/charts'
+
+type MyOption = ComposeOption<BarSeriesOption | LineSeriesOption>
+
+const chart = useChart<MyOption>(() => ({
+  series: [{ type: 'bar', data: values() }],
+}))
+```
+
+Common chart types: bar, line, pie, scatter, radar, heatmap, treemap,
+sankey, gauge, funnel, candlestick, graph.
+
+The config is standard ECharts -- any ECharts example from the docs works.
+Just wrap signal reads in the options function for reactivity.
+
 ## Core Principle
 
 Pyreon uses **signals** for all reactivity. There are no hooks rules, no dependency arrays, no re-renders. A signal is created once, read by calling it (`count()`), and written with `.set()` or `.update()`. Effects and computeds track dependencies automatically.
@@ -298,6 +396,8 @@ getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
 - **Never forget `QueryClientProvider`** — wrap the app root when using `useQuery()`.
 - **Never forget `I18nProvider`** — wrap the app root when using `useI18n()`.
 - **Never use `h()` in app code** — use JSX. `h()` is for library internals only.
+- **Never import from 'echarts' directly in app code** — use `@pyreon/charts` which lazy-loads.
+- **Never use individual `@pyreon/*` packages when `defineFeature()` covers the use case** — it composes them for you.
 
 ## JSX patterns specific to Pyreon
 
