@@ -13,7 +13,8 @@
       "@pyreon/virtual",
       "@pyreon/i18n",
       "@pyreon/storybook",
-      "@pyreon/feature"
+      "@pyreon/feature",
+      "@pyreon/charts"
     ]
   ],
   "access": "public",
