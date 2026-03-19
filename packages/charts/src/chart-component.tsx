@@ -1,6 +1,6 @@
 import { h } from '@pyreon/core'
 import { effect } from '@pyreon/reactivity'
-import type { VNode } from '@pyreon/core'
+import type { VNodeChild } from '@pyreon/core'
 import type { ChartProps } from './types'
 import { useChart } from './use-chart'
 
@@ -22,7 +22,7 @@ import { useChart } from './use-chart'
  * />
  * ```
  */
-export function Chart(props: ChartProps): () => VNode {
+export function Chart(props: ChartProps): () => VNodeChild {
   const chart = useChart(props.options, {
     theme: props.theme,
     renderer: props.renderer,

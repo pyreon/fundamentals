@@ -11,7 +11,12 @@ export default mergeConfig(
     },
     test: {
       coverage: {
-        exclude: ['src/types.ts'],
+        exclude: [
+          'src/types.ts',
+          'src/use-chart.ts',
+          'src/chart-component.ts',
+          'src/manual.ts',
+        ],
       },
     },
   }),

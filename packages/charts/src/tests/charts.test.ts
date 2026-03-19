@@ -1,6 +1,12 @@
 import { h } from '@pyreon/core'
 import { mount } from '@pyreon/runtime-dom'
-import { _resetLoader, ensureModules, getCore } from '../loader'
+import {
+  _resetLoader,
+  ensureModules,
+  getCore,
+  getCoreSync,
+  manualUse,
+} from '../loader'
 import { Chart } from '../chart-component'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -144,6 +150,38 @@ describe('loader', () => {
     _resetLoader()
     // After reset, core should be null internally but getCore still works
     const core = await getCore()
+    expect(core).toBeDefined()
+  })
+
+  it('getCoreSync returns null before loading', () => {
+    _resetLoader()
+    expect(getCoreSync()).toBeNull()
+  })
+
+  it('getCoreSync returns core after loading', async () => {
+    await getCore()
+    expect(getCoreSync()).not.toBeNull()
+    expect(typeof getCoreSync()!.init).toBe('function')
+  })
+
+  it('manualUse registers modules when core is loaded', async () => {
+    await getCore() // ensure core is loaded
+    // Should not throw — registers module with core.use()
+    const { CanvasRenderer } = await import('echarts/renderers')
+    expect(() => manualUse(CanvasRenderer)).not.toThrow()
+  })
+
+  it('manualUse queues modules when core is not yet loaded', () => {
+    _resetLoader()
+    // Core not loaded yet — should queue, not throw
+    expect(() => manualUse({})).not.toThrow()
+  })
+
+  it('loads radar component for radar config key', async () => {
+    const core = await ensureModules({
+      radar: { indicator: [{ name: 'A' }] },
+      series: [{ type: 'radar', data: [{ value: [1] }] }],
+    })
     expect(core).toBeDefined()
   })
 })
