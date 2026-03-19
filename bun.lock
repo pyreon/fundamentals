@@ -138,6 +138,18 @@
         "@pyreon/reactivity": ">=0.4.0 <1.0.0",
       },
     },
+    "packages/storage": {
+      "name": "@pyreon/storage",
+      "version": "0.3.0",
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.8.3",
+        "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+        "@vitus-labs/tools-lint": "^1.11.0",
+      },
+      "peerDependencies": {
+        "@pyreon/reactivity": ">=0.4.0 <1.0.0",
+      },
+    },
     "packages/store": {
       "name": "@pyreon/store",
       "version": "0.3.0",
@@ -416,6 +428,8 @@
     "@pyreon/runtime-dom": ["@pyreon/runtime-dom@0.4.0", "", { "dependencies": { "@pyreon/core": "^0.4.0", "@pyreon/reactivity": "^0.4.0" } }, "sha512-5Ang5nsMQX+sFHFq5XivGF/VW/pVL8+pNtuehFuzyFuaYnNtPm7ufd0PNGUQSA4aWNUiABhinpyLOmAIG4w/Zw=="],
 
     "@pyreon/state-tree": ["@pyreon/state-tree@workspace:packages/state-tree"],
+
+    "@pyreon/storage": ["@pyreon/storage@workspace:packages/storage"],
 
     "@pyreon/store": ["@pyreon/store@workspace:packages/store"],
 
