@@ -171,10 +171,11 @@ describe('loader', () => {
     expect(() => manualUse(CanvasRenderer)).not.toThrow()
   })
 
-  it('manualUse queues modules when core is not yet loaded', () => {
+  it('manualUse queues modules when core is not yet loaded', async () => {
     _resetLoader()
     // Core not loaded yet — should queue, not throw
-    expect(() => manualUse({})).not.toThrow()
+    const { CanvasRenderer } = await import('echarts/renderers')
+    expect(() => manualUse(CanvasRenderer)).not.toThrow()
   })
 
   it('loads radar component for radar config key', async () => {
