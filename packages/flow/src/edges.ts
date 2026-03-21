@@ -288,6 +288,42 @@ export function getStepPath(params: {
 }
 
 /**
+ * Calculate an edge path that passes through waypoints.
+ * Uses line segments with optional smoothing.
+ */
+export function getWaypointPath(params: {
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  waypoints: XYPosition[]
+}): EdgePathResult {
+  const { sourceX, sourceY, targetX, targetY, waypoints } = params
+
+  if (waypoints.length === 0) {
+    return getStraightPath({ sourceX, sourceY, targetX, targetY })
+  }
+
+  const allPoints = [
+    { x: sourceX, y: sourceY },
+    ...waypoints,
+    { x: targetX, y: targetY },
+  ]
+
+  const segments = allPoints.map((p) => `${p.x},${p.y}`)
+  const path = `M${segments.join(' L')}`
+
+  // Label at the middle waypoint
+  const midIdx = Math.floor(waypoints.length / 2)
+  const midPoint = waypoints[midIdx] ?? {
+    x: (sourceX + targetX) / 2,
+    y: (sourceY + targetY) / 2,
+  }
+
+  return { path, labelX: midPoint.x, labelY: midPoint.y }
+}
+
+/**
  * Get the edge path for a given edge type.
  */
 export function getEdgePath(

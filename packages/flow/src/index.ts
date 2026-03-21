@@ -45,6 +45,7 @@ export {
   getSmoothStepPath,
   getStepPath,
   getStraightPath,
+  getWaypointPath,
 } from './edges'
 // Core
 export { createFlow } from './flow'

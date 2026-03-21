@@ -731,6 +731,55 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     )
   }
 
+  // ── Edge waypoints ──────────────────────────────────────────────────────
+
+  function addEdgeWaypoint(
+    edgeIdentifier: string,
+    point: XYPosition,
+    index?: number,
+  ): void {
+    edges.update((eds) =>
+      eds.map((e) => {
+        if (e.id !== edgeIdentifier) return e
+        const waypoints = [...(e.waypoints ?? [])]
+        if (index !== undefined) {
+          waypoints.splice(index, 0, point)
+        } else {
+          waypoints.push(point)
+        }
+        return { ...e, waypoints }
+      }),
+    )
+  }
+
+  function removeEdgeWaypoint(edgeIdentifier: string, index: number): void {
+    edges.update((eds) =>
+      eds.map((e) => {
+        if (e.id !== edgeIdentifier) return e
+        const waypoints = [...(e.waypoints ?? [])]
+        waypoints.splice(index, 1)
+        return { ...e, waypoints: waypoints.length > 0 ? waypoints : undefined }
+      }),
+    )
+  }
+
+  function updateEdgeWaypoint(
+    edgeIdentifier: string,
+    index: number,
+    point: XYPosition,
+  ): void {
+    edges.update((eds) =>
+      eds.map((e) => {
+        if (e.id !== edgeIdentifier) return e
+        const waypoints = [...(e.waypoints ?? [])]
+        if (index >= 0 && index < waypoints.length) {
+          waypoints[index] = point
+        }
+        return { ...e, waypoints }
+      }),
+    )
+  }
+
   // ── Proximity connect ───────────────────────────────────────────────────
 
   function getProximityConnection(
@@ -886,6 +935,105 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
   // Custom edge rendering is handled in the Flow component via edgeTypes prop.
   // The flow instance provides the data; rendering is delegated to components.
 
+  // ── Search / Filter ─────────────────────────────────────────────────────
+
+  function findNodes(predicate: (node: FlowNode) => boolean): FlowNode[] {
+    return nodes.peek().filter(predicate)
+  }
+
+  function searchNodes(query: string): FlowNode[] {
+    const q = query.toLowerCase()
+    return nodes.peek().filter((n) => {
+      const label = (n.data?.label as string) ?? n.id
+      return label.toLowerCase().includes(q)
+    })
+  }
+
+  function focusNode(nodeId: string, focusZoom?: number): void {
+    const node = getNode(nodeId)
+    if (!node) return
+
+    const w = node.width ?? 150
+    const h = node.height ?? 40
+    const centerX = node.position.x + w / 2
+    const centerY = node.position.y + h / 2
+    const z = focusZoom ?? viewport.peek().zoom
+    const { width: cw, height: ch } = containerSize.peek()
+
+    animateViewport({
+      x: -centerX * z + cw / 2,
+      y: -centerY * z + ch / 2,
+      zoom: z,
+    })
+
+    // Select the focused node
+    selectNode(nodeId)
+  }
+
+  // ── Export / Import ────────────────────────────────────────────────────
+
+  function toJSON(): {
+    nodes: FlowNode[]
+    edges: FlowEdge[]
+    viewport: { x: number; y: number; zoom: number }
+  } {
+    return {
+      nodes: structuredClone(nodes.peek()),
+      edges: structuredClone(edges.peek()),
+      viewport: { ...viewport.peek() },
+    }
+  }
+
+  function fromJSON(data: {
+    nodes: FlowNode[]
+    edges: FlowEdge[]
+    viewport?: { x: number; y: number; zoom: number }
+  }): void {
+    batch(() => {
+      nodes.set(data.nodes)
+      edges.set(
+        data.edges.map((e) => ({
+          ...e,
+          id: e.id ?? edgeId(e),
+          type: e.type ?? defaultEdgeType,
+        })),
+      )
+      if (data.viewport) viewport.set(data.viewport)
+      clearSelection()
+    })
+  }
+
+  // ── Viewport animation ─────────────────────────────────────────────────
+
+  function animateViewport(
+    target: Partial<{ x: number; y: number; zoom: number }>,
+    duration = 300,
+  ): void {
+    const start = { ...viewport.peek() }
+    const end = {
+      x: target.x ?? start.x,
+      y: target.y ?? start.y,
+      zoom: target.zoom ?? start.zoom,
+    }
+    const startTime = performance.now()
+
+    const frame = () => {
+      const elapsed = performance.now() - startTime
+      const t = Math.min(elapsed / duration, 1)
+      const eased = 1 - (1 - t) ** 3 // ease-out cubic
+
+      viewport.set({
+        x: start.x + (end.x - start.x) * eased,
+        y: start.y + (end.y - start.y) * eased,
+        zoom: start.zoom + (end.zoom - start.zoom) * eased,
+      })
+
+      if (t < 1) requestAnimationFrame(frame)
+    }
+
+    requestAnimationFrame(frame)
+  }
+
   // ── Dispose ──────────────────────────────────────────────────────────────
 
   function dispose(): void {
@@ -972,12 +1120,21 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     getSnapLines,
     getChildNodes,
     getAbsolutePosition,
+    addEdgeWaypoint,
+    removeEdgeWaypoint,
+    updateEdgeWaypoint,
     reconnectEdge,
     getProximityConnection,
     getOverlappingNodes,
     resolveCollisions,
     setNodeExtent,
     clampToExtent,
+    findNodes,
+    searchNodes,
+    focusNode,
+    toJSON,
+    fromJSON,
+    animateViewport,
     config,
     dispose,
   }

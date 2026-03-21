@@ -86,6 +86,8 @@ export interface FlowEdge {
   style?: string
   /** Custom data attached to the edge */
   data?: Record<string, unknown>
+  /** Waypoints — intermediate points the edge passes through */
+  waypoints?: XYPosition[]
 }
 
 // ─── Connection ──────────────────────────────────────────────────────────────
@@ -304,6 +306,17 @@ export interface FlowInstance {
 
   // ── Edge reconnecting ──────────────────────────────────────────────────
 
+  // ── Edge waypoints ──────────────────────────────────────────────────────
+
+  /** Add a waypoint (bend point) to an edge */
+  addEdgeWaypoint: (edgeId: string, point: XYPosition, index?: number) => void
+  /** Remove a waypoint from an edge */
+  removeEdgeWaypoint: (edgeId: string, index: number) => void
+  /** Update a waypoint position */
+  updateEdgeWaypoint: (edgeId: string, index: number, point: XYPosition) => void
+
+  // ── Edge reconnecting ──────────────────────────────────────────────────
+
   /** Reconnect an edge to a new source/target */
   reconnectEdge: (
     edgeId: string,
@@ -340,6 +353,31 @@ export interface FlowInstance {
     nodeWidth?: number,
     nodeHeight?: number,
   ) => XYPosition
+
+  // ── Search / Filter ─────────────────────────────────────────────────────
+
+  /** Find nodes matching a predicate */
+  findNodes: (predicate: (node: FlowNode) => boolean) => FlowNode[]
+  /** Find nodes by label text (case-insensitive) */
+  searchNodes: (query: string) => FlowNode[]
+  /** Focus viewport on a specific node (pan + optional zoom) */
+  focusNode: (nodeId: string, zoom?: number) => void
+
+  // ── Export ─────────────────────────────────────────────────────────────
+
+  /** Export the flow as a JSON-serializable object */
+  toJSON: () => { nodes: FlowNode[]; edges: FlowEdge[]; viewport: Viewport }
+  /** Import flow state from a JSON object */
+  fromJSON: (data: {
+    nodes: FlowNode[]
+    edges: FlowEdge[]
+    viewport?: Viewport
+  }) => void
+
+  // ── Viewport animation ─────────────────────────────────────────────────
+
+  /** Animate viewport to a new position/zoom */
+  animateViewport: (target: Partial<Viewport>, duration?: number) => void
 
   // ── Internal emitters (used by Flow component) ──────────────────────────
 

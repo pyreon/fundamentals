@@ -4,6 +4,7 @@ import {
   getEdgePath,
   getHandlePosition,
   getSmartHandlePositions,
+  getWaypointPath,
 } from '../edges'
 import type {
   Connection,
@@ -160,15 +161,23 @@ function EdgeLayer(props: {
             targetH,
           )
 
-          const { path, labelX, labelY } = getEdgePath(
-            edge.type ?? 'bezier',
-            sourcePos.x,
-            sourcePos.y,
-            sourcePosition,
-            targetPos.x,
-            targetPos.y,
-            targetPosition,
-          )
+          const { path, labelX, labelY } = edge.waypoints?.length
+            ? getWaypointPath({
+                sourceX: sourcePos.x,
+                sourceY: sourcePos.y,
+                targetX: targetPos.x,
+                targetY: targetPos.y,
+                waypoints: edge.waypoints,
+              })
+            : getEdgePath(
+                edge.type ?? 'bezier',
+                sourcePos.x,
+                sourcePos.y,
+                sourcePosition,
+                targetPos.x,
+                targetPos.y,
+                targetPosition,
+              )
 
           const selectedEdges = instance.selectedEdges()
           const isSelected = edge.id ? selectedEdges.includes(edge.id) : false

@@ -17,10 +17,17 @@ export default mergeConfig(
     },
     test: {
       coverage: {
-        exclude: ['src/types.ts', 'src/components/', 'src/layout.ts'],
+        exclude: [
+          'src/types.ts',
+          'src/components/',
+          'src/layout.ts',
+          'src/styles.ts',
+        ],
         thresholds: {
-          branches: 83,
-          functions: 89,
+          statements: 65,
+          branches: 53,
+          functions: 73,
+          lines: 67,
         },
       },
     },

@@ -7,6 +7,7 @@ import {
   getSmoothStepPath,
   getStepPath,
   getStraightPath,
+  getWaypointPath,
 } from '../edges'
 import { createFlow } from '../flow'
 import { Position } from '../types'
@@ -899,6 +900,385 @@ describe('createFlow', () => {
 
       expect(flow.getOutgoers('start')).toHaveLength(2)
       expect(flow.getIncomers('merge')).toHaveLength(2)
+    })
+  })
+
+  // ─── Waypoints ─────────────────────────────────────────────────────────
+
+  describe('edge waypoints', () => {
+    it('getWaypointPath generates path through waypoints', () => {
+      const result = getWaypointPath({
+        sourceX: 0,
+        sourceY: 0,
+        targetX: 300,
+        targetY: 0,
+        waypoints: [
+          { x: 100, y: 50 },
+          { x: 200, y: -50 },
+        ],
+      })
+      expect(result.path).toBe('M0,0 L100,50 L200,-50 L300,0')
+      // Label at middle waypoint (index 1 of 2)
+      expect(result.labelX).toBe(200)
+      expect(result.labelY).toBe(-50)
+    })
+
+    it('getWaypointPath with empty waypoints falls back to straight', () => {
+      const result = getWaypointPath({
+        sourceX: 0,
+        sourceY: 0,
+        targetX: 100,
+        targetY: 100,
+        waypoints: [],
+      })
+      expect(result.path).toBe('M0,0 L100,100')
+    })
+
+    it('addEdgeWaypoint adds a bend point', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 200, y: 0 }, data: {} },
+        ],
+        edges: [{ id: 'e1', source: '1', target: '2' }],
+      })
+
+      flow.addEdgeWaypoint('e1', { x: 100, y: 50 })
+      expect(flow.getEdge('e1')!.waypoints).toEqual([{ x: 100, y: 50 }])
+    })
+
+    it('addEdgeWaypoint at specific index', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 200, y: 0 }, data: {} },
+        ],
+        edges: [
+          {
+            id: 'e1',
+            source: '1',
+            target: '2',
+            waypoints: [
+              { x: 50, y: 0 },
+              { x: 150, y: 0 },
+            ],
+          },
+        ],
+      })
+
+      flow.addEdgeWaypoint('e1', { x: 100, y: 50 }, 1)
+      expect(flow.getEdge('e1')!.waypoints).toHaveLength(3)
+      expect(flow.getEdge('e1')!.waypoints![1]).toEqual({ x: 100, y: 50 })
+    })
+
+    it('removeEdgeWaypoint removes a bend point', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 200, y: 0 }, data: {} },
+        ],
+        edges: [
+          {
+            id: 'e1',
+            source: '1',
+            target: '2',
+            waypoints: [{ x: 100, y: 50 }],
+          },
+        ],
+      })
+
+      flow.removeEdgeWaypoint('e1', 0)
+      expect(flow.getEdge('e1')!.waypoints).toBeUndefined()
+    })
+
+    it('updateEdgeWaypoint moves a bend point', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 200, y: 0 }, data: {} },
+        ],
+        edges: [
+          {
+            id: 'e1',
+            source: '1',
+            target: '2',
+            waypoints: [{ x: 100, y: 50 }],
+          },
+        ],
+      })
+
+      flow.updateEdgeWaypoint('e1', 0, { x: 100, y: -50 })
+      expect(flow.getEdge('e1')!.waypoints![0]).toEqual({ x: 100, y: -50 })
+    })
+  })
+
+  // ─── Search / Filter ───────────────────────────────────────────────────
+
+  describe('search and filter', () => {
+    it('findNodes with predicate', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', type: 'input', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', type: 'process', position: { x: 100, y: 0 }, data: {} },
+          { id: '3', type: 'process', position: { x: 200, y: 0 }, data: {} },
+          { id: '4', type: 'output', position: { x: 300, y: 0 }, data: {} },
+        ],
+      })
+
+      expect(flow.findNodes((n) => n.type === 'process')).toHaveLength(2)
+      expect(flow.findNodes((n) => n.type === 'input')).toHaveLength(1)
+      expect(flow.findNodes((n) => n.type === 'missing')).toHaveLength(0)
+    })
+
+    it('searchNodes by label', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: { label: 'Fetch Data' } },
+          { id: '2', position: { x: 100, y: 0 }, data: { label: 'Transform' } },
+          {
+            id: '3',
+            position: { x: 200, y: 0 },
+            data: { label: 'Fetch Users' },
+          },
+        ],
+      })
+
+      expect(flow.searchNodes('fetch')).toHaveLength(2)
+      expect(flow.searchNodes('transform')).toHaveLength(1)
+      expect(flow.searchNodes('FETCH')).toHaveLength(2) // case-insensitive
+      expect(flow.searchNodes('missing')).toHaveLength(0)
+    })
+
+    it('searchNodes falls back to node id', () => {
+      const flow = createFlow({
+        nodes: [{ id: 'api-gateway', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      expect(flow.searchNodes('gateway')).toHaveLength(1)
+    })
+  })
+
+  // ─── Export / Import ───────────────────────────────────────────────────
+
+  describe('toJSON / fromJSON', () => {
+    it('exports and imports flow state', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: { label: 'A' } },
+          { id: '2', position: { x: 200, y: 0 }, data: { label: 'B' } },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      })
+
+      flow.zoomTo(1.5)
+      const json = flow.toJSON()
+
+      expect(json.nodes).toHaveLength(2)
+      expect(json.edges).toHaveLength(1)
+      expect(json.viewport.zoom).toBe(1.5)
+
+      // Create a new flow and import
+      const flow2 = createFlow()
+      flow2.fromJSON(json)
+
+      expect(flow2.nodes()).toHaveLength(2)
+      expect(flow2.edges()).toHaveLength(1)
+      expect(flow2.zoom()).toBe(1.5)
+    })
+
+    it('fromJSON without viewport keeps current', () => {
+      const flow = createFlow()
+      flow.zoomTo(2)
+
+      flow.fromJSON({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+        edges: [],
+      })
+
+      expect(flow.nodes()).toHaveLength(1)
+      expect(flow.zoom()).toBe(2) // unchanged
+    })
+  })
+
+  // ─── Collision detection ───────────────────────────────────────────────
+
+  describe('collision detection', () => {
+    it('getOverlappingNodes detects overlap', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 0, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '2',
+            position: { x: 50, y: 25 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '3',
+            position: { x: 500, y: 500 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      expect(flow.getOverlappingNodes('1')).toHaveLength(1)
+      expect(flow.getOverlappingNodes('1')[0]!.id).toBe('2')
+      expect(flow.getOverlappingNodes('3')).toHaveLength(0)
+    })
+  })
+
+  // ─── Proximity connect ─────────────────────────────────────────────────
+
+  describe('proximity connect', () => {
+    it('finds nearest unconnected node', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 100, y: 0 }, data: {} },
+          { id: '3', position: { x: 500, y: 500 }, data: {} },
+        ],
+      })
+
+      const conn = flow.getProximityConnection('1', 200)
+      expect(conn).not.toBeNull()
+      expect(conn!.target).toBe('2')
+    })
+
+    it('returns null when no node is close', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 500, y: 500 }, data: {} },
+        ],
+      })
+
+      expect(flow.getProximityConnection('1', 50)).toBeNull()
+    })
+
+    it('skips already connected nodes', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 100, y: 0 }, data: {} },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      })
+
+      expect(flow.getProximityConnection('1', 200)).toBeNull()
+    })
+  })
+
+  // ─── Node extent ───────────────────────────────────────────────────────
+
+  describe('node extent', () => {
+    it('clamps node position to extent', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+        nodeExtent: [
+          [0, 0],
+          [500, 500],
+        ],
+      })
+
+      flow.updateNodePosition('1', { x: -100, y: -100 })
+      expect(flow.getNode('1')!.position.x).toBe(0)
+      expect(flow.getNode('1')!.position.y).toBe(0)
+
+      flow.updateNodePosition('1', { x: 600, y: 600 })
+      expect(flow.getNode('1')!.position.x).toBeLessThanOrEqual(500)
+      expect(flow.getNode('1')!.position.y).toBeLessThanOrEqual(500)
+    })
+
+    it('setNodeExtent changes boundaries dynamically', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      // No extent — no clamping
+      flow.updateNodePosition('1', { x: -999, y: -999 })
+      expect(flow.getNode('1')!.position.x).toBe(-999)
+
+      // Set extent — large enough for default node size (150x40)
+      flow.setNodeExtent([
+        [0, 0],
+        [500, 500],
+      ])
+      flow.updateNodePosition('1', { x: -999, y: -999 })
+      expect(flow.getNode('1')!.position.x).toBe(0)
+    })
+  })
+
+  // ─── Undo / Redo ───────────────────────────────────────────────────────
+
+  describe('undo / redo', () => {
+    it('undo restores previous state', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      flow.pushHistory()
+      flow.addNode({ id: '2', position: { x: 100, y: 0 }, data: {} })
+      expect(flow.nodes()).toHaveLength(2)
+
+      flow.undo()
+      expect(flow.nodes()).toHaveLength(1)
+    })
+
+    it('redo restores undone state', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      flow.pushHistory()
+      flow.addNode({ id: '2', position: { x: 100, y: 0 }, data: {} })
+
+      flow.undo()
+      expect(flow.nodes()).toHaveLength(1)
+
+      flow.redo()
+      expect(flow.nodes()).toHaveLength(2)
+    })
+  })
+
+  // ─── Copy / Paste ──────────────────────────────────────────────────────
+
+  describe('copy / paste', () => {
+    it('copies and pastes selected nodes', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: { label: 'A' } },
+          { id: '2', position: { x: 200, y: 0 }, data: { label: 'B' } },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      })
+
+      flow.selectNode('1')
+      flow.selectNode('2', true)
+      flow.copySelected()
+      flow.paste()
+
+      expect(flow.nodes()).toHaveLength(4)
+      // Pasted nodes should have different IDs
+      const ids = flow.nodes().map((n) => n.id)
+      expect(new Set(ids).size).toBe(4)
+    })
+
+    it('paste without copy does nothing', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      flow.paste()
+      expect(flow.nodes()).toHaveLength(1)
     })
   })
 })
