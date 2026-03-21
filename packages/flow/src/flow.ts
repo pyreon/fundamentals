@@ -127,12 +127,16 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
   }
 
   function updateNodePosition(id: string, position: XYPosition): void {
-    const pos = snapToGrid
+    let pos = snapToGrid
       ? {
           x: Math.round(position.x / snapGrid) * snapGrid,
           y: Math.round(position.y / snapGrid) * snapGrid,
         }
       : position
+
+    // Apply extent clamping
+    const node = getNode(id)
+    pos = clampToExtent(pos, node?.width, node?.height)
 
     nodes.update((nds) =>
       nds.map((n) => (n.id === id ? { ...n, position: pos } : n)),
@@ -666,6 +670,161 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     )
   }
 
+  // ── Proximity connect ───────────────────────────────────────────────────
+
+  function getProximityConnection(
+    nodeId: string,
+    threshold = 50,
+  ): Connection | null {
+    const node = getNode(nodeId)
+    if (!node) return null
+
+    const w = node.width ?? 150
+    const h = node.height ?? 40
+    const centerX = node.position.x + w / 2
+    const centerY = node.position.y + h / 2
+
+    let closest: { nodeId: string; dist: number } | null = null
+
+    for (const other of nodes.peek()) {
+      if (other.id === nodeId) continue
+      // Skip if already connected
+      const alreadyConnected = edges
+        .peek()
+        .some(
+          (e) =>
+            (e.source === nodeId && e.target === other.id) ||
+            (e.source === other.id && e.target === nodeId),
+        )
+      if (alreadyConnected) continue
+
+      const ow = other.width ?? 150
+      const oh = other.height ?? 40
+      const ocx = other.position.x + ow / 2
+      const ocy = other.position.y + oh / 2
+      const dist = Math.hypot(centerX - ocx, centerY - ocy)
+
+      if (dist < threshold && (!closest || dist < closest.dist)) {
+        closest = { nodeId: other.id, dist }
+      }
+    }
+
+    if (!closest) return null
+
+    const connection: Connection = {
+      source: nodeId,
+      target: closest.nodeId,
+    }
+
+    return isValidConnection(connection) ? connection : null
+  }
+
+  // ── Collision detection ────────────────────────────────────────────────
+
+  function getOverlappingNodes(nodeId: string): FlowNode[] {
+    const node = getNode(nodeId)
+    if (!node) return []
+
+    const w = node.width ?? 150
+    const h = node.height ?? 40
+    const ax1 = node.position.x
+    const ay1 = node.position.y
+    const ax2 = ax1 + w
+    const ay2 = ay1 + h
+
+    return nodes.peek().filter((other) => {
+      if (other.id === nodeId) return false
+      const ow = other.width ?? 150
+      const oh = other.height ?? 40
+      const bx1 = other.position.x
+      const by1 = other.position.y
+      const bx2 = bx1 + ow
+      const by2 = by1 + oh
+
+      return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1
+    })
+  }
+
+  function resolveCollisions(nodeId: string, spacing = 10): void {
+    const overlapping = getOverlappingNodes(nodeId)
+    if (overlapping.length === 0) return
+
+    const node = getNode(nodeId)
+    if (!node) return
+
+    const w = node.width ?? 150
+    const h = node.height ?? 40
+
+    for (const other of overlapping) {
+      const ow = other.width ?? 150
+      const oh = other.height ?? 40
+
+      // Calculate overlap amounts
+      const overlapX = Math.min(
+        node.position.x + w - other.position.x,
+        other.position.x + ow - node.position.x,
+      )
+      const overlapY = Math.min(
+        node.position.y + h - other.position.y,
+        other.position.y + oh - node.position.y,
+      )
+
+      // Push in the direction of least overlap
+      if (overlapX < overlapY) {
+        const dx =
+          node.position.x < other.position.x
+            ? -(overlapX + spacing) / 2
+            : (overlapX + spacing) / 2
+        updateNodePosition(other.id, {
+          x: other.position.x - dx,
+          y: other.position.y,
+        })
+      } else {
+        const dy =
+          node.position.y < other.position.y
+            ? -(overlapY + spacing) / 2
+            : (overlapY + spacing) / 2
+        updateNodePosition(other.id, {
+          x: other.position.x,
+          y: other.position.y - dy,
+        })
+      }
+    }
+  }
+
+  // ── Node extent (drag boundaries) ──────────────────────────────────────
+
+  function setNodeExtent(
+    extent: [[number, number], [number, number]] | null,
+  ): void {
+    nodeExtent = extent
+  }
+
+  let nodeExtent: [[number, number], [number, number]] | null =
+    config.nodeExtent ?? null
+
+  function clampToExtent(
+    position: XYPosition,
+    nodeWidth = 150,
+    nodeHeight = 40,
+  ): XYPosition {
+    if (!nodeExtent) return position
+    return {
+      x: Math.min(
+        Math.max(position.x, nodeExtent[0][0]),
+        nodeExtent[1][0] - nodeWidth,
+      ),
+      y: Math.min(
+        Math.max(position.y, nodeExtent[0][1]),
+        nodeExtent[1][1] - nodeHeight,
+      ),
+    }
+  }
+
+  // ── Custom edge types ──────────────────────────────────────────────────
+  // Custom edge rendering is handled in the Flow component via edgeTypes prop.
+  // The flow instance provides the data; rendering is delegated to components.
+
   // ── Dispose ──────────────────────────────────────────────────────────────
 
   function dispose(): void {
@@ -728,6 +887,11 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     getChildNodes,
     getAbsolutePosition,
     reconnectEdge,
+    getProximityConnection,
+    getOverlappingNodes,
+    resolveCollisions,
+    setNodeExtent,
+    clampToExtent,
     config,
     dispose,
   }

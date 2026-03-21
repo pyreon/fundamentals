@@ -102,8 +102,9 @@ const emptyDrag: DragState = {
 function EdgeLayer(props: {
   instance: FlowInstance
   connectionState: () => ConnectionState
+  edgeTypes?: EdgeTypeMap
 }): VNodeChild {
-  const { instance, connectionState } = props
+  const { instance, connectionState, edgeTypes } = props
 
   return () => {
     const nodes = instance.nodes()
@@ -167,6 +168,26 @@ function EdgeLayer(props: {
 
           const selectedEdges = instance.selectedEdges()
           const isSelected = edge.id ? selectedEdges.includes(edge.id) : false
+
+          // Custom edge renderer
+          const CustomEdge = edge.type && edgeTypes?.[edge.type]
+          if (CustomEdge) {
+            return (
+              <g
+                key={edge.id}
+                onClick={() => edge.id && instance.selectEdge(edge.id)}
+              >
+                <CustomEdge
+                  edge={edge}
+                  sourceX={sourcePos.x}
+                  sourceY={sourcePos.y}
+                  targetX={targetPos.x}
+                  targetY={targetPos.y}
+                  selected={isSelected}
+                />
+              </g>
+            )
+          }
 
           return (
             <g key={edge.id}>
@@ -303,10 +324,24 @@ function NodeLayer(props: {
 
 // ─── Flow Component ──────────────────────────────────────────────────────────
 
+type EdgeTypeMap = Record<
+  string,
+  (props: {
+    edge: import('../types').FlowEdge
+    sourceX: number
+    sourceY: number
+    targetX: number
+    targetY: number
+    selected: boolean
+  }) => VNodeChild
+>
+
 export interface FlowComponentProps {
   instance: FlowInstance
   /** Custom node type renderers */
   nodeTypes?: NodeTypeMap
+  /** Custom edge type renderers */
+  edgeTypes?: EdgeTypeMap
   style?: string
   class?: string
   children?: VNodeChild
@@ -333,7 +368,7 @@ export interface FlowComponentProps {
  * ```
  */
 export function Flow(props: FlowComponentProps): VNodeChild {
-  const { instance, children } = props
+  const { instance, children, edgeTypes } = props
   const nodeTypes: NodeTypeMap = {
     default: DefaultNode,
     input: DefaultNode,
@@ -760,6 +795,7 @@ export function Flow(props: FlowComponentProps): VNodeChild {
             <EdgeLayer
               instance={instance}
               connectionState={() => connectionState()}
+              edgeTypes={edgeTypes}
             />
             {() => {
               const sel = selectionBox()

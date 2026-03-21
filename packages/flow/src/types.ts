@@ -138,6 +138,8 @@ export interface FlowConfig {
   nodesSelectable?: boolean
   /** Whether to allow multi-selection — default: true */
   multiSelect?: boolean
+  /** Drag boundaries for nodes — [[minX, minY], [maxX, maxY]] */
+  nodeExtent?: [[number, number], [number, number]]
   /** Whether panning is enabled — default: true */
   pannable?: boolean
   /** Whether zooming is enabled — default: true */
@@ -302,6 +304,32 @@ export interface FlowInstance {
       targetHandle?: string
     },
   ) => void
+
+  // ── Proximity connect ────────────────────────────────────────────────────
+
+  /** Find the nearest unconnected node within threshold distance */
+  getProximityConnection: (
+    nodeId: string,
+    threshold?: number,
+  ) => Connection | null
+
+  // ── Collision detection ─────────────────────────────────────────────────
+
+  /** Get nodes that overlap with the given node */
+  getOverlappingNodes: (nodeId: string) => FlowNode[]
+  /** Push overlapping nodes apart */
+  resolveCollisions: (nodeId: string, spacing?: number) => void
+
+  // ── Node extent ─────────────────────────────────────────────────────────
+
+  /** Set drag boundaries for all nodes — [[minX, minY], [maxX, maxY]] or null to remove */
+  setNodeExtent: (extent: [[number, number], [number, number]] | null) => void
+  /** Clamp a position to the current node extent */
+  clampToExtent: (
+    position: XYPosition,
+    nodeWidth?: number,
+    nodeHeight?: number,
+  ) => XYPosition
 
   // ── Config ───────────────────────────────────────────────────────────────
 
