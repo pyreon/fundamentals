@@ -7,6 +7,10 @@ import { I18nDemo } from './demos/I18nDemo'
 import { QueryDemo } from './demos/QueryDemo'
 import { TableDemo } from './demos/TableDemo'
 import { VirtualDemo } from './demos/VirtualDemo'
+import { StorageDemo } from './demos/StorageDemo'
+import { HotkeysDemo } from './demos/HotkeysDemo'
+import { PermissionsDemo } from './demos/PermissionsDemo'
+import { MachineDemo } from './demos/MachineDemo'
 
 const tabs = [
   { id: 'store', label: 'Store', component: StoreDemo },
@@ -17,6 +21,10 @@ const tabs = [
   { id: 'query', label: 'Query', component: QueryDemo },
   { id: 'table', label: 'Table', component: TableDemo },
   { id: 'virtual', label: 'Virtual', component: VirtualDemo },
+  { id: 'storage', label: 'Storage', component: StorageDemo },
+  { id: 'hotkeys', label: 'Hotkeys', component: HotkeysDemo },
+  { id: 'permissions', label: 'Permissions', component: PermissionsDemo },
+  { id: 'machine', label: 'Machine', component: MachineDemo },
 ] as const
 
 const activeTab = signal(tabs[0]!.id)

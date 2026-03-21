@@ -20,18 +20,90 @@ interface Employee {
 }
 
 const employees: Employee[] = [
-  { id: 1, name: 'Alice Johnson', department: 'Engineering', salary: 120000, startDate: '2021-03-15' },
-  { id: 2, name: 'Bob Smith', department: 'Marketing', salary: 95000, startDate: '2020-06-01' },
-  { id: 3, name: 'Carol Williams', department: 'Engineering', salary: 135000, startDate: '2019-01-10' },
-  { id: 4, name: 'David Brown', department: 'Sales', salary: 88000, startDate: '2022-09-20' },
-  { id: 5, name: 'Eve Davis', department: 'Engineering', salary: 115000, startDate: '2023-02-28' },
-  { id: 6, name: 'Frank Miller', department: 'Marketing', salary: 92000, startDate: '2021-11-05' },
-  { id: 7, name: 'Grace Lee', department: 'Sales', salary: 97000, startDate: '2020-04-12' },
-  { id: 8, name: 'Henry Wilson', department: 'Engineering', salary: 145000, startDate: '2018-07-22' },
-  { id: 9, name: 'Iris Chen', department: 'Sales', salary: 105000, startDate: '2022-01-30' },
-  { id: 10, name: 'Jack Taylor', department: 'Marketing', salary: 89000, startDate: '2023-06-14' },
-  { id: 11, name: 'Kate Moore', department: 'Engineering', salary: 128000, startDate: '2019-09-08' },
-  { id: 12, name: 'Liam Anderson', department: 'Sales', salary: 91000, startDate: '2021-05-19' },
+  {
+    id: 1,
+    name: 'Alice Johnson',
+    department: 'Engineering',
+    salary: 120000,
+    startDate: '2021-03-15',
+  },
+  {
+    id: 2,
+    name: 'Bob Smith',
+    department: 'Marketing',
+    salary: 95000,
+    startDate: '2020-06-01',
+  },
+  {
+    id: 3,
+    name: 'Carol Williams',
+    department: 'Engineering',
+    salary: 135000,
+    startDate: '2019-01-10',
+  },
+  {
+    id: 4,
+    name: 'David Brown',
+    department: 'Sales',
+    salary: 88000,
+    startDate: '2022-09-20',
+  },
+  {
+    id: 5,
+    name: 'Eve Davis',
+    department: 'Engineering',
+    salary: 115000,
+    startDate: '2023-02-28',
+  },
+  {
+    id: 6,
+    name: 'Frank Miller',
+    department: 'Marketing',
+    salary: 92000,
+    startDate: '2021-11-05',
+  },
+  {
+    id: 7,
+    name: 'Grace Lee',
+    department: 'Sales',
+    salary: 97000,
+    startDate: '2020-04-12',
+  },
+  {
+    id: 8,
+    name: 'Henry Wilson',
+    department: 'Engineering',
+    salary: 145000,
+    startDate: '2018-07-22',
+  },
+  {
+    id: 9,
+    name: 'Iris Chen',
+    department: 'Sales',
+    salary: 105000,
+    startDate: '2022-01-30',
+  },
+  {
+    id: 10,
+    name: 'Jack Taylor',
+    department: 'Marketing',
+    salary: 89000,
+    startDate: '2023-06-14',
+  },
+  {
+    id: 11,
+    name: 'Kate Moore',
+    department: 'Engineering',
+    salary: 128000,
+    startDate: '2019-09-08',
+  },
+  {
+    id: 12,
+    name: 'Liam Anderson',
+    department: 'Sales',
+    salary: 91000,
+    startDate: '2021-05-19',
+  },
 ]
 
 const columnHelper = createColumnHelper<Employee>()
@@ -104,10 +176,12 @@ export function TableDemo() {
                         key={header.id}
                         onClick={header.column.getToggleSortingHandler()}
                       >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        ) as VNodeChild}
+                        {
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          ) as VNodeChild
+                        }
                         {header.column.getIsSorted() === 'asc'
                           ? ' ↑'
                           : header.column.getIsSorted() === 'desc'
@@ -127,10 +201,12 @@ export function TableDemo() {
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        ) as VNodeChild}
+                        {
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          ) as VNodeChild
+                        }
                       </td>
                     ))}
                   </tr>

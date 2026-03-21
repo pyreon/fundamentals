@@ -73,7 +73,9 @@ function I18nContent() {
           />
         </div>
         <p style="font-size: 18px">{() => t('greeting', { name: name() })}</p>
-        <p style="color: #666">{() => t('description', { count: seconds() })}</p>
+        <p style="color: #666">
+          {() => t('description', { count: seconds() })}
+        </p>
       </div>
 
       <div class="section">
@@ -96,7 +98,9 @@ function I18nContent() {
           t={t}
           i18nKey="rich"
           components={{
-            bold: (children: VNodeChild) => <strong style="color: #6c63ff">{children}</strong>,
+            bold: (children: VNodeChild) => (
+              <strong style="color: #6c63ff">{children}</strong>
+            ),
           }}
         />
       </div>
@@ -118,8 +122,8 @@ export function I18nDemo() {
     <div>
       <h2>i18n</h2>
       <p class="desc">
-        Reactive internationalization with interpolation, pluralization, and rich
-        text.
+        Reactive internationalization with interpolation, pluralization, and
+        rich text.
       </p>
       <I18nProvider instance={i18n}>
         <I18nContent />

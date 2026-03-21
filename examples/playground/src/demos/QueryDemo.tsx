@@ -24,7 +24,10 @@ async function fetchUsers(): Promise<User[]> {
   return [...mockUsers]
 }
 
-async function createUser(input: { name: string; email: string }): Promise<User> {
+async function createUser(input: {
+  name: string
+  email: string
+}): Promise<User> {
   await new Promise((r) => setTimeout(r, 300))
   const user = { id: nextId++, ...input }
   mockUsers = [...mockUsers, user]
@@ -86,9 +89,7 @@ function QueryContent() {
                 <button onClick={() => refetch()}>
                   {() => (isFetching() ? 'Refreshing...' : 'Refresh')}
                 </button>
-                <span class="badge gray">
-                  {() => `${users.length} users`}
-                </span>
+                <span class="badge gray">{() => `${users.length} users`}</span>
               </div>
             </div>
           )

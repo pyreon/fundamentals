@@ -22,6 +22,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/storage` | Reactive client-side storage — localStorage, sessionStorage, cookies, IndexedDB |
 | `@pyreon/hotkeys` | Keyboard shortcut management — scope-aware, modifier keys, conflict detection |
 | `@pyreon/permissions` | Reactive permissions — type-safe, signal-driven, universal (RBAC, ABAC, feature flags) |
+| `@pyreon/machine` | Reactive state machines — constrained signals with type-safe transitions |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -200,6 +201,21 @@ packages/[name]/
 - Permission values: `boolean` (static) or `(context?) => boolean` (predicate)
 - `PermissionsProvider` / `usePermissions()` — context pattern for SSR/testing
 - Universal: RBAC, ABAC, feature flags, subscription tiers — any model maps to string → boolean/function
+
+### @pyreon/machine
+
+- `createMachine({ initial, states })` — create a reactive state machine (constrained signal)
+- `machine()` — read current state, reactive in effects/computeds/JSX
+- `machine.send(event, payload?)` — trigger a transition
+- `machine.matches(...states)` — check if in one of the given states, reactive
+- `machine.can(event)` — check if event would trigger a valid transition
+- `machine.nextEvents()` — available events from current state
+- `machine.reset()` — back to initial state
+- `machine.onEnter(state, callback)` — fire callback when entering a state
+- `machine.onTransition(callback)` — fire on any transition
+- Guards: `{ target: 'state', guard: (payload?) => boolean }` for conditional transitions
+- Type-safe: states and events inferred from definition, invalid events are TS errors
+- No context — use signals alongside the machine for data
 
 ### @pyreon/storybook
 
