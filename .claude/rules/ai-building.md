@@ -165,6 +165,94 @@ const sub = useSubscription({
 
 Auto-reconnects with exponential backoff. Reactive `url` and `enabled` options.
 
+## When adding permissions / access control
+
+Use `createPermissions()` from `@pyreon/permissions`. Universal — works with RBAC, ABAC, feature flags, subscription tiers.
+
+```tsx
+import { createPermissions } from '@pyreon/permissions'
+
+const can = createPermissions({
+  'posts.read': true,
+  'posts.create': true,
+  'posts.update': (post: Post) => post.authorId === currentUserId(),
+  'users.manage': false,
+  'feature.new-editor': true,
+})
+
+// Check — reactive in effects/computeds/JSX
+can('posts.read')              // true
+can('posts.update', myPost)    // evaluates predicate
+can.not('billing.export')      // true if denied
+can.all('posts.read', 'posts.create')  // true if both granted
+
+// Update after login / role change
+can.set(fromRole(user.role))
+can.patch({ 'billing.export': true })
+
+// JSX
+{() => can('posts.delete') && <DeleteButton />}
+{() => can('users.manage') && <AdminPanel />}
+```
+
+Wildcards: `'posts.*'` matches any `posts.X`. `'*'` matches everything (superadmin).
+
+## When building multi-step flows or complex UI state
+
+Use `createMachine()` from `@pyreon/machine`. Replaces nested booleans with explicit states and transitions.
+
+```tsx
+import { createMachine } from '@pyreon/machine'
+
+const wizard = createMachine({
+  initial: 'step1',
+  states: {
+    step1: { on: { NEXT: 'step2' } },
+    step2: { on: { NEXT: 'step3', BACK: 'step1' } },
+    step3: { on: { SUBMIT: 'submitting', BACK: 'step2' } },
+    submitting: { on: { SUCCESS: 'done', ERROR: 'step3' } },
+    done: {},
+  },
+})
+
+wizard()              // 'step1' — reads like a signal
+wizard.send('NEXT')
+wizard()              // 'step2'
+
+// Reactive in JSX
+{() => wizard.matches('step1') && <Step1 onNext={() => wizard.send('NEXT')} />}
+{() => wizard.matches('submitting') && <Spinner />}
+{() => wizard.matches('done') && <Success />}
+
+// Guards for conditional transitions
+const form = createMachine({
+  initial: 'editing',
+  states: {
+    editing: {
+      on: { SUBMIT: { target: 'submitting', guard: () => isValid() } },
+    },
+    submitting: { on: { SUCCESS: 'done', ERROR: 'editing' } },
+    done: {},
+  },
+})
+
+// Side effects — use onEnter, not context
+wizard.onEnter('submitting', async () => {
+  try {
+    await submitData()
+    wizard.send('SUCCESS')
+  } catch {
+    wizard.send('ERROR')
+  }
+})
+
+// Data alongside machine — use signals, not machine context
+const formData = signal({ name: '', email: '' })
+```
+
+Use machines for: wizards, auth flows, modals, file uploads, players, approval workflows.
+Use signals alongside machines for data. The machine manages transitions, signals manage data.
+
 ## Core Principle
 
 Pyreon uses **signals** for all reactivity. There are no hooks rules, no dependency arrays, no re-renders. A signal is created once, read by calling it (`count()`), and written with `.set()` or `.update()`. Effects and computeds track dependencies automatically.
@@ -466,6 +554,8 @@ getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
 - **Never use raw `localStorage`/`sessionStorage`/`document.cookie`** — use `@pyreon/storage` for reactive, type-safe persistence.
 - **Never add manual `keydown` event listeners** — use `@pyreon/hotkeys` for scoped, lifecycle-managed shortcuts.
 - **Never use raw `WebSocket` for query invalidation** — use `useSubscription()` from `@pyreon/query`.
+- **Never use nested booleans for multi-step flows** — use `createMachine()` from `@pyreon/machine`.
+- **Never scatter `if (role === 'admin')` checks** — use `createPermissions()` from `@pyreon/permissions`.
 
 ## JSX patterns specific to Pyreon
 
