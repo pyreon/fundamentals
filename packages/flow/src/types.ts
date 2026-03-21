@@ -258,6 +258,12 @@ export interface FlowInstance {
   onNodeClick: (callback: (node: FlowNode) => void) => () => void
   /** Called when an edge is clicked */
   onEdgeClick: (callback: (edge: FlowEdge) => void) => () => void
+  /** Called when a node starts being dragged */
+  onNodeDragStart: (callback: (node: FlowNode) => void) => () => void
+  /** Called when a node stops being dragged */
+  onNodeDragEnd: (callback: (node: FlowNode) => void) => () => void
+  /** Called when a node is double-clicked */
+  onNodeDoubleClick: (callback: (node: FlowNode) => void) => () => void
 
   // ── Copy / Paste ─────────────────────────────────────────────────────────
 
@@ -334,6 +340,17 @@ export interface FlowInstance {
     nodeWidth?: number,
     nodeHeight?: number,
   ) => XYPosition
+
+  // ── Internal emitters (used by Flow component) ──────────────────────────
+
+  /** @internal */
+  _emit: {
+    nodeDragStart: (node: FlowNode) => void
+    nodeDragEnd: (node: FlowNode) => void
+    nodeDoubleClick: (node: FlowNode) => void
+    nodeClick: (node: FlowNode) => void
+    edgeClick: (edge: FlowEdge) => void
+  }
 
   // ── Config ───────────────────────────────────────────────────────────────
 

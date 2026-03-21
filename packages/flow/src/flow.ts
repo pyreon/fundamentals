@@ -90,6 +90,9 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
   const nodesChangeListeners = new Set<(changes: NodeChange[]) => void>()
   const nodeClickListeners = new Set<(node: FlowNode) => void>()
   const edgeClickListeners = new Set<(edge: FlowEdge) => void>()
+  const nodeDragStartListeners = new Set<(node: FlowNode) => void>()
+  const nodeDragEndListeners = new Set<(node: FlowNode) => void>()
+  const nodeDoubleClickListeners = new Set<(node: FlowNode) => void>()
 
   function emitNodeChanges(changes: NodeChange[]) {
     for (const cb of nodesChangeListeners) cb(changes)
@@ -481,6 +484,21 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
   function onEdgeClick(callback: (edge: FlowEdge) => void): () => void {
     edgeClickListeners.add(callback)
     return () => edgeClickListeners.delete(callback)
+  }
+
+  function onNodeDragStart(callback: (node: FlowNode) => void): () => void {
+    nodeDragStartListeners.add(callback)
+    return () => nodeDragStartListeners.delete(callback)
+  }
+
+  function onNodeDragEnd(callback: (node: FlowNode) => void): () => void {
+    nodeDragEndListeners.add(callback)
+    return () => nodeDragEndListeners.delete(callback)
+  }
+
+  function onNodeDoubleClick(callback: (node: FlowNode) => void): () => void {
+    nodeDoubleClickListeners.add(callback)
+    return () => nodeDoubleClickListeners.delete(callback)
   }
 
   // ── Copy / Paste ────────────────────────────────────────────────────────
@@ -875,6 +893,9 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     nodesChangeListeners.clear()
     nodeClickListeners.clear()
     edgeClickListeners.clear()
+    nodeDragStartListeners.clear()
+    nodeDragEndListeners.clear()
+    nodeDoubleClickListeners.clear()
   }
 
   // ── Initial fitView ──────────────────────────────────────────────────────
@@ -921,6 +942,27 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     onNodesChange,
     onNodeClick,
     onEdgeClick,
+    onNodeDragStart,
+    onNodeDragEnd,
+    onNodeDoubleClick,
+    /** @internal — used by Flow component to emit events */
+    _emit: {
+      nodeDragStart: (node: FlowNode) => {
+        for (const cb of nodeDragStartListeners) cb(node)
+      },
+      nodeDragEnd: (node: FlowNode) => {
+        for (const cb of nodeDragEndListeners) cb(node)
+      },
+      nodeDoubleClick: (node: FlowNode) => {
+        for (const cb of nodeDoubleClickListeners) cb(node)
+      },
+      nodeClick: (node: FlowNode) => {
+        for (const cb of nodeClickListeners) cb(node)
+      },
+      edgeClick: (edge: FlowEdge) => {
+        for (const cb of edgeClickListeners) cb(edge)
+      },
+    },
     copySelected,
     paste,
     pushHistory,

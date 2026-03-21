@@ -203,7 +203,10 @@ function EdgeLayer(props: {
                 marker-end="url(#flow-arrowhead)"
                 class={edge.animated ? 'pyreon-flow-edge-animated' : ''}
                 style={`pointer-events: stroke; cursor: pointer; ${edge.style ?? ''}`}
-                onClick={() => edge.id && instance.selectEdge(edge.id)}
+                onClick={() => {
+                  if (edge.id) instance.selectEdge(edge.id)
+                  instance._emit.edgeClick(edge)
+                }}
               />
               {edge.label && (
                 <text
@@ -288,6 +291,11 @@ function NodeLayer(props: {
               onClick={(e: MouseEvent) => {
                 e.stopPropagation()
                 instance.selectNode(node.id, e.shiftKey)
+                instance._emit.nodeClick(node)
+              }}
+              onDblclick={(e: MouseEvent) => {
+                e.stopPropagation()
+                instance._emit.nodeDoubleClick(node)
               }}
               onPointerdown={(e: PointerEvent) => {
                 // Check if clicking a handle
@@ -413,6 +421,9 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       }
     }
 
+    // Save undo state before drag
+    instance.pushHistory()
+
     dragState.set({
       active: true,
       nodeId: node.id,
@@ -422,6 +433,8 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     })
 
     instance.selectNode(node.id, e.shiftKey)
+
+    instance._emit.nodeDragStart(node)
 
     const container = (e.currentTarget as HTMLElement).closest(
       '.pyreon-flow',
@@ -648,6 +661,8 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     }
 
     if (drag.active) {
+      const node = instance.getNode(drag.nodeId)
+      if (node) instance._emit.nodeDragEnd(node)
       dragState.set({ ...emptyDrag })
       helperLines.set({ x: null, y: null })
     }
@@ -692,6 +707,7 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      instance.pushHistory()
       instance.deleteSelected()
     }
     if (e.key === 'Escape') {
