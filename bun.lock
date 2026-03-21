@@ -26,7 +26,7 @@
     },
     "examples/playground": {
       "name": "@pyreon/playground",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
         "@pyreon/core": "^0.2.1",
         "@pyreon/form": "workspace:*",
@@ -52,7 +52,7 @@
     },
     "packages/charts": {
       "name": "@pyreon/charts",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@pyreon/core": ">=0.5.0 <1.0.0",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -67,7 +67,7 @@
     },
     "packages/feature": {
       "name": "@pyreon/feature",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@pyreon/form": "workspace:^",
         "@pyreon/query": "workspace:^",
@@ -89,7 +89,7 @@
     },
     "packages/form": {
       "name": "@pyreon/form",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -103,7 +103,7 @@
     },
     "packages/hotkeys": {
       "name": "@pyreon/hotkeys",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -117,7 +117,7 @@
     },
     "packages/i18n": {
       "name": "@pyreon/i18n",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -129,9 +129,23 @@
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
       },
     },
+    "packages/permissions": {
+      "name": "@pyreon/permissions",
+      "version": "0.4.0",
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.8.3",
+        "@pyreon/core": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@vitus-labs/tools-lint": "^1.11.0",
+      },
+      "peerDependencies": {
+        "@pyreon/core": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+      },
+    },
     "packages/query": {
       "name": "@pyreon/query",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@tanstack/query-core": "^5.0.0",
       },
@@ -148,7 +162,7 @@
     },
     "packages/state-tree": {
       "name": "@pyreon/state-tree",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -159,7 +173,7 @@
     },
     "packages/storage": {
       "name": "@pyreon/storage",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -171,7 +185,7 @@
     },
     "packages/store": {
       "name": "@pyreon/store",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -183,7 +197,7 @@
     },
     "packages/storybook": {
       "name": "@pyreon/storybook",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "peerDependencies": {
         "@pyreon/core": ">=0.5.0 <1.0.0",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -193,7 +207,7 @@
     },
     "packages/table": {
       "name": "@pyreon/table",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@tanstack/table-core": "^8.0.0",
       },
@@ -210,7 +224,7 @@
     },
     "packages/validation": {
       "name": "@pyreon/validation",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -227,7 +241,7 @@
     },
     "packages/virtual": {
       "name": "@pyreon/virtual",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "@tanstack/virtual-core": "^3.0.0",
       },
@@ -439,6 +453,8 @@
     "@pyreon/hotkeys": ["@pyreon/hotkeys@workspace:packages/hotkeys"],
 
     "@pyreon/i18n": ["@pyreon/i18n@workspace:packages/i18n"],
+
+    "@pyreon/permissions": ["@pyreon/permissions@workspace:packages/permissions"],
 
     "@pyreon/playground": ["@pyreon/playground@workspace:examples/playground"],
 

@@ -21,6 +21,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/charts` | Reactive ECharts bridge with lazy loading, auto-detection, and typed options |
 | `@pyreon/storage` | Reactive client-side storage — localStorage, sessionStorage, cookies, IndexedDB |
 | `@pyreon/hotkeys` | Keyboard shortcut management — scope-aware, modifier keys, conflict detection |
+| `@pyreon/permissions` | Reactive permissions — type-safe, signal-driven, universal (RBAC, ABAC, feature flags) |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -185,6 +186,20 @@ packages/[name]/
 - `parseShortcut(str)` / `formatCombo(combo)` / `matchesCombo(event, combo)` — utilities
 - Supports `mod` (⌘ on Mac, Ctrl elsewhere), aliases (esc, space, del), input filtering
 - Scope-based activation — hotkeys only fire when their scope is active
+
+### @pyreon/permissions
+
+- `createPermissions(initial?)` — create a reactive permissions instance, callable as `can(key, context?)`
+- `can('posts.read')` — check permission, reactive in effects/computeds/JSX
+- `can('posts.update', post)` — instance-level check with predicate evaluation
+- `can.not(key)` / `can.all(...keys)` / `can.any(...keys)` — inverse and multi-checks
+- `can.set(map)` / `can.patch(map)` — replace or merge permissions reactively
+- `can.granted()` — `Computed<string[]>` of all granted permission keys
+- `can.entries()` — `Computed<[key, value][]>` for introspection
+- Wildcard matching: `'posts.*'` matches any `posts.X`, `'*'` matches everything
+- Permission values: `boolean` (static) or `(context?) => boolean` (predicate)
+- `PermissionsProvider` / `usePermissions()` — context pattern for SSR/testing
+- Universal: RBAC, ABAC, feature flags, subscription tiers — any model maps to string → boolean/function
 
 ### @pyreon/storybook
 
