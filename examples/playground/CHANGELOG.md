@@ -1,5 +1,23 @@
 # @pyreon/playground
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @pyreon/store@1.0.0
+  - @pyreon/state-tree@1.0.0
+  - @pyreon/form@1.0.0
+  - @pyreon/validation@1.0.0
+  - @pyreon/query@1.0.0
+  - @pyreon/table@1.0.0
+  - @pyreon/virtual@1.0.0
+  - @pyreon/i18n@1.0.0
+  - @pyreon/storage@1.0.0
+  - @pyreon/hotkeys@1.0.0
+  - @pyreon/permissions@1.0.0
+  - @pyreon/machine@1.0.0
+
 ## 0.0.3
 
 ### Patch Changes
