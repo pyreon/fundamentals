@@ -1,9 +1,5 @@
 import { signal } from '@pyreon/reactivity'
-import {
-  defineStore,
-  signal as storeSignal,
-  computed,
-} from '@pyreon/store'
+import { defineStore, signal as storeSignal, computed } from '@pyreon/store'
 
 const useCounter = defineStore('playground-counter', () => {
   const count = storeSignal(0)

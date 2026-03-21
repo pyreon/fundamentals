@@ -2,9 +2,14 @@ import { signal, effect } from '@pyreon/reactivity'
 import { createPermissions } from '@pyreon/permissions'
 
 // Role → permissions mapping
-function fromRole(role: string): Record<string, boolean | ((ctx?: any) => boolean)> {
+function fromRole(
+  role: string,
+): Record<string, boolean | ((ctx?: any) => boolean)> {
   const currentUserId = 'user-42'
-  const roles: Record<string, Record<string, boolean | ((ctx?: any) => boolean)>> = {
+  const roles: Record<
+    string,
+    Record<string, boolean | ((ctx?: any) => boolean)>
+  > = {
     admin: { '*': true },
     editor: {
       'posts.read': true,
@@ -35,10 +40,30 @@ effect(() => {
 
 // Sample posts
 const posts = [
-  { id: 1, title: 'Getting Started with Pyreon', authorId: 'user-42', status: 'published' },
-  { id: 2, title: 'Advanced Signal Patterns', authorId: 'user-42', status: 'draft' },
-  { id: 3, title: 'Building Dashboards', authorId: 'user-99', status: 'published' },
-  { id: 4, title: 'State Management Deep Dive', authorId: 'user-99', status: 'draft' },
+  {
+    id: 1,
+    title: 'Getting Started with Pyreon',
+    authorId: 'user-42',
+    status: 'published',
+  },
+  {
+    id: 2,
+    title: 'Advanced Signal Patterns',
+    authorId: 'user-42',
+    status: 'draft',
+  },
+  {
+    id: 3,
+    title: 'Building Dashboards',
+    authorId: 'user-99',
+    status: 'published',
+  },
+  {
+    id: 4,
+    title: 'State Management Deep Dive',
+    authorId: 'user-99',
+    status: 'draft',
+  },
 ]
 
 export function PermissionsDemo() {
@@ -50,8 +75,8 @@ export function PermissionsDemo() {
       <h2>Permissions</h2>
       <p class="desc">
         Reactive type-safe permissions — universal (RBAC, ABAC, feature flags).
-        Permissions are booleans or predicates. <code>can()</code> is reactive in
-        effects and JSX.
+        Permissions are booleans or predicates. <code>can()</code> is reactive
+        in effects and JSX.
       </p>
 
       <div class="section">
@@ -59,6 +84,7 @@ export function PermissionsDemo() {
         <div class="row">
           {['admin', 'editor', 'viewer'].map((role) => (
             <button
+              type="button"
               key={role}
               class={currentRole() === role ? 'active' : ''}
               onClick={() => {
@@ -80,22 +106,36 @@ export function PermissionsDemo() {
         <table style="width: 100%; border-collapse: collapse">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Permission</th>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Granted?</th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Permission
+              </th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Granted?
+              </th>
             </tr>
           </thead>
           <tbody>
             {[
-              'posts.read', 'posts.create', 'posts.publish',
-              'posts.delete', 'users.read', 'users.manage',
-              'comments.read', 'comments.create',
-              'billing.export', 'feature.new-editor',
+              'posts.read',
+              'posts.create',
+              'posts.publish',
+              'posts.delete',
+              'users.read',
+              'users.manage',
+              'comments.read',
+              'comments.create',
+              'billing.export',
+              'feature.new-editor',
             ].map((perm) => (
               <tr key={perm}>
-                <td style="padding: 4px 8px; font-family: monospace; font-size: 13px">{perm}</td>
+                <td style="padding: 4px 8px; font-family: monospace; font-size: 13px">
+                  {perm}
+                </td>
                 <td style="padding: 4px 8px">
                   {() => (
-                    <span style={`color: ${can(perm) ? 'green' : 'red'}; font-weight: bold`}>
+                    <span
+                      style={`color: ${can(perm) ? 'green' : 'red'}; font-weight: bold`}
+                    >
                       {can(perm) ? 'Yes' : 'No'}
                     </span>
                   )}
@@ -115,27 +155,41 @@ export function PermissionsDemo() {
         <table style="width: 100%; border-collapse: collapse">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Post</th>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Author</th>
-              <th style="text-align: center; padding: 4px 8px; border-bottom: 1px solid #ddd">Can Edit</th>
-              <th style="text-align: center; padding: 4px 8px; border-bottom: 1px solid #ddd">Can Delete</th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Post
+              </th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Author
+              </th>
+              <th style="text-align: center; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Can Edit
+              </th>
+              <th style="text-align: center; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Can Delete
+              </th>
             </tr>
           </thead>
           <tbody>
             {posts.map((post) => (
               <tr key={post.id}>
                 <td style="padding: 4px 8px; font-size: 13px">{post.title}</td>
-                <td style="padding: 4px 8px; font-family: monospace; font-size: 12px">{post.authorId}</td>
+                <td style="padding: 4px 8px; font-family: monospace; font-size: 12px">
+                  {post.authorId}
+                </td>
                 <td style="padding: 4px 8px; text-align: center">
                   {() => (
-                    <span style={`color: ${can('posts.update', post) ? 'green' : 'red'}`}>
+                    <span
+                      style={`color: ${can('posts.update', post) ? 'green' : 'red'}`}
+                    >
                       {can('posts.update', post) ? 'Yes' : 'No'}
                     </span>
                   )}
                 </td>
                 <td style="padding: 4px 8px; text-align: center">
                   {() => (
-                    <span style={`color: ${can('posts.delete', post) ? 'green' : 'red'}`}>
+                    <span
+                      style={`color: ${can('posts.delete', post) ? 'green' : 'red'}`}
+                    >
                       {can('posts.delete', post) ? 'Yes' : 'No'}
                     </span>
                   )}
@@ -150,15 +204,23 @@ export function PermissionsDemo() {
         <h3>Combinators</h3>
         <p>
           <code>can.all('posts.read', 'posts.create')</code>:{' '}
-          <strong>{() => (can.all('posts.read', 'posts.create') ? 'true' : 'false')}</strong>
+          <strong>
+            {() => (can.all('posts.read', 'posts.create') ? 'true' : 'false')}
+          </strong>
         </p>
         <p>
           <code>can.any('billing.export', 'feature.new-editor')</code>:{' '}
-          <strong>{() => (can.any('billing.export', 'feature.new-editor') ? 'true' : 'false')}</strong>
+          <strong>
+            {() =>
+              can.any('billing.export', 'feature.new-editor') ? 'true' : 'false'
+            }
+          </strong>
         </p>
         <p>
           <code>can.not('billing.export')</code>:{' '}
-          <strong>{() => (can.not('billing.export') ? 'true' : 'false')}</strong>
+          <strong>
+            {() => (can.not('billing.export') ? 'true' : 'false')}
+          </strong>
         </p>
       </div>
 
@@ -192,6 +254,7 @@ export function PermissionsDemo() {
         <h3>Patch — Runtime Updates</h3>
         <div class="row">
           <button
+            type="button"
             onClick={() => {
               can.patch({ 'billing.export': true })
               addLog('Patched: billing.export → true')
@@ -200,6 +263,7 @@ export function PermissionsDemo() {
             Grant billing.export
           </button>
           <button
+            type="button"
             onClick={() => {
               can.patch({ 'feature.new-editor': false })
               addLog('Patched: feature.new-editor → false')
@@ -208,6 +272,7 @@ export function PermissionsDemo() {
             Revoke feature.new-editor
           </button>
           <button
+            type="button"
             onClick={() => {
               can.set(fromRole(currentRole()))
               addLog('Reset to role defaults')

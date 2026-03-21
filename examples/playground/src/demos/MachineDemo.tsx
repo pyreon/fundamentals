@@ -104,9 +104,9 @@ export function MachineDemo() {
     <div>
       <h2>Machine</h2>
       <p class="desc">
-        Reactive state machines — constrained signals with type-safe transitions.
-        A machine can only hold specific values and can only change via specific events.
-        No impossible states, no nested booleans.
+        Reactive state machines — constrained signals with type-safe
+        transitions. A machine can only hold specific values and can only change
+        via specific events. No impossible states, no nested booleans.
       </p>
 
       {/* Wizard */}
@@ -153,8 +153,12 @@ export function MachineDemo() {
               <div style="padding: 16px; background: #faf5ff; border-radius: 8px">
                 <h4>Submitting...</h4>
                 <div class="row">
-                  <button onClick={() => wizard.send('SUCCESS')}>Simulate Success</button>
-                  <button onClick={() => wizard.send('ERROR')}>Simulate Error</button>
+                  <button onClick={() => wizard.send('SUCCESS')}>
+                    Simulate Success
+                  </button>
+                  <button onClick={() => wizard.send('ERROR')}>
+                    Simulate Error
+                  </button>
                 </div>
               </div>
             )
@@ -179,7 +183,9 @@ export function MachineDemo() {
 
         {() => {
           if (fetcher.matches('idle'))
-            return <button onClick={() => fetcher.send('FETCH')}>Fetch Data</button>
+            return (
+              <button onClick={() => fetcher.send('FETCH')}>Fetch Data</button>
+            )
           if (fetcher.matches('loading'))
             return <p>Loading... (30% chance of simulated error)</p>
           if (fetcher.matches('success'))
@@ -187,7 +193,9 @@ export function MachineDemo() {
               <div>
                 <p style="color: green">{fetchData()}</p>
                 <div class="row">
-                  <button onClick={() => fetcher.send('REFETCH')}>Refetch</button>
+                  <button onClick={() => fetcher.send('REFETCH')}>
+                    Refetch
+                  </button>
                   <button onClick={() => fetcher.send('RESET')}>Reset</button>
                 </div>
               </div>
@@ -227,18 +235,21 @@ export function MachineDemo() {
         </p>
         <div class="row">
           <button
+            type="button"
             onClick={() => player.send('PLAY')}
             disabled={!player.can('PLAY')}
           >
             Play
           </button>
           <button
+            type="button"
             onClick={() => player.send('PAUSE')}
             disabled={!player.can('PAUSE')}
           >
             Pause
           </button>
           <button
+            type="button"
             onClick={() => player.send('STOP')}
             disabled={!player.can('STOP')}
           >
@@ -286,14 +297,18 @@ export function MachineDemo() {
             return (
               <div>
                 <p>Submitting...</p>
-                <button onClick={() => guardedForm.send('SUCCESS')}>Complete</button>
+                <button onClick={() => guardedForm.send('SUCCESS')}>
+                  Complete
+                </button>
               </div>
             )
           if (guardedForm.matches('done'))
             return (
               <div>
                 <p style="color: green">Form submitted successfully!</p>
-                <button onClick={() => guardedForm.send('RESTART')}>Restart</button>
+                <button onClick={() => guardedForm.send('RESTART')}>
+                  Restart
+                </button>
               </div>
             )
           return null

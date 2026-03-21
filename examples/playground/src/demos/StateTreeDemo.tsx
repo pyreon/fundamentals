@@ -1,10 +1,5 @@
 import { computed, signal } from '@pyreon/reactivity'
-import {
-  model,
-  getSnapshot,
-  applySnapshot,
-  onPatch,
-} from '@pyreon/state-tree'
+import { model, getSnapshot, applySnapshot, onPatch } from '@pyreon/state-tree'
 import type { Patch } from '@pyreon/state-tree'
 
 const TodoList = model({
@@ -13,7 +8,9 @@ const TodoList = model({
     nextId: 1,
   },
   views: (self) => ({
-    displayTitle: computed(() => `${self.title()} (#${self.nextId() - 1} items added)`),
+    displayTitle: computed(
+      () => `${self.title()} (#${self.nextId() - 1} items added)`,
+    ),
   }),
   actions: (self) => ({
     setTitle: (title: string) => self.title.set(title),
@@ -51,9 +48,7 @@ export function StateTreeDemo() {
         <p>
           Display: <strong>{() => list.displayTitle()}</strong>
         </p>
-        <p>
-          Next ID: {() => list.nextId()}
-        </p>
+        <p>Next ID: {() => list.nextId()}</p>
         <div class="row" style="margin-top: 8px">
           <button onClick={() => list.bumpId()}>Bump ID</button>
           <button onClick={() => list.setTitle('Shopping List')}>
@@ -67,9 +62,7 @@ export function StateTreeDemo() {
         <div class="row" style="margin-bottom: 8px">
           <button
             class="primary"
-            onClick={() =>
-              savedSnapshot.set(JSON.stringify(getSnapshot(list)))
-            }
+            onClick={() => savedSnapshot.set(JSON.stringify(getSnapshot(list)))}
           >
             Save Snapshot
           </button>
@@ -84,8 +77,7 @@ export function StateTreeDemo() {
           </button>
         </div>
         <p style="font-size: 13px; color: #666">
-          Current:{' '}
-          <code>{() => JSON.stringify(getSnapshot(list))}</code>
+          Current: <code>{() => JSON.stringify(getSnapshot(list))}</code>
         </p>
         {() =>
           savedSnapshot() ? (

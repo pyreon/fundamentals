@@ -5,7 +5,6 @@ import {
   disableScope,
   getRegisteredHotkeys,
   parseShortcut,
-  formatCombo,
 } from '@pyreon/hotkeys'
 
 export function HotkeysDemo() {
@@ -14,40 +13,47 @@ export function HotkeysDemo() {
   const parsedResult = signal('')
 
   const addLog = (msg: string) =>
-    log.update((l) => [...l.slice(-14), `${new Date().toLocaleTimeString()} — ${msg}`])
+    log.update((l) => [
+      ...l.slice(-14),
+      `${new Date().toLocaleTimeString()} — ${msg}`,
+    ])
 
   // Global shortcuts
-  const unsub1 = registerHotkey('mod+k', () => addLog('mod+k: Open command palette'), {
+  registerHotkey('mod+k', () => addLog('mod+k: Open command palette'), {
     description: 'Open command palette',
   })
 
-  const unsub2 = registerHotkey('mod+s', (e) => {
-    e.preventDefault()
-    addLog('mod+s: Save (prevented default)')
-  }, {
-    description: 'Save',
-  })
+  registerHotkey(
+    'mod+s',
+    (e) => {
+      e.preventDefault()
+      addLog('mod+s: Save (prevented default)')
+    },
+    {
+      description: 'Save',
+    },
+  )
 
-  const unsub3 = registerHotkey('mod+shift+p', () => addLog('mod+shift+p: Toggle panel'), {
+  registerHotkey('mod+shift+p', () => addLog('mod+shift+p: Toggle panel'), {
     description: 'Toggle panel',
   })
 
-  const unsub4 = registerHotkey('escape', () => addLog('escape: Close/dismiss'), {
+  registerHotkey('escape', () => addLog('escape: Close/dismiss'), {
     description: 'Close',
   })
 
   // Scoped shortcuts
-  const unsub5 = registerHotkey('mod+z', () => addLog('[editor] mod+z: Undo'), {
+  registerHotkey('mod+z', () => addLog('[editor] mod+z: Undo'), {
     scope: 'editor',
     description: 'Undo',
   })
 
-  const unsub6 = registerHotkey('mod+shift+z', () => addLog('[editor] mod+shift+z: Redo'), {
+  registerHotkey('mod+shift+z', () => addLog('[editor] mod+shift+z: Redo'), {
     scope: 'editor',
     description: 'Redo',
   })
 
-  const unsub7 = registerHotkey('mod+b', () => addLog('[editor] mod+b: Bold'), {
+  registerHotkey('mod+b', () => addLog('[editor] mod+b: Bold'), {
     scope: 'editor',
     description: 'Bold',
   })
@@ -56,8 +62,8 @@ export function HotkeysDemo() {
     <div>
       <h2>Hotkeys</h2>
       <p class="desc">
-        Keyboard shortcut management — scope-aware, modifier keys,
-        conflict detection. Press the shortcuts to see them fire.
+        Keyboard shortcut management — scope-aware, modifier keys, conflict
+        detection. Press the shortcuts to see them fire.
         <code>mod</code> = Cmd on Mac, Ctrl elsewhere.
       </p>
 
@@ -67,15 +73,39 @@ export function HotkeysDemo() {
         <table style="width: 100%; border-collapse: collapse">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Shortcut</th>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Action</th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Shortcut
+              </th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + K</code></td><td style="padding: 4px 8px">Open command palette</td></tr>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + S</code></td><td style="padding: 4px 8px">Save</td></tr>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + Shift + P</code></td><td style="padding: 4px 8px">Toggle panel</td></tr>
-            <tr><td style="padding: 4px 8px"><code>Escape</code></td><td style="padding: 4px 8px">Close/dismiss</td></tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + K</code>
+              </td>
+              <td style="padding: 4px 8px">Open command palette</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + S</code>
+              </td>
+              <td style="padding: 4px 8px">Save</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + Shift + P</code>
+              </td>
+              <td style="padding: 4px 8px">Toggle panel</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Escape</code>
+              </td>
+              <td style="padding: 4px 8px">Close/dismiss</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -87,6 +117,7 @@ export function HotkeysDemo() {
         </p>
         <div class="row" style="margin-bottom: 8px">
           <button
+            type="button"
             class={editorScope() ? 'active' : ''}
             onClick={() => {
               if (editorScope()) {
@@ -100,7 +131,9 @@ export function HotkeysDemo() {
               }
             }}
           >
-            {() => (editorScope() ? 'Disable Editor Scope' : 'Enable Editor Scope')}
+            {() =>
+              editorScope() ? 'Disable Editor Scope' : 'Enable Editor Scope'
+            }
           </button>
           <span>
             Status:{' '}
@@ -112,14 +145,33 @@ export function HotkeysDemo() {
         <table style="width: 100%; border-collapse: collapse">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Shortcut</th>
-              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">Action</th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Shortcut
+              </th>
+              <th style="text-align: left; padding: 4px 8px; border-bottom: 1px solid #ddd">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + Z</code></td><td style="padding: 4px 8px">Undo</td></tr>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + Shift + Z</code></td><td style="padding: 4px 8px">Redo</td></tr>
-            <tr><td style="padding: 4px 8px"><code>Cmd/Ctrl + B</code></td><td style="padding: 4px 8px">Bold</td></tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + Z</code>
+              </td>
+              <td style="padding: 4px 8px">Undo</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + Shift + Z</code>
+              </td>
+              <td style="padding: 4px 8px">Redo</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 8px">
+                <code>Cmd/Ctrl + B</code>
+              </td>
+              <td style="padding: 4px 8px">Bold</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -127,11 +179,17 @@ export function HotkeysDemo() {
       <div class="section">
         <h3>Registered Hotkeys</h3>
         <pre style="font-size: 12px; max-height: 200px; overflow-y: auto">
-          {() => JSON.stringify(getRegisteredHotkeys().map((h) => ({
-            shortcut: h.shortcut,
-            scope: h.scope,
-            description: h.description,
-          })), null, 2)}
+          {() =>
+            JSON.stringify(
+              getRegisteredHotkeys().map((h) => ({
+                shortcut: h.shortcut,
+                scope: h.scope,
+                description: h.description,
+              })),
+              null,
+              2,
+            )
+          }
         </pre>
       </div>
 
@@ -155,7 +213,9 @@ export function HotkeysDemo() {
           }}
           style="width: 100%; padding: 8px; margin-bottom: 8px"
         />
-        <pre style="font-size: 12px">{() => parsedResult() || 'Enter a shortcut above...'}</pre>
+        <pre style="font-size: 12px">
+          {() => parsedResult() || 'Enter a shortcut above...'}
+        </pre>
       </div>
 
       <div class="section">

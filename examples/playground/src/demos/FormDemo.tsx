@@ -51,9 +51,7 @@ export function FormDemo() {
             <label>Name</label>
             <input placeholder="Your name" {...name.register()} />
             {() =>
-              name.showError() ? (
-                <div class="error">{name.error()}</div>
-              ) : null
+              name.showError() ? <div class="error">{name.error()}</div> : null
             }
           </div>
 
@@ -96,16 +94,17 @@ export function FormDemo() {
           </div>
 
           <div class="row">
-            <button class="primary" type="submit" disabled={form.isSubmitting()}>
+            <button
+              class="primary"
+              type="submit"
+              disabled={form.isSubmitting()}
+            >
               {() => (form.isSubmitting() ? 'Submitting...' : 'Register')}
             </button>
             <button type="button" onClick={() => form.reset()}>
               Reset
             </button>
-            <button
-              type="button"
-              onClick={() => form.clearErrors()}
-            >
+            <button type="button" onClick={() => form.clearErrors()}>
               Clear Errors
             </button>
           </div>
@@ -121,9 +120,7 @@ export function FormDemo() {
           <span class={`badge ${state().isDirty ? 'blue' : 'gray'}`}>
             {() => (state().isDirty ? 'Dirty' : 'Pristine')}
           </span>
-          <span class="badge gray">
-            Submits: {() => state().submitCount}
-          </span>
+          <span class="badge gray">Submits: {() => state().submitCount}</span>
         </div>
         <pre style="font-size: 12px; margin-top: 8px">
           Values: {() => JSON.stringify(form.values(), null, 2)}

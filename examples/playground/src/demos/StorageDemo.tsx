@@ -4,7 +4,6 @@ import {
   useSessionStorage,
   useCookie,
   useMemoryStorage,
-  removeStorage,
 } from '@pyreon/storage'
 
 export function StorageDemo() {
@@ -38,14 +37,15 @@ export function StorageDemo() {
       <h2>Storage</h2>
       <p class="desc">
         Reactive client-side storage — every stored value is a signal.
-        localStorage, sessionStorage, cookies, memory. Cross-tab sync,
-        signal deduplication.
+        localStorage, sessionStorage, cookies, memory. Cross-tab sync, signal
+        deduplication.
       </p>
 
       <div class="section">
         <h3>localStorage — Theme & Font Size</h3>
         <div class="row" style="margin-bottom: 8px">
           <button
+            type="button"
             onClick={() => {
               const next = theme() === 'light' ? 'dark' : 'light'
               theme.set(next)
@@ -60,6 +60,7 @@ export function StorageDemo() {
         </div>
         <div class="row" style="margin-bottom: 8px">
           <button
+            type="button"
             onClick={() => {
               fontSize.update((s) => s - 2)
               addLog(`Font size → ${fontSize()}`)
@@ -71,6 +72,7 @@ export function StorageDemo() {
             Font size: <strong>{() => fontSize()}px</strong>
           </span>
           <button
+            type="button"
             onClick={() => {
               fontSize.update((s) => s + 2)
               addLog(`Font size → ${fontSize()}`)
@@ -81,6 +83,7 @@ export function StorageDemo() {
         </div>
         <div class="row">
           <button
+            type="button"
             onClick={() => {
               sidebarOpen.update((v) => !v)
               addLog(`Sidebar → ${sidebarOpen() ? 'open' : 'closed'}`)
@@ -89,7 +92,8 @@ export function StorageDemo() {
             Toggle Sidebar
           </button>
           <span>
-            Sidebar: <strong>{() => (sidebarOpen() ? 'Open' : 'Closed')}</strong>
+            Sidebar:{' '}
+            <strong>{() => (sidebarOpen() ? 'Open' : 'Closed')}</strong>
           </span>
         </div>
       </div>
@@ -102,6 +106,7 @@ export function StorageDemo() {
         </p>
         <div class="row">
           <button
+            type="button"
             disabled={wizardStep() <= 1}
             onClick={() => {
               wizardStep.update((s) => Math.max(1, s - 1))
@@ -111,6 +116,7 @@ export function StorageDemo() {
             Back
           </button>
           <button
+            type="button"
             disabled={wizardStep() >= 4}
             onClick={() => {
               wizardStep.update((s) => Math.min(4, s + 1))
@@ -120,6 +126,7 @@ export function StorageDemo() {
             Next
           </button>
           <button
+            type="button"
             onClick={() => {
               wizardStep.set(1)
               addLog('Wizard reset')
@@ -135,6 +142,7 @@ export function StorageDemo() {
         <div class="row">
           {['en', 'de', 'fr', 'ja'].map((lang) => (
             <button
+              type="button"
               key={lang}
               class={locale() === lang ? 'active' : ''}
               onClick={() => {
@@ -164,8 +172,8 @@ export function StorageDemo() {
           style="width: 100%; padding: 8px; margin-bottom: 8px"
         />
         <p>
-          Value: <strong>{() => tempNote() || '(empty)'}</strong> — lost on
-          page refresh (memory only)
+          Value: <strong>{() => tempNote() || '(empty)'}</strong> — lost on page
+          refresh (memory only)
         </p>
       </div>
 
@@ -185,6 +193,7 @@ export function StorageDemo() {
         <h3>.remove() — Clear Individual Keys</h3>
         <div class="row">
           <button
+            type="button"
             onClick={() => {
               theme.remove()
               addLog('Removed theme')
@@ -193,6 +202,7 @@ export function StorageDemo() {
             Remove Theme
           </button>
           <button
+            type="button"
             onClick={() => {
               fontSize.remove()
               addLog('Removed font size')
@@ -201,6 +211,7 @@ export function StorageDemo() {
             Remove Font Size
           </button>
           <button
+            type="button"
             onClick={() => {
               locale.remove()
               addLog('Removed locale cookie')

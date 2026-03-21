@@ -43,7 +43,10 @@ export function ValidationDemo() {
         <form onSubmit={(e: Event) => form.handleSubmit(e)}>
           <div class="field">
             <label>Username</label>
-            <input placeholder="Letters, numbers, _ only" {...username.register()} />
+            <input
+              placeholder="Letters, numbers, _ only"
+              {...username.register()}
+            />
             {() =>
               username.showError() ? (
                 <div class="error">{username.error()}</div>
@@ -53,7 +56,11 @@ export function ValidationDemo() {
 
           <div class="field">
             <label>Email</label>
-            <input type="email" placeholder="you@example.com" {...email.register()} />
+            <input
+              type="email"
+              placeholder="you@example.com"
+              {...email.register()}
+            />
             {() =>
               email.showError() ? (
                 <div class="error">{email.error()}</div>
@@ -65,14 +72,16 @@ export function ValidationDemo() {
             <label>Age</label>
             <input type="number" placeholder="13+" {...age.register()} />
             {() =>
-              age.showError() ? (
-                <div class="error">{age.error()}</div>
-              ) : null
+              age.showError() ? <div class="error">{age.error()}</div> : null
             }
           </div>
 
           <div class="row">
-            <button class="primary" type="submit" disabled={form.isSubmitting()}>
+            <button
+              class="primary"
+              type="submit"
+              disabled={form.isSubmitting()}
+            >
               {() => (form.isSubmitting() ? 'Validating...' : 'Submit')}
             </button>
             <button type="button" onClick={() => form.reset()}>
