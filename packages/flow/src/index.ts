@@ -26,6 +26,7 @@
 
 export { Background } from './components/background'
 export { Controls } from './components/controls'
+export type { FlowComponentProps } from './components/flow-component'
 // Components
 export { Flow } from './components/flow-component'
 export { Handle } from './components/handle'

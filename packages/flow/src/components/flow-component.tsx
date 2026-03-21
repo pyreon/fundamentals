@@ -1,36 +1,93 @@
 import type { VNodeChild } from '@pyreon/core'
+import { signal } from '@pyreon/reactivity'
 import { getEdgePath, getHandlePosition } from '../edges'
-import type { FlowInstance, FlowProps } from '../types'
+import type {
+  Connection,
+  FlowInstance,
+  FlowNode,
+  NodeComponentProps,
+} from '../types'
 import { Position } from '../types'
 
+// ─── Node type registry ──────────────────────────────────────────────────────
+
+type NodeTypeMap = Record<
+  string,
+  (props: NodeComponentProps<any>) => VNodeChild
+>
+
 /**
- * Default node renderer — simple labeled box with source/target handles.
+ * Default node renderer — simple labeled box.
  */
-function DefaultNode(props: {
-  id: string
-  data: Record<string, unknown>
-  selected: boolean
-}) {
+function DefaultNode(props: NodeComponentProps) {
   const borderColor = props.selected ? '#3b82f6' : '#ddd'
+  const cursor = props.dragging ? 'grabbing' : 'grab'
   return (
     <div
-      style={`padding: 8px 16px; background: white; border: 2px solid ${borderColor}; border-radius: 6px; font-size: 13px; min-width: 80px; text-align: center; cursor: grab; user-select: none;`}
+      style={`padding: 8px 16px; background: white; border: 2px solid ${borderColor}; border-radius: 6px; font-size: 13px; min-width: 80px; text-align: center; cursor: ${cursor}; user-select: none;`}
     >
       {(props.data?.label as string) ?? props.id}
     </div>
   )
 }
 
-/**
- * Render all edges as SVG paths.
- */
-function EdgeLayer(props: { instance: FlowInstance }): VNodeChild {
-  const { instance } = props
+// ─── Connection line state ───────────────────────────────────────────────────
+
+interface ConnectionState {
+  active: boolean
+  sourceNodeId: string
+  sourceHandleId: string
+  sourcePosition: Position
+  sourceX: number
+  sourceY: number
+  currentX: number
+  currentY: number
+}
+
+const emptyConnection: ConnectionState = {
+  active: false,
+  sourceNodeId: '',
+  sourceHandleId: '',
+  sourcePosition: Position.Right,
+  sourceX: 0,
+  sourceY: 0,
+  currentX: 0,
+  currentY: 0,
+}
+
+// ─── Drag state ──────────────────────────────────────────────────────────────
+
+interface DragState {
+  active: boolean
+  nodeId: string
+  startX: number
+  startY: number
+  startNodeX: number
+  startNodeY: number
+}
+
+const emptyDrag: DragState = {
+  active: false,
+  nodeId: '',
+  startX: 0,
+  startY: 0,
+  startNodeX: 0,
+  startNodeY: 0,
+}
+
+// ─── Edge Layer ──────────────────────────────────────────────────────────────
+
+function EdgeLayer(props: {
+  instance: FlowInstance
+  connectionState: () => ConnectionState
+}): VNodeChild {
+  const { instance, connectionState } = props
 
   return () => {
     const nodes = instance.nodes()
     const edges = instance.edges()
     const nodeMap = new Map(nodes.map((n) => [n.id, n]))
+    const conn = connectionState()
 
     return (
       <svg
@@ -115,41 +172,104 @@ function EdgeLayer(props: { instance: FlowInstance }): VNodeChild {
             </g>
           )
         })}
+        {conn.active && (
+          <path
+            d={
+              getEdgePath(
+                'bezier',
+                conn.sourceX,
+                conn.sourceY,
+                conn.sourcePosition,
+                conn.currentX,
+                conn.currentY,
+                Position.Left,
+              ).path
+            }
+            fill="none"
+            stroke="#3b82f6"
+            stroke-width="2"
+            stroke-dasharray="5,5"
+          />
+        )}
       </svg>
     )
   }
 }
 
-/**
- * Render all nodes as positioned HTML elements.
- */
-function NodeLayer(props: { instance: FlowInstance }): VNodeChild {
-  const { instance } = props
+// ─── Node Layer ──────────────────────────────────────────────────────────────
+
+function NodeLayer(props: {
+  instance: FlowInstance
+  nodeTypes: NodeTypeMap
+  draggingNodeId: () => string
+  onNodePointerDown: (e: PointerEvent, node: FlowNode) => void
+  onHandlePointerDown: (
+    e: PointerEvent,
+    nodeId: string,
+    handleType: string,
+    handleId: string,
+    position: Position,
+  ) => void
+}): VNodeChild {
+  const {
+    instance,
+    nodeTypes,
+    draggingNodeId,
+    onNodePointerDown,
+    onHandlePointerDown,
+  } = props
 
   return () => {
     const nodes = instance.nodes()
     const selectedIds = instance.selectedNodes()
+    const dragId = draggingNodeId()
 
     return (
       <>
         {nodes.map((node) => {
           const isSelected = selectedIds.includes(node.id)
+          const isDragging = dragId === node.id
+          const NodeComponent =
+            (node.type && nodeTypes[node.type]) || nodeTypes.default!
 
           return (
             <div
               key={node.id}
-              class={`pyreon-flow-node ${node.class ?? ''} ${isSelected ? 'selected' : ''}`}
+              class={`pyreon-flow-node ${node.class ?? ''} ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''}`}
               style={`position: absolute; transform: translate(${node.position.x}px, ${node.position.y}px); ${node.style ?? ''}`}
               data-nodeid={node.id}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation()
                 instance.selectNode(node.id, e.shiftKey)
               }}
+              onPointerdown={(e: PointerEvent) => {
+                // Check if clicking a handle
+                const target = e.target as HTMLElement
+                const handle = target.closest('.pyreon-flow-handle')
+                if (handle) {
+                  const hType =
+                    handle.getAttribute('data-handletype') ?? 'source'
+                  const hId = handle.getAttribute('data-handleid') ?? 'source'
+                  const hPos =
+                    (handle.getAttribute('data-handleposition') as Position) ??
+                    Position.Right
+                  onHandlePointerDown(e, node.id, hType, hId, hPos)
+                  return
+                }
+                // Otherwise start dragging node
+                if (
+                  node.draggable !== false &&
+                  instance.config.nodesDraggable !== false
+                ) {
+                  onNodePointerDown(e, node)
+                }
+              }}
             >
-              <DefaultNode
+              <NodeComponent
                 id={node.id}
                 data={node.data}
                 selected={isSelected}
+                dragging={isDragging}
               />
             </div>
           )
@@ -159,8 +279,22 @@ function NodeLayer(props: { instance: FlowInstance }): VNodeChild {
   }
 }
 
+// ─── Flow Component ──────────────────────────────────────────────────────────
+
+export interface FlowComponentProps {
+  instance: FlowInstance
+  /** Custom node type renderers */
+  nodeTypes?: NodeTypeMap
+  style?: string
+  class?: string
+  children?: VNodeChild
+}
+
 /**
  * The main Flow component — renders the interactive flow diagram.
+ *
+ * Supports node dragging, connection drawing, custom node types,
+ * pan/zoom, and all standard flow interactions.
  *
  * @example
  * ```tsx
@@ -169,15 +303,94 @@ function NodeLayer(props: { instance: FlowInstance }): VNodeChild {
  *   edges: [...],
  * })
  *
- * <Flow instance={flow}>
+ * <Flow instance={flow} nodeTypes={{ custom: CustomNode }}>
  *   <Background />
  *   <MiniMap />
  *   <Controls />
  * </Flow>
  * ```
  */
-export function Flow(props: FlowProps): VNodeChild {
+export function Flow(props: FlowComponentProps): VNodeChild {
   const { instance, children } = props
+  const nodeTypes: NodeTypeMap = {
+    default: DefaultNode,
+    input: DefaultNode,
+    output: DefaultNode,
+    ...props.nodeTypes,
+  }
+
+  // ── Drag state ─────────────────────────────────────────────────────────
+
+  const dragState = signal<DragState>({ ...emptyDrag })
+  const connectionState = signal<ConnectionState>({ ...emptyConnection })
+
+  const draggingNodeId = () => (dragState().active ? dragState().nodeId : '')
+
+  // ── Node dragging ──────────────────────────────────────────────────────
+
+  const handleNodePointerDown = (e: PointerEvent, node: FlowNode) => {
+    e.stopPropagation()
+
+    dragState.set({
+      active: true,
+      nodeId: node.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startNodeX: node.position.x,
+      startNodeY: node.position.y,
+    })
+
+    instance.selectNode(node.id, e.shiftKey)
+
+    const container = (e.currentTarget as HTMLElement).closest(
+      '.pyreon-flow',
+    ) as HTMLElement
+    if (container) container.setPointerCapture(e.pointerId)
+  }
+
+  // ── Connection drawing ─────────────────────────────────────────────────
+
+  const handleHandlePointerDown = (
+    e: PointerEvent,
+    nodeId: string,
+    _handleType: string,
+    handleId: string,
+    position: Position,
+  ) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const node = instance.getNode(nodeId)
+    if (!node) return
+
+    const w = node.width ?? 150
+    const h = node.height ?? 40
+    const handlePos = getHandlePosition(
+      position,
+      node.position.x,
+      node.position.y,
+      w,
+      h,
+    )
+
+    connectionState.set({
+      active: true,
+      sourceNodeId: nodeId,
+      sourceHandleId: handleId,
+      sourcePosition: position,
+      sourceX: handlePos.x,
+      sourceY: handlePos.y,
+      currentX: handlePos.x,
+      currentY: handlePos.y,
+    })
+
+    const container = (e.target as HTMLElement).closest(
+      '.pyreon-flow',
+    ) as HTMLElement
+    if (container) container.setPointerCapture(e.pointerId)
+  }
+
+  // ── Zoom ───────────────────────────────────────────────────────────────
 
   const handleWheel = (e: WheelEvent) => {
     if (instance.config.zoomable === false) return
@@ -192,7 +405,6 @@ export function Flow(props: FlowProps): VNodeChild {
       instance.config.maxZoom ?? 4,
     )
 
-    // Zoom toward cursor position
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
@@ -206,6 +418,8 @@ export function Flow(props: FlowProps): VNodeChild {
     })
   }
 
+  // ── Pan ────────────────────────────────────────────────────────────────
+
   let isPanning = false
   let panStartX = 0
   let panStartY = 0
@@ -215,9 +429,9 @@ export function Flow(props: FlowProps): VNodeChild {
   const handlePointerDown = (e: PointerEvent) => {
     if (instance.config.pannable === false) return
 
-    // Only pan on background click (not on nodes)
     const target = e.target as HTMLElement
     if (target.closest('.pyreon-flow-node')) return
+    if (target.closest('.pyreon-flow-handle')) return
 
     isPanning = true
     panStartX = e.clientX
@@ -227,38 +441,126 @@ export function Flow(props: FlowProps): VNodeChild {
     panStartVpY = vp.y
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 
-    // Click on empty space clears selection
     instance.clearSelection()
   }
 
+  // ── Unified pointer move/up ────────────────────────────────────────────
+
   const handlePointerMove = (e: PointerEvent) => {
-    if (!isPanning) return
-    const dx = e.clientX - panStartX
-    const dy = e.clientY - panStartY
-    instance.viewport.set({
-      ...instance.viewport.peek(),
-      x: panStartVpX + dx,
-      y: panStartVpY + dy,
-    })
+    const drag = dragState.peek()
+    const conn = connectionState.peek()
+
+    if (drag.active) {
+      // Node dragging
+      const vp = instance.viewport.peek()
+      const dx = (e.clientX - drag.startX) / vp.zoom
+      const dy = (e.clientY - drag.startY) / vp.zoom
+      instance.updateNodePosition(drag.nodeId, {
+        x: drag.startNodeX + dx,
+        y: drag.startNodeY + dy,
+      })
+      return
+    }
+
+    if (conn.active) {
+      // Connection drawing — convert screen to flow coordinates
+      const container = e.currentTarget as HTMLElement
+      const rect = container.getBoundingClientRect()
+      const vp = instance.viewport.peek()
+      const flowX = (e.clientX - rect.left - vp.x) / vp.zoom
+      const flowY = (e.clientY - rect.top - vp.y) / vp.zoom
+
+      connectionState.set({
+        ...conn,
+        currentX: flowX,
+        currentY: flowY,
+      })
+      return
+    }
+
+    if (isPanning) {
+      const dx = e.clientX - panStartX
+      const dy = e.clientY - panStartY
+      instance.viewport.set({
+        ...instance.viewport.peek(),
+        x: panStartVpX + dx,
+        y: panStartVpY + dy,
+      })
+    }
   }
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: PointerEvent) => {
+    const drag = dragState.peek()
+    const conn = connectionState.peek()
+
+    if (drag.active) {
+      dragState.set({ ...emptyDrag })
+    }
+
+    if (conn.active) {
+      // Check if we released over a handle target
+      const target = e.target as HTMLElement
+      const handle = target.closest('.pyreon-flow-handle')
+      if (handle) {
+        const targetNodeId =
+          handle.closest('.pyreon-flow-node')?.getAttribute('data-nodeid') ?? ''
+        const targetHandleId = handle.getAttribute('data-handleid') ?? 'target'
+
+        if (targetNodeId && targetNodeId !== conn.sourceNodeId) {
+          const connection: Connection = {
+            source: conn.sourceNodeId,
+            target: targetNodeId,
+            sourceHandle: conn.sourceHandleId,
+            targetHandle: targetHandleId,
+          }
+
+          if (instance.isValidConnection(connection)) {
+            instance.addEdge({
+              source: connection.source,
+              target: connection.target,
+              sourceHandle: connection.sourceHandle,
+              targetHandle: connection.targetHandle,
+            })
+          }
+        }
+      }
+
+      connectionState.set({ ...emptyConnection })
+    }
+
     isPanning = false
   }
 
-  const containerStyle = `position: relative; width: 100%; height: 100%; overflow: hidden; ${props.style ?? ''}`
+  // ── Keyboard ───────────────────────────────────────────────────────────
 
-  // Pass instance to child components (Controls, MiniMap) via cloning
-  // For now, children render as-is — they access instance from props
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      instance.deleteSelected()
+    }
+    if (e.key === 'Escape') {
+      instance.clearSelection()
+      connectionState.set({ ...emptyConnection })
+    }
+    if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      instance.selectAll()
+    }
+  }
+
+  const containerStyle = `position: relative; width: 100%; height: 100%; overflow: hidden; outline: none; ${props.style ?? ''}`
 
   return (
     <div
       class={`pyreon-flow ${props.class ?? ''}`}
       style={containerStyle}
+      tabIndex={0}
       onWheel={handleWheel}
       onPointerdown={handlePointerDown}
       onPointermove={handlePointerMove}
       onPointerup={handlePointerUp}
+      onKeydown={handleKeyDown}
     >
       {children}
       {() => {
@@ -268,8 +570,17 @@ export function Flow(props: FlowProps): VNodeChild {
             class="pyreon-flow-viewport"
             style={`position: absolute; transform-origin: 0 0; transform: translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom});`}
           >
-            <EdgeLayer instance={instance} />
-            <NodeLayer instance={instance} />
+            <EdgeLayer
+              instance={instance}
+              connectionState={() => connectionState()}
+            />
+            <NodeLayer
+              instance={instance}
+              nodeTypes={nodeTypes}
+              draggingNodeId={draggingNodeId}
+              onNodePointerDown={handleNodePointerDown}
+              onHandlePointerDown={handleHandlePointerDown}
+            />
           </div>
         )
       }}
