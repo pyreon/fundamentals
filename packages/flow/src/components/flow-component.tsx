@@ -1,6 +1,10 @@
 import type { VNodeChild } from '@pyreon/core'
 import { signal } from '@pyreon/reactivity'
-import { getEdgePath, getHandlePosition } from '../edges'
+import {
+  getEdgePath,
+  getHandlePosition,
+  getSmartHandlePositions,
+} from '../edges'
 import type {
   Connection,
   FlowInstance,
@@ -141,15 +145,20 @@ function EdgeLayer(props: {
           const targetW = targetNode.width ?? 150
           const targetH = targetNode.height ?? 40
 
+          const { sourcePosition, targetPosition } = getSmartHandlePositions(
+            sourceNode,
+            targetNode,
+          )
+
           const sourcePos = getHandlePosition(
-            Position.Right,
+            sourcePosition,
             sourceNode.position.x,
             sourceNode.position.y,
             sourceW,
             sourceH,
           )
           const targetPos = getHandlePosition(
-            Position.Left,
+            targetPosition,
             targetNode.position.x,
             targetNode.position.y,
             targetW,
@@ -160,10 +169,10 @@ function EdgeLayer(props: {
             edge.type ?? 'bezier',
             sourcePos.x,
             sourcePos.y,
-            Position.Right,
+            sourcePosition,
             targetPos.x,
             targetPos.y,
-            Position.Left,
+            targetPosition,
           )
 
           const selectedEdges = instance.selectedEdges()
@@ -279,7 +288,7 @@ function NodeLayer(props: {
             <div
               key={node.id}
               class={`pyreon-flow-node ${node.class ?? ''} ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''}`}
-              style={`position: absolute; transform: translate(${node.position.x}px, ${node.position.y}px); ${node.style ?? ''}`}
+              style={`position: absolute; transform: translate(${node.position.x}px, ${node.position.y}px); z-index: ${isDragging ? 1000 : isSelected ? 100 : 0}; ${node.style ?? ''}`}
               data-nodeid={node.id}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation()
@@ -769,10 +778,35 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     }
   }
 
+  // ── Container size tracking ─────────────────────────────────────────────
+
+  let resizeObserver: ResizeObserver | null = null
+
+  const containerRef = (el: Element | null) => {
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+      resizeObserver = null
+    }
+    if (!el) return
+
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect()
+      instance.containerSize.set({
+        width: rect.width,
+        height: rect.height,
+      })
+    }
+
+    updateSize()
+    resizeObserver = new ResizeObserver(updateSize)
+    resizeObserver.observe(el)
+  }
+
   const containerStyle = `position: relative; width: 100%; height: 100%; overflow: hidden; outline: none; touch-action: none; ${props.style ?? ''}`
 
   return (
     <div
+      ref={containerRef}
       class={`pyreon-flow ${props.class ?? ''}`}
       style={containerStyle}
       tabIndex={0}

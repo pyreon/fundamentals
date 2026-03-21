@@ -41,6 +41,7 @@ export {
   getBezierPath,
   getEdgePath,
   getHandlePosition,
+  getSmartHandlePositions,
   getSmoothStepPath,
   getStepPath,
   getStraightPath,

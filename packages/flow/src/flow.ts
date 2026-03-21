@@ -71,6 +71,7 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
   const nodes = signal<FlowNode[]>([...initialNodes])
   const edges = signal<FlowEdge[]>(edgesWithIds)
   const viewport = signal({ x: 0, y: 0, zoom: 1 })
+  const containerSize = signal({ width: 800, height: 600 })
 
   // Track selected state separately for O(1) lookups
   const selectedNodeIds = signal(new Set<string>())
@@ -298,9 +299,8 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     const graphWidth = maxX - minX
     const graphHeight = maxY - minY
 
-    // Assume container is 800x600 if we don't know (will be updated by component)
-    const containerWidth = 800
-    const containerHeight = 600
+    const { width: containerWidth, height: containerHeight } =
+      containerSize.peek()
 
     const zoomX = containerWidth / (graphWidth * (1 + padding * 2))
     const zoomY = containerHeight / (graphHeight * (1 + padding * 2))
@@ -356,11 +356,12 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     const screenY = node.position.y * v.zoom + v.y
     const screenW = w * v.zoom
     const screenH = h * v.zoom
+    const { width: cw, height: ch } = containerSize.peek()
     return (
       screenX + screenW > 0 &&
-      screenX < 800 &&
+      screenX < cw &&
       screenY + screenH > 0 &&
-      screenY < 600
+      screenY < ch
     )
   }
 
@@ -380,14 +381,56 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
       options,
     )
 
-    batch(() => {
-      nodes.update((nds) =>
-        nds.map((node) => {
-          const pos = positions.find((p) => p.id === node.id)
-          return pos ? { ...node, position: pos.position } : node
-        }),
-      )
-    })
+    const animate = options.animate !== false
+    const duration = options.animationDuration ?? 300
+
+    if (!animate) {
+      batch(() => {
+        nodes.update((nds) =>
+          nds.map((node) => {
+            const pos = positions.find((p) => p.id === node.id)
+            return pos ? { ...node, position: pos.position } : node
+          }),
+        )
+      })
+      return
+    }
+
+    // Animated transition — interpolate positions over duration
+    const startPositions = new Map(
+      currentNodes.map((n) => [n.id, { ...n.position }]),
+    )
+    const targetPositions = new Map(positions.map((p) => [p.id, p.position]))
+
+    const startTime = performance.now()
+
+    const animateFrame = () => {
+      const elapsed = performance.now() - startTime
+      const t = Math.min(elapsed / duration, 1)
+      // Ease-out cubic
+      const eased = 1 - (1 - t) ** 3
+
+      batch(() => {
+        nodes.update((nds) =>
+          nds.map((node) => {
+            const start = startPositions.get(node.id)
+            const end = targetPositions.get(node.id)
+            if (!start || !end) return node
+            return {
+              ...node,
+              position: {
+                x: start.x + (end.x - start.x) * eased,
+                y: start.y + (end.y - start.y) * eased,
+              },
+            }
+          }),
+        )
+      })
+
+      if (t < 1) requestAnimationFrame(animateFrame)
+    }
+
+    requestAnimationFrame(animateFrame)
   }
 
   // ── Batch ────────────────────────────────────────────────────────────────
@@ -845,6 +888,7 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     edges,
     viewport,
     zoom,
+    containerSize,
     selectedNodes,
     selectedEdges,
     getNode,

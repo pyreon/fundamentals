@@ -167,6 +167,8 @@ export interface FlowInstance {
   selectedNodes: Computed<string[]>
   /** Selected edge ids — computed */
   selectedEdges: Computed<string[]>
+  /** Container dimensions — updated by the Flow component via ResizeObserver */
+  containerSize: Signal<{ width: number; height: number }>
 
   // ── Node operations ──────────────────────────────────────────────────────
 

@@ -1,5 +1,48 @@
-import type { EdgePathResult, XYPosition } from './types'
+import type { EdgePathResult, FlowNode, XYPosition } from './types'
 import { Position } from './types'
+
+/**
+ * Auto-detect the best handle position based on relative node positions.
+ * If the node has configured handles, uses those. Otherwise picks the
+ * closest edge (top/right/bottom/left) based on direction to the other node.
+ */
+export function getSmartHandlePositions(
+  sourceNode: FlowNode,
+  targetNode: FlowNode,
+): { sourcePosition: Position; targetPosition: Position } {
+  const sw = sourceNode.width ?? 150
+  const sh = sourceNode.height ?? 40
+  const tw = targetNode.width ?? 150
+  const th = targetNode.height ?? 40
+
+  const dx = targetNode.position.x + tw / 2 - (sourceNode.position.x + sw / 2)
+  const dy = targetNode.position.y + th / 2 - (sourceNode.position.y + sh / 2)
+
+  const sourceHandle = sourceNode.sourceHandles?.[0]
+  const targetHandle = targetNode.targetHandles?.[0]
+
+  const sourcePosition = sourceHandle
+    ? sourceHandle.position
+    : Math.abs(dx) > Math.abs(dy)
+      ? dx > 0
+        ? Position.Right
+        : Position.Left
+      : dy > 0
+        ? Position.Bottom
+        : Position.Top
+
+  const targetPosition = targetHandle
+    ? targetHandle.position
+    : Math.abs(dx) > Math.abs(dy)
+      ? dx > 0
+        ? Position.Left
+        : Position.Right
+      : dy > 0
+        ? Position.Top
+        : Position.Bottom
+
+  return { sourcePosition, targetPosition }
+}
 
 /**
  * Get the center point between source and target positions.
