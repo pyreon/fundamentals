@@ -8,39 +8,47 @@ export interface NodeResizerProps {
   minWidth?: number
   /** Minimum height — default: 30 */
   minHeight?: number
-  /** Whether to show resize handles — default: true when node is selected */
-  visible?: boolean
   /** Handle size in px — default: 8 */
   handleSize?: number
+  /** Also show edge (non-corner) resize handles — default: false */
+  showEdgeHandles?: boolean
 }
 
-const corners = ['nw', 'ne', 'sw', 'se'] as const
-type Corner = (typeof corners)[number]
+type ResizeDirection = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w'
 
-const cornerCursors: Record<Corner, string> = {
+const directionCursors: Record<ResizeDirection, string> = {
   nw: 'nw-resize',
   ne: 'ne-resize',
   sw: 'sw-resize',
   se: 'se-resize',
+  n: 'n-resize',
+  s: 's-resize',
+  e: 'e-resize',
+  w: 'w-resize',
 }
 
-const cornerPositions: Record<Corner, string> = {
+const directionPositions: Record<ResizeDirection, string> = {
   nw: 'top: -4px; left: -4px;',
   ne: 'top: -4px; right: -4px;',
   sw: 'bottom: -4px; left: -4px;',
   se: 'bottom: -4px; right: -4px;',
+  n: 'top: -4px; left: 50%; transform: translateX(-50%);',
+  s: 'bottom: -4px; left: 50%; transform: translateX(-50%);',
+  e: 'right: -4px; top: 50%; transform: translateY(-50%);',
+  w: 'left: -4px; top: 50%; transform: translateY(-50%);',
 }
 
 /**
  * Node resize handles. Place inside a custom node component
- * to allow users to resize the node by dragging corners.
+ * to allow users to resize the node by dragging corners or edges.
+ *
+ * Uses pointer capture for clean event handling — no document listener leaks.
  *
  * @example
  * ```tsx
- * function ResizableNode({ id, data }: NodeComponentProps) {
- *   const flow = useFlow() // or pass via props
+ * function ResizableNode({ id, data, selected }: NodeComponentProps) {
  *   return (
- *     <div style="min-width: 100px; min-height: 50px;">
+ *     <div style="min-width: 100px; min-height: 50px; position: relative;">
  *       {data.label}
  *       <NodeResizer nodeId={id} instance={flow} />
  *     </div>
@@ -55,55 +63,68 @@ export function NodeResizer(props: NodeResizerProps): VNodeChild {
     minWidth = 50,
     minHeight = 30,
     handleSize = 8,
+    showEdgeHandles = false,
   } = props
 
-  let resizing = false
-  let corner: Corner = 'se'
-  let startX = 0
-  let startY = 0
-  let startWidth = 0
-  let startHeight = 0
-  let startNodeX = 0
-  let startNodeY = 0
+  const directions: ResizeDirection[] = showEdgeHandles
+    ? ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w']
+    : ['nw', 'ne', 'sw', 'se']
 
-  const handlePointerDown = (c: Corner) => (e: PointerEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
+  const createHandler = (dir: ResizeDirection) => {
+    let startX = 0
+    let startY = 0
+    let startWidth = 0
+    let startHeight = 0
+    let startNodeX = 0
+    let startNodeY = 0
+    let zoomAtStart = 1
 
-    const node = instance.getNode(nodeId)
-    if (!node) return
+    const onPointerDown = (e: PointerEvent) => {
+      e.stopPropagation()
+      e.preventDefault()
 
-    resizing = true
-    corner = c
-    startX = e.clientX
-    startY = e.clientY
-    startWidth = node.width ?? 150
-    startHeight = node.height ?? 40
-    startNodeX = node.position.x
-    startNodeY = node.position.y
+      const node = instance.getNode(nodeId)
+      if (!node) return
 
-    const doc = (e.target as HTMLElement).ownerDocument
-    const vp = instance.viewport.peek()
+      startX = e.clientX
+      startY = e.clientY
+      startWidth = node.width ?? 150
+      startHeight = node.height ?? 40
+      startNodeX = node.position.x
+      startNodeY = node.position.y
+      zoomAtStart = instance.viewport.peek().zoom
 
-    const onMove = (me: PointerEvent) => {
-      if (!resizing) return
-      const dx = (me.clientX - startX) / vp.zoom
-      const dy = (me.clientY - startY) / vp.zoom
+      // Use pointer capture — clean, no leaks
+      const el = e.currentTarget as HTMLElement
+      el.setPointerCapture(e.pointerId)
+    }
+
+    const onPointerMove = (e: PointerEvent) => {
+      const el = e.currentTarget as HTMLElement
+      if (!el.hasPointerCapture(e.pointerId)) return
+
+      const dx = (e.clientX - startX) / zoomAtStart
+      const dy = (e.clientY - startY) / zoomAtStart
 
       let newW = startWidth
       let newH = startHeight
       let newX = startNodeX
       let newY = startNodeY
 
-      if (corner === 'se' || corner === 'ne')
+      // Horizontal
+      if (dir === 'e' || dir === 'se' || dir === 'ne') {
         newW = Math.max(minWidth, startWidth + dx)
-      if (corner === 'sw' || corner === 'nw') {
+      }
+      if (dir === 'w' || dir === 'sw' || dir === 'nw') {
         newW = Math.max(minWidth, startWidth - dx)
         newX = startNodeX + startWidth - newW
       }
-      if (corner === 'se' || corner === 'sw')
+
+      // Vertical
+      if (dir === 's' || dir === 'se' || dir === 'sw') {
         newH = Math.max(minHeight, startHeight + dy)
-      if (corner === 'ne' || corner === 'nw') {
+      }
+      if (dir === 'n' || dir === 'ne' || dir === 'nw') {
         newH = Math.max(minHeight, startHeight - dy)
         newY = startNodeY + startHeight - newH
       }
@@ -115,29 +136,34 @@ export function NodeResizer(props: NodeResizerProps): VNodeChild {
       })
     }
 
-    const onUp = () => {
-      resizing = false
-      doc.removeEventListener('pointermove', onMove)
-      doc.removeEventListener('pointerup', onUp)
+    const onPointerUp = (e: PointerEvent) => {
+      const el = e.currentTarget as HTMLElement
+      if (el.hasPointerCapture(e.pointerId)) {
+        el.releasePointerCapture(e.pointerId)
+      }
     }
 
-    doc.addEventListener('pointermove', onMove)
-    doc.addEventListener('pointerup', onUp)
+    return { onPointerDown, onPointerMove, onPointerUp }
   }
 
   const size = `${handleSize}px`
-  const baseHandleStyle = `position: absolute; width: ${size}; height: ${size}; background: white; border: 1.5px solid #3b82f6; border-radius: 2px; z-index: 2;`
+  const baseStyle = `position: absolute; width: ${size}; height: ${size}; background: white; border: 1.5px solid #3b82f6; border-radius: 2px; z-index: 2;`
 
   return (
     <>
-      {corners.map((c) => (
-        <div
-          key={c}
-          class={`pyreon-flow-resizer pyreon-flow-resizer-${c}`}
-          style={`${baseHandleStyle} ${cornerPositions[c]} cursor: ${cornerCursors[c]};`}
-          onPointerdown={handlePointerDown(c)}
-        />
-      ))}
+      {directions.map((dir) => {
+        const handler = createHandler(dir)
+        return (
+          <div
+            key={dir}
+            class={`pyreon-flow-resizer pyreon-flow-resizer-${dir}`}
+            style={`${baseStyle} ${directionPositions[dir]} cursor: ${directionCursors[dir]};`}
+            onPointerdown={handler.onPointerDown}
+            onPointermove={handler.onPointerMove}
+            onPointerup={handler.onPointerUp}
+          />
+        )
+      })}
     </>
   )
 }

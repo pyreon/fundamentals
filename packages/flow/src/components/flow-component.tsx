@@ -84,10 +84,8 @@ interface DragState {
   nodeId: string
   startX: number
   startY: number
-  startNodeX: number
-  startNodeY: number
-  _lastDx: number
-  _lastDy: number
+  /** Starting positions of all nodes being dragged (for multi-drag) */
+  startPositions: Map<string, { x: number; y: number }>
 }
 
 const emptyDrag: DragState = {
@@ -95,10 +93,7 @@ const emptyDrag: DragState = {
   nodeId: '',
   startX: 0,
   startY: 0,
-  startNodeX: 0,
-  startNodeY: 0,
-  _lastDx: 0,
-  _lastDy: 0,
+  startPositions: new Map(),
 }
 
 // ─── Edge Layer ──────────────────────────────────────────────────────────────
@@ -402,15 +397,28 @@ export function Flow(props: FlowComponentProps): VNodeChild {
   const handleNodePointerDown = (e: PointerEvent, node: FlowNode) => {
     e.stopPropagation()
 
+    // Capture starting positions of all selected nodes (for multi-drag)
+    const selected = instance.selectedNodes()
+    const startPositions = new Map<string, { x: number; y: number }>()
+
+    // Always include the dragged node
+    startPositions.set(node.id, { ...node.position })
+
+    // Include other selected nodes if this node is part of selection
+    if (selected.includes(node.id)) {
+      for (const nid of selected) {
+        if (nid === node.id) continue
+        const n = instance.getNode(nid)
+        if (n) startPositions.set(nid, { ...n.position })
+      }
+    }
+
     dragState.set({
       active: true,
       nodeId: node.id,
       startX: e.clientX,
       startY: e.clientY,
-      startNodeX: node.position.x,
-      startNodeY: node.position.y,
-      _lastDx: 0,
-      _lastDy: 0,
+      startPositions,
     })
 
     instance.selectNode(node.id, e.shiftKey)
@@ -558,38 +566,29 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       const vp = instance.viewport.peek()
       const dx = (e.clientX - drag.startX) / vp.zoom
       const dy = (e.clientY - drag.startY) / vp.zoom
-      const rawPos = { x: drag.startNodeX + dx, y: drag.startNodeY + dy }
 
+      const primaryStart = drag.startPositions.get(drag.nodeId)
+      if (!primaryStart) return
+
+      const rawPos = { x: primaryStart.x + dx, y: primaryStart.y + dy }
       const snap = instance.getSnapLines(drag.nodeId, rawPos)
       helperLines.set({ x: snap.x, y: snap.y })
-      instance.updateNodePosition(drag.nodeId, snap.snappedPosition)
 
-      // Multi-node drag: move other selected nodes by the same delta
-      const selected = instance.selectedNodes()
-      if (selected.length > 1 && selected.includes(drag.nodeId)) {
-        const prevNode = instance.getNode(drag.nodeId)
-        if (prevNode) {
-          const actualDx = snap.snappedPosition.x - drag.startNodeX
-          const actualDy = snap.snappedPosition.y - drag.startNodeY
-          instance.nodes.update((nds) =>
-            nds.map((n) => {
-              if (n.id === drag.nodeId || !selected.includes(n.id)) return n
-              return {
-                ...n,
-                position: {
-                  x: n.position.x + (actualDx - (drag._lastDx ?? 0)),
-                  y: n.position.y + (actualDy - (drag._lastDy ?? 0)),
-                },
-              }
-            }),
-          )
-          dragState.set({
-            ...drag,
-            _lastDx: actualDx,
-            _lastDy: actualDy,
-          })
-        }
-      }
+      // Calculate actual delta (including snap adjustment)
+      const actualDx = snap.snappedPosition.x - primaryStart.x
+      const actualDy = snap.snappedPosition.y - primaryStart.y
+
+      // Update all dragged nodes from their starting positions
+      instance.nodes.update((nds) =>
+        nds.map((n) => {
+          const start = drag.startPositions.get(n.id)
+          if (!start) return n
+          return {
+            ...n,
+            position: { x: start.x + actualDx, y: start.y + actualDy },
+          }
+        }),
+      )
       return
     }
 

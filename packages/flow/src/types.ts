@@ -84,6 +84,8 @@ export interface FlowEdge {
   animated?: boolean
   class?: string
   style?: string
+  /** Custom data attached to the edge */
+  data?: Record<string, unknown>
 }
 
 // ─── Connection ──────────────────────────────────────────────────────────────
