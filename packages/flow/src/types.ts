@@ -283,6 +283,26 @@ export interface FlowInstance {
     threshold?: number,
   ) => { x: number | null; y: number | null; snappedPosition: XYPosition }
 
+  // ── Sub-flows / Groups ───────────────────────────────────────────────────
+
+  /** Get child nodes of a group node */
+  getChildNodes: (parentId: string) => FlowNode[]
+  /** Get absolute position of a node (accounting for parent offsets) */
+  getAbsolutePosition: (nodeId: string) => XYPosition
+
+  // ── Edge reconnecting ──────────────────────────────────────────────────
+
+  /** Reconnect an edge to a new source/target */
+  reconnectEdge: (
+    edgeId: string,
+    newConnection: {
+      source?: string
+      target?: string
+      sourceHandle?: string
+      targetHandle?: string
+    },
+  ) => void
+
   // ── Config ───────────────────────────────────────────────────────────────
 
   /** The flow configuration */

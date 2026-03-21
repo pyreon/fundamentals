@@ -620,6 +620,52 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     return { x: snapX, y: snapY, snappedPosition: { x: snappedX, y: snappedY } }
   }
 
+  // ── Sub-flows / Groups ──────────────────────────────────────────────────
+
+  function getChildNodes(parentId: string): FlowNode[] {
+    return nodes.peek().filter((n) => n.parentId === parentId)
+  }
+
+  function getAbsolutePosition(nodeId: string): XYPosition {
+    const node = getNode(nodeId)
+    if (!node) return { x: 0, y: 0 }
+
+    if (node.parentId) {
+      const parentPos = getAbsolutePosition(node.parentId)
+      return {
+        x: parentPos.x + node.position.x,
+        y: parentPos.y + node.position.y,
+      }
+    }
+
+    return node.position
+  }
+
+  // ── Edge reconnecting ──────────────────────────────────────────────────
+
+  function reconnectEdge(
+    targetEdgeId: string,
+    newConnection: {
+      source?: string
+      target?: string
+      sourceHandle?: string
+      targetHandle?: string
+    },
+  ): void {
+    edges.update((eds) =>
+      eds.map((e) => {
+        if (e.id !== targetEdgeId) return e
+        return {
+          ...e,
+          source: newConnection.source ?? e.source,
+          target: newConnection.target ?? e.target,
+          sourceHandle: newConnection.sourceHandle ?? e.sourceHandle,
+          targetHandle: newConnection.targetHandle ?? e.targetHandle,
+        }
+      }),
+    )
+  }
+
   // ── Dispose ──────────────────────────────────────────────────────────────
 
   function dispose(): void {
@@ -679,6 +725,9 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     redo,
     moveSelectedNodes,
     getSnapLines,
+    getChildNodes,
+    getAbsolutePosition,
+    reconnectEdge,
     config,
     dispose,
   }

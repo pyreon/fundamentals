@@ -49,6 +49,8 @@ export {
 export { createFlow } from './flow'
 // Layout
 export { computeLayout } from './layout'
+// Styles
+export { flowStyles } from './styles'
 export type {
   BackgroundProps,
   Connection,
