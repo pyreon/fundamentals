@@ -18,7 +18,8 @@
       "@pyreon/storage",
       "@pyreon/hotkeys",
       "@pyreon/permissions",
-      "@pyreon/machine"
+      "@pyreon/machine",
+      "@pyreon/flow"
     ]
   ],
   "access": "public",
