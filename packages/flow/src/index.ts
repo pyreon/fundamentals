@@ -31,6 +31,10 @@ export type { FlowComponentProps } from './components/flow-component'
 export { Flow } from './components/flow-component'
 export { Handle } from './components/handle'
 export { MiniMap } from './components/minimap'
+export type { NodeResizerProps } from './components/node-resizer'
+export { NodeResizer } from './components/node-resizer'
+export type { NodeToolbarProps } from './components/node-toolbar'
+export { NodeToolbar } from './components/node-toolbar'
 export { Panel } from './components/panel'
 // Edge path utilities
 export {

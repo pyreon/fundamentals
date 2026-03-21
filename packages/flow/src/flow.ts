@@ -436,6 +436,190 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     return () => edgeClickListeners.delete(callback)
   }
 
+  // ── Copy / Paste ────────────────────────────────────────────────────────
+
+  let clipboard: { nodes: FlowNode[]; edges: FlowEdge[] } | null = null
+
+  function copySelected(): void {
+    const selectedNodeSet = selectedNodeIds.peek()
+    if (selectedNodeSet.size === 0) return
+
+    const copiedNodes = nodes.peek().filter((n) => selectedNodeSet.has(n.id))
+    const nodeIdSet = new Set(copiedNodes.map((n) => n.id))
+    const copiedEdges = edges
+      .peek()
+      .filter((e) => nodeIdSet.has(e.source) && nodeIdSet.has(e.target))
+
+    clipboard = { nodes: copiedNodes, edges: copiedEdges }
+  }
+
+  function paste(offset: XYPosition = { x: 50, y: 50 }): void {
+    if (!clipboard) return
+
+    const idMap = new Map<string, string>()
+    const newNodes: FlowNode[] = []
+
+    // Create new nodes with offset positions and new ids
+    for (const node of clipboard.nodes) {
+      const newId = `${node.id}-copy-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+      idMap.set(node.id, newId)
+      newNodes.push({
+        ...node,
+        id: newId,
+        position: {
+          x: node.position.x + offset.x,
+          y: node.position.y + offset.y,
+        },
+      })
+    }
+
+    const newEdges: FlowEdge[] = clipboard.edges.map((e) => ({
+      ...e,
+      id: undefined,
+      source: idMap.get(e.source) ?? e.source,
+      target: idMap.get(e.target) ?? e.target,
+    }))
+
+    batch(() => {
+      for (const node of newNodes) addNode(node)
+      for (const edge of newEdges) addEdge(edge)
+
+      // Select pasted nodes
+      selectedNodeIds.set(new Set(newNodes.map((n) => n.id)))
+      selectedEdgeIds.set(new Set())
+    })
+  }
+
+  // ── Undo / Redo ────────────────────────────────────────────────────────
+
+  const undoStack: Array<{ nodes: FlowNode[]; edges: FlowEdge[] }> = []
+  const redoStack: Array<{ nodes: FlowNode[]; edges: FlowEdge[] }> = []
+  const maxHistory = 50
+
+  function pushHistory(): void {
+    undoStack.push({
+      nodes: structuredClone(nodes.peek()),
+      edges: structuredClone(edges.peek()),
+    })
+    if (undoStack.length > maxHistory) undoStack.shift()
+    redoStack.length = 0
+  }
+
+  function undo(): void {
+    const prev = undoStack.pop()
+    if (!prev) return
+
+    redoStack.push({
+      nodes: structuredClone(nodes.peek()),
+      edges: structuredClone(edges.peek()),
+    })
+
+    batch(() => {
+      nodes.set(prev.nodes)
+      edges.set(prev.edges)
+      clearSelection()
+    })
+  }
+
+  function redo(): void {
+    const next = redoStack.pop()
+    if (!next) return
+
+    undoStack.push({
+      nodes: structuredClone(nodes.peek()),
+      edges: structuredClone(edges.peek()),
+    })
+
+    batch(() => {
+      nodes.set(next.nodes)
+      edges.set(next.edges)
+      clearSelection()
+    })
+  }
+
+  // ── Multi-node drag ────────────────────────────────────────────────────
+
+  function moveSelectedNodes(dx: number, dy: number): void {
+    const selected = selectedNodeIds.peek()
+    if (selected.size === 0) return
+
+    nodes.update((nds) =>
+      nds.map((n) => {
+        if (!selected.has(n.id)) return n
+        return {
+          ...n,
+          position: {
+            x: n.position.x + dx,
+            y: n.position.y + dy,
+          },
+        }
+      }),
+    )
+  }
+
+  // ── Helper lines (snap guides) ─────────────────────────────────────────
+
+  function getSnapLines(
+    dragNodeId: string,
+    position: XYPosition,
+    threshold = 5,
+  ): { x: number | null; y: number | null; snappedPosition: XYPosition } {
+    const dragNode = getNode(dragNodeId)
+    if (!dragNode) return { x: null, y: null, snappedPosition: position }
+
+    const w = dragNode.width ?? 150
+    const h = dragNode.height ?? 40
+    const dragCenterX = position.x + w / 2
+    const dragCenterY = position.y + h / 2
+
+    let snapX: number | null = null
+    let snapY: number | null = null
+    let snappedX = position.x
+    let snappedY = position.y
+
+    for (const node of nodes.peek()) {
+      if (node.id === dragNodeId) continue
+      const nw = node.width ?? 150
+      const nh = node.height ?? 40
+      const nodeCenterX = node.position.x + nw / 2
+      const nodeCenterY = node.position.y + nh / 2
+
+      // Snap to center X
+      if (Math.abs(dragCenterX - nodeCenterX) < threshold) {
+        snapX = nodeCenterX
+        snappedX = nodeCenterX - w / 2
+      }
+      // Snap to left edge
+      if (Math.abs(position.x - node.position.x) < threshold) {
+        snapX = node.position.x
+        snappedX = node.position.x
+      }
+      // Snap to right edge
+      if (Math.abs(position.x + w - (node.position.x + nw)) < threshold) {
+        snapX = node.position.x + nw
+        snappedX = node.position.x + nw - w
+      }
+
+      // Snap to center Y
+      if (Math.abs(dragCenterY - nodeCenterY) < threshold) {
+        snapY = nodeCenterY
+        snappedY = nodeCenterY - h / 2
+      }
+      // Snap to top edge
+      if (Math.abs(position.y - node.position.y) < threshold) {
+        snapY = node.position.y
+        snappedY = node.position.y
+      }
+      // Snap to bottom edge
+      if (Math.abs(position.y + h - (node.position.y + nh)) < threshold) {
+        snapY = node.position.y + nh
+        snappedY = node.position.y + nh - h
+      }
+    }
+
+    return { x: snapX, y: snapY, snappedPosition: { x: snappedX, y: snappedY } }
+  }
+
   // ── Dispose ──────────────────────────────────────────────────────────────
 
   function dispose(): void {
@@ -488,6 +672,13 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     onNodesChange,
     onNodeClick,
     onEdgeClick,
+    copySelected,
+    paste,
+    pushHistory,
+    undo,
+    redo,
+    moveSelectedNodes,
+    getSnapLines,
     config,
     dispose,
   }

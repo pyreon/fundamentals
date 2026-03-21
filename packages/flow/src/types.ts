@@ -253,6 +253,36 @@ export interface FlowInstance {
   /** Called when an edge is clicked */
   onEdgeClick: (callback: (edge: FlowEdge) => void) => () => void
 
+  // ── Copy / Paste ─────────────────────────────────────────────────────────
+
+  /** Copy selected nodes and their edges to clipboard */
+  copySelected: () => void
+  /** Paste clipboard contents with offset */
+  paste: (offset?: XYPosition) => void
+
+  // ── Undo / Redo ─────────────────────────────────────────────────────────
+
+  /** Save current state to undo history */
+  pushHistory: () => void
+  /** Undo last change */
+  undo: () => void
+  /** Redo last undone change */
+  redo: () => void
+
+  // ── Multi-node drag ─────────────────────────────────────────────────────
+
+  /** Move all selected nodes by dx/dy */
+  moveSelectedNodes: (dx: number, dy: number) => void
+
+  // ── Helper lines ────────────────────────────────────────────────────────
+
+  /** Get snap guide lines for a dragged node */
+  getSnapLines: (
+    dragNodeId: string,
+    position: XYPosition,
+    threshold?: number,
+  ) => { x: number | null; y: number | null; snappedPosition: XYPosition }
+
   // ── Config ───────────────────────────────────────────────────────────────
 
   /** The flow configuration */

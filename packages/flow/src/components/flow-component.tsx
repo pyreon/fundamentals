@@ -82,6 +82,8 @@ interface DragState {
   startY: number
   startNodeX: number
   startNodeY: number
+  _lastDx: number
+  _lastDy: number
 }
 
 const emptyDrag: DragState = {
@@ -91,6 +93,8 @@ const emptyDrag: DragState = {
   startY: 0,
   startNodeX: 0,
   startNodeY: 0,
+  _lastDx: 0,
+  _lastDy: 0,
 }
 
 // ─── Edge Layer ──────────────────────────────────────────────────────────────
@@ -342,6 +346,10 @@ export function Flow(props: FlowComponentProps): VNodeChild {
   const dragState = signal<DragState>({ ...emptyDrag })
   const connectionState = signal<ConnectionState>({ ...emptyConnection })
   const selectionBox = signal<SelectionBoxState>({ ...emptySelectionBox })
+  const helperLines = signal<{ x: number | null; y: number | null }>({
+    x: null,
+    y: null,
+  })
 
   const draggingNodeId = () => (dragState().active ? dragState().nodeId : '')
 
@@ -357,6 +365,8 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       startY: e.clientY,
       startNodeX: node.position.x,
       startNodeY: node.position.y,
+      _lastDx: 0,
+      _lastDy: 0,
     })
 
     instance.selectNode(node.id, e.shiftKey)
@@ -500,14 +510,42 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     }
 
     if (drag.active) {
-      // Node dragging
+      // Node dragging with snap guides
       const vp = instance.viewport.peek()
       const dx = (e.clientX - drag.startX) / vp.zoom
       const dy = (e.clientY - drag.startY) / vp.zoom
-      instance.updateNodePosition(drag.nodeId, {
-        x: drag.startNodeX + dx,
-        y: drag.startNodeY + dy,
-      })
+      const rawPos = { x: drag.startNodeX + dx, y: drag.startNodeY + dy }
+
+      const snap = instance.getSnapLines(drag.nodeId, rawPos)
+      helperLines.set({ x: snap.x, y: snap.y })
+      instance.updateNodePosition(drag.nodeId, snap.snappedPosition)
+
+      // Multi-node drag: move other selected nodes by the same delta
+      const selected = instance.selectedNodes()
+      if (selected.length > 1 && selected.includes(drag.nodeId)) {
+        const prevNode = instance.getNode(drag.nodeId)
+        if (prevNode) {
+          const actualDx = snap.snappedPosition.x - drag.startNodeX
+          const actualDy = snap.snappedPosition.y - drag.startNodeY
+          instance.nodes.update((nds) =>
+            nds.map((n) => {
+              if (n.id === drag.nodeId || !selected.includes(n.id)) return n
+              return {
+                ...n,
+                position: {
+                  x: n.position.x + (actualDx - (drag._lastDx ?? 0)),
+                  y: n.position.y + (actualDy - (drag._lastDy ?? 0)),
+                },
+              }
+            }),
+          )
+          dragState.set({
+            ...drag,
+            _lastDx: actualDx,
+            _lastDy: actualDy,
+          })
+        }
+      }
       return
     }
 
@@ -568,6 +606,7 @@ export function Flow(props: FlowComponentProps): VNodeChild {
 
     if (drag.active) {
       dragState.set({ ...emptyDrag })
+      helperLines.set({ x: null, y: null })
     }
 
     if (conn.active) {
@@ -620,9 +659,82 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       e.preventDefault()
       instance.selectAll()
     }
+    if (e.key === 'c' && (e.metaKey || e.ctrlKey)) {
+      instance.copySelected()
+    }
+    if (e.key === 'v' && (e.metaKey || e.ctrlKey)) {
+      instance.paste()
+    }
+    if (e.key === 'z' && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+      e.preventDefault()
+      instance.undo()
+    }
+    if (e.key === 'z' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+      e.preventDefault()
+      instance.redo()
+    }
   }
 
-  const containerStyle = `position: relative; width: 100%; height: 100%; overflow: hidden; outline: none; ${props.style ?? ''}`
+  // ── Touch support (pinch zoom) ──────────────────────────────────────────
+
+  let lastTouchDist = 0
+  let lastTouchCenter = { x: 0, y: 0 }
+
+  const handleTouchStart = (e: TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      const t1 = e.touches[0]!
+      const t2 = e.touches[1]!
+      lastTouchDist = Math.hypot(
+        t2.clientX - t1.clientX,
+        t2.clientY - t1.clientY,
+      )
+      lastTouchCenter = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2,
+      }
+    }
+  }
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (e.touches.length === 2 && instance.config.zoomable !== false) {
+      e.preventDefault()
+      const t1 = e.touches[0]!
+      const t2 = e.touches[1]!
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      const center = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2,
+      }
+
+      const vp = instance.viewport.peek()
+      const scaleFactor = dist / lastTouchDist
+      const newZoom = Math.min(
+        Math.max(vp.zoom * scaleFactor, instance.config.minZoom ?? 0.1),
+        instance.config.maxZoom ?? 4,
+      )
+
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      const mouseX = center.x - rect.left
+      const mouseY = center.y - rect.top
+      const scale = newZoom / vp.zoom
+
+      // Pan with touch center movement
+      const panDx = center.x - lastTouchCenter.x
+      const panDy = center.y - lastTouchCenter.y
+
+      instance.viewport.set({
+        x: mouseX - (mouseX - vp.x) * scale + panDx,
+        y: mouseY - (mouseY - vp.y) * scale + panDy,
+        zoom: newZoom,
+      })
+
+      lastTouchDist = dist
+      lastTouchCenter = center
+    }
+  }
+
+  const containerStyle = `position: relative; width: 100%; height: 100%; overflow: hidden; outline: none; touch-action: none; ${props.style ?? ''}`
 
   return (
     <div
@@ -633,6 +745,8 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       onPointerdown={handlePointerDown}
       onPointermove={handlePointerMove}
       onPointerup={handlePointerUp}
+      onTouchstart={handleTouchStart}
+      onTouchmove={handleTouchMove}
       onKeydown={handleKeyDown}
     >
       {children}
@@ -659,6 +773,40 @@ export function Flow(props: FlowComponentProps): VNodeChild {
                   class="pyreon-flow-selection-box"
                   style={`position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; border: 1px dashed #3b82f6; background: rgba(59, 130, 246, 0.08); pointer-events: none; z-index: 10;`}
                 />
+              )
+            }}
+            {() => {
+              const lines = helperLines()
+              if (!lines.x && !lines.y) return null
+              return (
+                <svg
+                  role="img"
+                  aria-label="helper lines"
+                  style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 5;"
+                >
+                  {lines.x !== null && (
+                    <line
+                      x1={String(lines.x)}
+                      y1="-10000"
+                      x2={String(lines.x)}
+                      y2="10000"
+                      stroke="#3b82f6"
+                      stroke-width="0.5"
+                      stroke-dasharray="4,4"
+                    />
+                  )}
+                  {lines.y !== null && (
+                    <line
+                      x1="-10000"
+                      y1={String(lines.y)}
+                      x2="10000"
+                      y2={String(lines.y)}
+                      stroke="#3b82f6"
+                      stroke-width="0.5"
+                      stroke-dasharray="4,4"
+                    />
+                  )}
+                </svg>
               )
             }}
             <NodeLayer
