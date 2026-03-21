@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pyreon/core": "^0.2.1",
-    "@pyreon/reactivity": "^0.2.1",
-    "@pyreon/runtime-dom": "^0.2.1",
+    "@pyreon/core": "^0.5.4",
+    "@pyreon/reactivity": "^0.5.4",
+    "@pyreon/runtime-dom": "^0.5.4",
     "@pyreon/store": "workspace:*",
     "@pyreon/state-tree": "workspace:*",
     "@pyreon/form": "workspace:*",
@@ -20,13 +20,17 @@
     "@pyreon/query": "workspace:*",
     "@pyreon/table": "workspace:*",
     "@pyreon/virtual": "workspace:*",
+    "@pyreon/storage": "workspace:*",
+    "@pyreon/hotkeys": "workspace:*",
+    "@pyreon/permissions": "workspace:*",
+    "@pyreon/machine": "workspace:*",
     "@tanstack/query-core": "^5.90.20",
     "@tanstack/table-core": "^8.21.3",
     "@tanstack/virtual-core": "^3.13.23",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@pyreon/vite-plugin": "^0.2.1",
+    "@pyreon/vite-plugin": "^0.5.4",
     "typescript": "^5.9.3",
     "vite": "^8.0.0"
   }
