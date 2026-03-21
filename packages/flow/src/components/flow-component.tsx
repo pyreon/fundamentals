@@ -55,6 +55,24 @@ const emptyConnection: ConnectionState = {
   currentY: 0,
 }
 
+// ─── Selection box state ─────────────────────────────────────────────────────
+
+interface SelectionBoxState {
+  active: boolean
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+}
+
+const emptySelectionBox: SelectionBoxState = {
+  active: false,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0,
+}
+
 // ─── Drag state ──────────────────────────────────────────────────────────────
 
 interface DragState {
@@ -323,6 +341,7 @@ export function Flow(props: FlowComponentProps): VNodeChild {
 
   const dragState = signal<DragState>({ ...emptyDrag })
   const connectionState = signal<ConnectionState>({ ...emptyConnection })
+  const selectionBox = signal<SelectionBoxState>({ ...emptySelectionBox })
 
   const draggingNodeId = () => (dragState().active ? dragState().nodeId : '')
 
@@ -433,6 +452,25 @@ export function Flow(props: FlowComponentProps): VNodeChild {
     if (target.closest('.pyreon-flow-node')) return
     if (target.closest('.pyreon-flow-handle')) return
 
+    // Shift+drag on empty space → selection box
+    if (e.shiftKey && instance.config.multiSelect !== false) {
+      const container = e.currentTarget as HTMLElement
+      const rect = container.getBoundingClientRect()
+      const vp = instance.viewport.peek()
+      const flowX = (e.clientX - rect.left - vp.x) / vp.zoom
+      const flowY = (e.clientY - rect.top - vp.y) / vp.zoom
+
+      selectionBox.set({
+        active: true,
+        startX: flowX,
+        startY: flowY,
+        currentX: flowX,
+        currentY: flowY,
+      })
+      container.setPointerCapture(e.pointerId)
+      return
+    }
+
     isPanning = true
     panStartX = e.clientX
     panStartY = e.clientY
@@ -449,6 +487,17 @@ export function Flow(props: FlowComponentProps): VNodeChild {
   const handlePointerMove = (e: PointerEvent) => {
     const drag = dragState.peek()
     const conn = connectionState.peek()
+    const sel = selectionBox.peek()
+
+    if (sel.active) {
+      const container = e.currentTarget as HTMLElement
+      const rect = container.getBoundingClientRect()
+      const vp = instance.viewport.peek()
+      const flowX = (e.clientX - rect.left - vp.x) / vp.zoom
+      const flowY = (e.clientY - rect.top - vp.y) / vp.zoom
+      selectionBox.set({ ...sel, currentX: flowX, currentY: flowY })
+      return
+    }
 
     if (drag.active) {
       // Node dragging
@@ -492,6 +541,30 @@ export function Flow(props: FlowComponentProps): VNodeChild {
   const handlePointerUp = (e: PointerEvent) => {
     const drag = dragState.peek()
     const conn = connectionState.peek()
+    const sel = selectionBox.peek()
+
+    if (sel.active) {
+      // Select all nodes within the selection rectangle
+      const minX = Math.min(sel.startX, sel.currentX)
+      const minY = Math.min(sel.startY, sel.currentY)
+      const maxX = Math.max(sel.startX, sel.currentX)
+      const maxY = Math.max(sel.startY, sel.currentY)
+
+      instance.clearSelection()
+      for (const node of instance.nodes.peek()) {
+        const w = node.width ?? 150
+        const h = node.height ?? 40
+        const nx = node.position.x
+        const ny = node.position.y
+        // Node is within box if any part overlaps
+        if (nx + w > minX && nx < maxX && ny + h > minY && ny < maxY) {
+          instance.selectNode(node.id, true)
+        }
+      }
+
+      selectionBox.set({ ...emptySelectionBox })
+      return
+    }
 
     if (drag.active) {
       dragState.set({ ...emptyDrag })
@@ -574,6 +647,20 @@ export function Flow(props: FlowComponentProps): VNodeChild {
               instance={instance}
               connectionState={() => connectionState()}
             />
+            {() => {
+              const sel = selectionBox()
+              if (!sel.active) return null
+              const x = Math.min(sel.startX, sel.currentX)
+              const y = Math.min(sel.startY, sel.currentY)
+              const w = Math.abs(sel.currentX - sel.startX)
+              const h = Math.abs(sel.currentY - sel.startY)
+              return (
+                <div
+                  class="pyreon-flow-selection-box"
+                  style={`position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; border: 1px dashed #3b82f6; background: rgba(59, 130, 246, 0.08); pointer-events: none; z-index: 10;`}
+                />
+              )
+            }}
             <NodeLayer
               instance={instance}
               nodeTypes={nodeTypes}
