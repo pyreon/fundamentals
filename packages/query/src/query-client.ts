@@ -1,12 +1,5 @@
 import type { Props, VNode, VNodeChild } from '@pyreon/core'
-import {
-  createContext,
-  onMount,
-  onUnmount,
-  popContext,
-  pushContext,
-  useContext,
-} from '@pyreon/core'
+import { createContext, onMount, provide, useContext } from '@pyreon/core'
 import type { QueryClient } from '@tanstack/query-core'
 
 export interface QueryClientProviderProps extends Props {
@@ -25,10 +18,7 @@ export const QueryClientContext = createContext<QueryClient | null>(null)
  * mount(h(QueryClientProvider, { client }, h(App, null)), el)
  */
 export function QueryClientProvider(props: QueryClientProviderProps): VNode {
-  // Push synchronously so all descendant component functions see the context.
-  // Pop on unmount (matches the HeadProvider pattern in @pyreon/head).
-  const frame = new Map([[QueryClientContext.id, props.client]])
-  pushContext(frame)
+  provide(QueryClientContext, props.client)
 
   // client.mount() activates window focus refetching and online/offline handling.
   // client.unmount() unsubscribes focusManager + onlineManager when the provider leaves the tree.
@@ -36,8 +26,6 @@ export function QueryClientProvider(props: QueryClientProviderProps): VNode {
     props.client.mount()
     return () => props.client.unmount()
   })
-
-  onUnmount(() => popContext())
 
   const ch = props.children
   return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode

@@ -1,11 +1,5 @@
 import type { Props, VNode, VNodeChild } from '@pyreon/core'
-import {
-  createContext,
-  onUnmount,
-  popContext,
-  pushContext,
-  useContext,
-} from '@pyreon/core'
+import { createContext, provide, useContext } from '@pyreon/core'
 import { useQueryClient } from './query-client'
 
 // ─── Context ────────────────────────────────────────────────────────────────
@@ -56,9 +50,7 @@ export function QueryErrorResetBoundary(
     },
   }
 
-  const frame = new Map([[QueryErrorResetBoundaryContext.id, value]])
-  pushContext(frame)
-  onUnmount(() => popContext())
+  provide(QueryErrorResetBoundaryContext, value)
 
   const ch = props.children
   return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode
