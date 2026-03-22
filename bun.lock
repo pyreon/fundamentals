@@ -26,7 +26,7 @@
     },
     "examples/playground": {
       "name": "@pyreon/playground",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@pyreon/core": "^0.5.4",
         "@pyreon/form": "workspace:*",
@@ -56,7 +56,7 @@
     },
     "packages/charts": {
       "name": "@pyreon/charts",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@pyreon/core": ">=0.5.0 <1.0.0",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -71,7 +71,7 @@
     },
     "packages/feature": {
       "name": "@pyreon/feature",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "dependencies": {
         "@pyreon/form": "workspace:^",
         "@pyreon/query": "workspace:^",
@@ -91,9 +91,26 @@
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
       },
     },
+    "packages/flow": {
+      "name": "@pyreon/flow",
+      "version": "0.5.0",
+      "dependencies": {
+        "elkjs": "^0.9.3",
+      },
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.8.3",
+        "@pyreon/core": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@vitus-labs/tools-lint": "^1.11.0",
+      },
+      "peerDependencies": {
+        "@pyreon/core": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+      },
+    },
     "packages/form": {
       "name": "@pyreon/form",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -107,7 +124,7 @@
     },
     "packages/hotkeys": {
       "name": "@pyreon/hotkeys",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -121,7 +138,7 @@
     },
     "packages/i18n": {
       "name": "@pyreon/i18n",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -135,7 +152,7 @@
     },
     "packages/machine": {
       "name": "@pyreon/machine",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -147,7 +164,7 @@
     },
     "packages/permissions": {
       "name": "@pyreon/permissions",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -161,7 +178,7 @@
     },
     "packages/query": {
       "name": "@pyreon/query",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "dependencies": {
         "@tanstack/query-core": "^5.0.0",
       },
@@ -178,7 +195,7 @@
     },
     "packages/state-tree": {
       "name": "@pyreon/state-tree",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -189,7 +206,7 @@
     },
     "packages/storage": {
       "name": "@pyreon/storage",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -201,7 +218,7 @@
     },
     "packages/store": {
       "name": "@pyreon/store",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -213,7 +230,7 @@
     },
     "packages/storybook": {
       "name": "@pyreon/storybook",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "peerDependencies": {
         "@pyreon/core": ">=0.5.0 <1.0.0",
         "@pyreon/reactivity": ">=0.5.0 <1.0.0",
@@ -223,7 +240,7 @@
     },
     "packages/table": {
       "name": "@pyreon/table",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "dependencies": {
         "@tanstack/table-core": "^8.0.0",
       },
@@ -240,7 +257,7 @@
     },
     "packages/validation": {
       "name": "@pyreon/validation",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
         "@pyreon/core": ">=0.5.0 <1.0.0",
@@ -257,7 +274,7 @@
     },
     "packages/virtual": {
       "name": "@pyreon/virtual",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "dependencies": {
         "@tanstack/virtual-core": "^3.0.0",
       },
@@ -463,6 +480,8 @@
     "@pyreon/core": ["@pyreon/core@0.5.4", "", { "dependencies": { "@pyreon/reactivity": "^0.5.4" } }, "sha512-qk4CeokUzzIdE0g5DsZLB+N3kbNLtpmu4L+f153WB1pU5/N3B+GhbXMlDb0FKXLf6prO8SrouoakmB9Bd2XQZg=="],
 
     "@pyreon/feature": ["@pyreon/feature@workspace:packages/feature"],
+
+    "@pyreon/flow": ["@pyreon/flow@workspace:packages/flow"],
 
     "@pyreon/form": ["@pyreon/form@workspace:packages/form"],
 
@@ -787,6 +806,8 @@
     "eastasianwidth": ["eastasianwidth@0.2.0", "", {}, "sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA=="],
 
     "echarts": ["echarts@6.0.0", "", { "dependencies": { "tslib": "2.3.0", "zrender": "6.0.0" } }, "sha512-Tte/grDQRiETQP4xz3iZWSvoHrkCQtwqd6hs+mifXcjrCuo2iKWbajFObuLJVBlDIJlOzgQPd1hsaKt/3+OMkQ=="],
+
+    "elkjs": ["elkjs@0.9.3", "", {}, "sha512-f/ZeWvW/BCXbhGEf1Ujp29EASo/lk1FDnETgNKwJrsVvGZhUWCZyg3xLJjAsxfOmt8KjswHmI5EwCQcPMpOYhQ=="],
 
     "emoji-regex": ["emoji-regex@8.0.0", "", {}, "sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A=="],
 

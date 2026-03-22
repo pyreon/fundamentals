@@ -23,6 +23,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/hotkeys` | Keyboard shortcut management — scope-aware, modifier keys, conflict detection |
 | `@pyreon/permissions` | Reactive permissions — type-safe, signal-driven, universal (RBAC, ABAC, feature flags) |
 | `@pyreon/machine` | Reactive state machines — constrained signals with type-safe transitions |
+| `@pyreon/flow` | Reactive flow diagrams — signal-native nodes, edges, pan/zoom, auto-layout via elkjs |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -201,6 +202,24 @@ packages/[name]/
 - Permission values: `boolean` (static) or `(context?) => boolean` (predicate)
 - `PermissionsProvider` / `usePermissions()` — context pattern for SSR/testing
 - Universal: RBAC, ABAC, feature flags, subscription tiers — any model maps to string → boolean/function
+
+### @pyreon/flow
+
+- `createFlow({ nodes, edges, ...config })` — create a reactive flow instance with signal-based state
+- `flow.nodes` / `flow.edges` / `flow.viewport` — reactive signals for all state
+- `flow.addNode()` / `flow.removeNode()` / `flow.updateNode()` / `flow.updateNodePosition()` — node operations
+- `flow.addEdge()` / `flow.removeEdge()` — edge operations with auto-generated ids
+- `flow.selectNode()` / `flow.selectEdge()` / `flow.clearSelection()` / `flow.deleteSelected()` — selection
+- `flow.zoomIn()` / `flow.zoomOut()` / `flow.zoomTo()` / `flow.fitView()` / `flow.panTo()` — viewport
+- `flow.layout(algorithm, options)` — auto-layout via elkjs (lazy-loaded): layered, force, stress, tree, radial, box
+- `flow.isValidConnection(connection)` — declarative connection rules by node type
+- `flow.getConnectedEdges()` / `flow.getIncomers()` / `flow.getOutgoers()` — graph queries
+- `flow.onConnect()` / `flow.onNodesChange()` / `flow.onNodeClick()` / `flow.onEdgeClick()` — listeners
+- Components: `<Flow>`, `<Background>`, `<MiniMap>`, `<Controls>`, `<Handle>`, `<Panel>`
+- Edge paths: `getBezierPath()`, `getSmoothStepPath()`, `getStraightPath()`, `getStepPath()`
+- No D3 — pan/zoom via pointer events + CSS transforms
+- `Position` enum: `Top`, `Right`, `Bottom`, `Left`
+- elkjs dependency for auto-layout (lazy-loaded, zero cost until `flow.layout()` is called)
 
 ### @pyreon/machine
 

@@ -31,6 +31,19 @@
           }
         }
       }
+    },
+    {
+      "includes": ["packages/flow/src/components/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noSvgWithoutTitle": "off",
+            "noStaticElementInteractions": "off",
+            "useKeyWithClickEvents": "off",
+            "noNoninteractiveTabindex": "off"
+          }
+        }
+      }
     }
   ],
   "files": {
