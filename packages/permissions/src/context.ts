@@ -50,7 +50,7 @@ export function usePermissions(): Permissions {
   const instance = useContext(PermissionsContext)
   if (!instance) {
     throw new Error(
-      '[@pyreon/permissions] usePermissions() must be used within <PermissionsProvider>',
+      '[@pyreon/permissions] usePermissions() must be used within <PermissionsProvider>.',
     )
   }
   return instance
