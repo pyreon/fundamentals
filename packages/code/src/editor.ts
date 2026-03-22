@@ -21,20 +21,29 @@ import {
   indentUnit,
   syntaxHighlighting,
 } from '@codemirror/language'
-import { lintKeymap } from '@codemirror/lint'
+import {
+  setDiagnostics as cmSetDiagnostics,
+  lintKeymap,
+} from '@codemirror/lint'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 import { Compartment, EditorState, type Extension } from '@codemirror/state'
 import {
+  GutterMarker as CMGutterMarker,
   crosshairCursor,
+  Decoration,
+  type DecorationSet,
   drawSelection,
   dropCursor,
   EditorView,
+  gutter,
   highlightActiveLine,
   highlightActiveLineGutter,
   keymap,
   lineNumbers,
   placeholder as placeholderExt,
   rectangularSelection,
+  ViewPlugin,
+  type ViewUpdate,
 } from '@codemirror/view'
 import { computed, effect, signal } from '@pyreon/reactivity'
 import { loadLanguage } from './languages'
@@ -82,6 +91,9 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
     bracketMatching: enableBracketMatching = true,
     autocomplete: enableAutocomplete = true,
     search: _enableSearch = true,
+    highlightIndentGuides: enableIndentGuides = true,
+    vim: enableVim = false,
+    emacs: enableEmacs = false,
     tabSize: configTabSize = 2,
     lineWrapping: enableLineWrapping = false,
     placeholder: placeholderText,
@@ -107,6 +119,8 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
   const languageCompartment = new Compartment()
   const themeCompartment = new Compartment()
   const readOnlyCompartment = new Compartment()
+  const extraKeymapCompartment = new Compartment()
+  const keyModeCompartment = new Compartment()
 
   // ── Computed ─────────────────────────────────────────────────────────
 
@@ -135,6 +149,86 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
     docVersion()
     const v = view.peek()
     return v ? v.state.doc.lines : initialValue.split('\n').length
+  })
+
+  // ── Line highlight support ──────────────────────────────────────────
+
+  const lineHighlights = new Map<number, string>()
+
+  const lineHighlightField = ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet
+
+      constructor(editorView: EditorView) {
+        this.decorations = this.buildDecos(editorView)
+      }
+
+      buildDecos(editorView: EditorView): DecorationSet {
+        const ranges: Array<{ from: number; deco: any }> = []
+        for (const [lineNum, cls] of lineHighlights) {
+          if (lineNum >= 1 && lineNum <= editorView.state.doc.lines) {
+            const lineInfo = editorView.state.doc.line(lineNum)
+            ranges.push({
+              from: lineInfo.from,
+              deco: Decoration.line({ class: cls }),
+            })
+          }
+        }
+        return Decoration.set(
+          ranges
+            .sort((a, b) => a.from - b.from)
+            .map((d) => d.deco.range(d.from)),
+        )
+      }
+
+      update(upd: ViewUpdate) {
+        if (upd.docChanged || upd.viewportChanged) {
+          this.decorations = this.buildDecos(upd.view)
+        }
+      }
+    },
+    { decorations: (plugin) => plugin.decorations },
+  )
+
+  // ── Gutter marker support ──────────────────────────────────────────
+
+  const gutterMarkers = new Map<
+    number,
+    { class?: string; text?: string; title?: string }
+  >()
+
+  class CustomGutterMarker extends CMGutterMarker {
+    markerText: string
+    markerTitle: string
+    markerClass: string
+
+    constructor(opts: { class?: string; text?: string; title?: string }) {
+      super()
+      this.markerText = opts.text ?? ''
+      this.markerTitle = opts.title ?? ''
+      this.markerClass = opts.class ?? ''
+    }
+
+    toDOM() {
+      const el = document.createElement('span')
+      el.textContent = this.markerText
+      el.title = this.markerTitle
+      if (this.markerClass) el.className = this.markerClass
+      el.style.cssText =
+        'cursor: pointer; display: inline-block; width: 100%; text-align: center;'
+      return el
+    }
+  }
+
+  const gutterMarkerExtension = gutter({
+    class: 'pyreon-code-gutter-markers',
+    lineMarker: (gutterView, line) => {
+      const lineNo = gutterView.state.doc.lineAt(line.from).number
+      const marker = gutterMarkers.get(lineNo)
+      if (!marker) return null
+      return new CustomGutterMarker(marker)
+    },
+    initialSpacer: () => new CustomGutterMarker({ text: ' ' }),
   })
 
   // ── Build extensions ─────────────────────────────────────────────────
@@ -170,6 +264,8 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
       languageCompartment.of(langExt),
       themeCompartment.of(resolveTheme(initialTheme)),
       readOnlyCompartment.of(EditorState.readOnly.of(initialReadOnly)),
+      extraKeymapCompartment.of([]),
+      keyModeCompartment.of([]),
 
       // Update listener — sync CM changes to signal
       EditorView.updateListener.of((update) => {
@@ -197,8 +293,26 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
     if (enableBracketMatching) exts.push(bracketMatching(), closeBrackets())
     if (enableAutocomplete) exts.push(autocompletion())
     if (enableLineWrapping) exts.push(EditorView.lineWrapping)
+    // Indent guides via theme (CM6 doesn't have a built-in extension for this)
+    if (enableIndentGuides) {
+      exts.push(
+        EditorView.theme({
+          '.cm-line': {
+            backgroundImage:
+              'linear-gradient(to right, #e5e7eb 1px, transparent 1px)',
+            backgroundSize: `${configTabSize}ch 100%`,
+            backgroundPosition: '0 0',
+          },
+        }),
+      )
+    }
     if (placeholderText) exts.push(placeholderExt(placeholderText))
     if (enableMinimap) exts.push(minimapExtension())
+
+    // Line highlight decoration support
+    exts.push(lineHighlightField)
+    // Gutter marker support
+    exts.push(gutterMarkerExtension)
 
     // User extensions
     exts.push(...userExtensions)
@@ -339,6 +453,152 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
     unfoldAllCmd(v)
   }
 
+  // ── Diagnostics ────────────────────────────────────────────────────
+
+  function setDiagnostics(diagnostics: import('./types').Diagnostic[]): void {
+    const v = view.peek()
+    if (!v) return
+    v.dispatch(
+      cmSetDiagnostics(
+        v.state,
+        diagnostics.map((d) => ({
+          from: d.from,
+          to: d.to,
+          severity: d.severity === 'hint' ? 'info' : d.severity,
+          message: d.message,
+          source: d.source,
+        })),
+      ),
+    )
+  }
+
+  function clearDiagnostics(): void {
+    const v = view.peek()
+    if (!v) return
+    v.dispatch(cmSetDiagnostics(v.state, []))
+  }
+
+  // ── Line highlights ────────────────────────────────────────────────
+
+  function highlightLine(line: number, className: string): void {
+    lineHighlights.set(line, className)
+    // Force re-render of decorations
+    const v = view.peek()
+    if (v) v.dispatch({ effects: [] })
+  }
+
+  function clearLineHighlights(): void {
+    lineHighlights.clear()
+    const v = view.peek()
+    if (v) v.dispatch({ effects: [] })
+  }
+
+  // ── Gutter markers ────────────────────────────────────────────────
+
+  function setGutterMarker(
+    line: number,
+    marker: import('./types').GutterMarker,
+  ): void {
+    gutterMarkers.set(line, marker)
+    const v = view.peek()
+    if (v) v.dispatch({ effects: [] })
+  }
+
+  function clearGutterMarkers(): void {
+    gutterMarkers.clear()
+    const v = view.peek()
+    if (v) v.dispatch({ effects: [] })
+  }
+
+  // ── Custom keybindings ─────────────────────────────────────────────
+
+  const customKeybindings: Array<{ key: string; run: () => boolean }> = []
+
+  function addKeybinding(
+    key: string,
+    handler: () => boolean | undefined,
+  ): void {
+    customKeybindings.push({
+      key,
+      run: () => {
+        handler()
+        return true
+      },
+    })
+    const v = view.peek()
+    if (!v) return
+    v.dispatch({
+      effects: extraKeymapCompartment.reconfigure(keymap.of(customKeybindings)),
+    })
+  }
+
+  // ── Text queries ───────────────────────────────────────────────────
+
+  function getLine(line: number): string {
+    const v = view.peek()
+    if (!v) return ''
+    const clamped = Math.min(Math.max(1, line), v.state.doc.lines)
+    return v.state.doc.line(clamped).text
+  }
+
+  function getWordAtCursor(): string {
+    const v = view.peek()
+    if (!v) return ''
+    const pos = v.state.selection.main.head
+    const line = v.state.doc.lineAt(pos)
+    const col = pos - line.from
+    const text = line.text
+
+    // Find word boundaries
+    let start = col
+    let end = col
+    while (start > 0 && /\w/.test(text[start - 1]!)) start--
+    while (end < text.length && /\w/.test(text[end]!)) end++
+
+    return text.slice(start, end)
+  }
+
+  function scrollTo(pos: number): void {
+    const v = view.peek()
+    if (!v) return
+    v.dispatch({
+      effects: EditorView.scrollIntoView(pos, { y: 'center' }),
+    })
+  }
+
+  // ── Vim / Emacs mode loading ───────────────────────────────────────
+
+  async function loadKeyMode(): Promise<void> {
+    const v = view.peek()
+    if (!v) return
+
+    // Use string concat to prevent Vite from statically analyzing these optional imports
+    const vimPkg = '@replit/codemirror-' + 'vim'
+    const emacsPkg = '@replit/codemirror-' + 'emacs'
+
+    if (enableVim) {
+      try {
+        const mod = await import(/* @vite-ignore */ vimPkg)
+        v.dispatch({
+          effects: keyModeCompartment.reconfigure(mod.vim()),
+        })
+      } catch {
+        /* @replit/codemirror-vim not installed */
+      }
+    }
+
+    if (enableEmacs) {
+      try {
+        const mod = await import(/* @vite-ignore */ emacsPkg)
+        v.dispatch({
+          effects: keyModeCompartment.reconfigure(mod.emacs()),
+        })
+      } catch {
+        /* @replit/codemirror-emacs not installed */
+      }
+    }
+  }
+
   function dispose(): void {
     const v = view.peek()
     if (v) {
@@ -370,9 +630,22 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
     redo,
     foldAll,
     unfoldAll,
+    setDiagnostics,
+    clearDiagnostics,
+    highlightLine,
+    clearLineHighlights,
+    setGutterMarker,
+    clearGutterMarkers,
+    addKeybinding,
+    getLine,
+    getWordAtCursor,
+    scrollTo,
     config,
     dispose,
-    _mount: mount,
+    _mount: async (parent: HTMLElement) => {
+      await mount(parent)
+      await loadKeyMode()
+    },
   }
 
   return instance

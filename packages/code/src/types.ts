@@ -49,6 +49,12 @@ export interface EditorConfig {
   search?: boolean
   /** Enable lint/diagnostics — default: false */
   lint?: boolean
+  /** Enable indent guides — default: true */
+  highlightIndentGuides?: boolean
+  /** Vim keybinding mode — default: false */
+  vim?: boolean
+  /** Emacs keybinding mode — default: false */
+  emacs?: boolean
   /** Tab size — default: 2 */
   tabSize?: number
   /** Enable indent guides — default: true */
@@ -106,10 +112,56 @@ export interface EditorInstance {
   foldAll: () => void
   /** Unfold all */
   unfoldAll: () => void
+  /** Set diagnostics (lint errors/warnings) */
+  setDiagnostics: (diagnostics: Diagnostic[]) => void
+  /** Clear all diagnostics */
+  clearDiagnostics: () => void
+  /** Highlight a specific line (e.g., error line, current execution) */
+  highlightLine: (line: number, className: string) => void
+  /** Clear all line highlights */
+  clearLineHighlights: () => void
+  /** Set gutter markers (breakpoints, error icons) */
+  setGutterMarker: (line: number, marker: GutterMarker) => void
+  /** Clear all gutter markers */
+  clearGutterMarkers: () => void
+  /** Add a custom keybinding */
+  addKeybinding: (key: string, handler: () => boolean | undefined) => void
+  /** Get the text of a specific line */
+  getLine: (line: number) => string
+  /** Get word at cursor position */
+  getWordAtCursor: () => string
+  /** Scroll to a specific position */
+  scrollTo: (pos: number) => void
   /** The editor configuration */
   config: EditorConfig
   /** Dispose — clean up view and listeners */
   dispose: () => void
+}
+
+// ─── Diagnostic ──────────────────────────────────────────────────────────────
+
+export interface Diagnostic {
+  /** Start position (character offset) */
+  from: number
+  /** End position (character offset) */
+  to: number
+  /** Severity */
+  severity: 'error' | 'warning' | 'info' | 'hint'
+  /** Message */
+  message: string
+  /** Optional source (e.g., "typescript", "eslint") */
+  source?: string
+}
+
+// ─── Gutter marker ───────────────────────────────────────────────────────────
+
+export interface GutterMarker {
+  /** CSS class for the marker element */
+  class?: string
+  /** Text content (e.g., emoji or icon) */
+  text?: string
+  /** Tooltip on hover */
+  title?: string
 }
 
 // ─── Component props ─────────────────────────────────────────────────────────

@@ -172,6 +172,110 @@ describe('createEditor', () => {
       expect(editor.config.onChange).toBe(onChange)
     })
   })
+
+  describe('new actions (before mount)', () => {
+    it('setDiagnostics does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() =>
+        editor.setDiagnostics([
+          { from: 0, to: 5, severity: 'error', message: 'test' },
+        ]),
+      ).not.toThrow()
+    })
+
+    it('clearDiagnostics does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() => editor.clearDiagnostics()).not.toThrow()
+    })
+
+    it('highlightLine does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() => editor.highlightLine(1, 'error-line')).not.toThrow()
+    })
+
+    it('clearLineHighlights does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() => editor.clearLineHighlights()).not.toThrow()
+    })
+
+    it('setGutterMarker does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() =>
+        editor.setGutterMarker(1, { text: '🔴', title: 'Breakpoint' }),
+      ).not.toThrow()
+    })
+
+    it('clearGutterMarkers does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() => editor.clearGutterMarkers()).not.toThrow()
+    })
+
+    it('addKeybinding does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() =>
+        editor.addKeybinding('Ctrl-Shift-L', () => true),
+      ).not.toThrow()
+    })
+
+    it('getLine returns empty string before mount', () => {
+      const editor = createEditor()
+      expect(editor.getLine(1)).toBe('')
+    })
+
+    it('getWordAtCursor returns empty string before mount', () => {
+      const editor = createEditor()
+      expect(editor.getWordAtCursor()).toBe('')
+    })
+
+    it('scrollTo does not throw before mount', () => {
+      const editor = createEditor()
+      expect(() => editor.scrollTo(0)).not.toThrow()
+    })
+  })
+
+  describe('config options', () => {
+    it('highlightIndentGuides defaults to true', () => {
+      const editor = createEditor()
+      expect(editor.config.highlightIndentGuides).toBeUndefined() // uses default
+    })
+
+    it('vim mode can be enabled', () => {
+      const editor = createEditor({ vim: true })
+      expect(editor.config.vim).toBe(true)
+    })
+
+    it('emacs mode can be enabled', () => {
+      const editor = createEditor({ emacs: true })
+      expect(editor.config.emacs).toBe(true)
+    })
+
+    it('minimap can be enabled', () => {
+      const editor = createEditor({ minimap: true })
+      expect(editor.config.minimap).toBe(true)
+    })
+
+    it('all config options are stored', () => {
+      const editor = createEditor({
+        value: 'test',
+        language: 'typescript',
+        theme: 'dark',
+        lineNumbers: false,
+        readOnly: true,
+        foldGutter: false,
+        bracketMatching: false,
+        autocomplete: false,
+        search: false,
+        lint: true,
+        highlightIndentGuides: false,
+        tabSize: 4,
+        lineWrapping: true,
+        placeholder: 'Type here...',
+      })
+      expect(editor.config.tabSize).toBe(4)
+      expect(editor.config.lineWrapping).toBe(true)
+      expect(editor.config.placeholder).toBe('Type here...')
+    })
+  })
 })
 
 describe('getAvailableLanguages', () => {
