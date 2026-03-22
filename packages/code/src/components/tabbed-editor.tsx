@@ -1,5 +1,5 @@
 import type { VNodeChild } from '@pyreon/core'
-import type { TabbedEditorInstance, TabbedEditorProps } from '../types'
+import type { TabbedEditorProps } from '../types'
 import { CodeEditor } from './code-editor'
 
 /**

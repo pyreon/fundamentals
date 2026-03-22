@@ -1,4 +1,4 @@
-import { computed, effect, signal } from '@pyreon/reactivity'
+import { computed, signal } from '@pyreon/reactivity'
 import { createEditor } from './editor'
 import type {
   EditorLanguage,
@@ -136,7 +136,7 @@ export function createTabbedEditor(
     if (tab.closable === false) return
 
     // Remove from state
-    tabs.update((t) => t.filter((tab) => (tab.id ?? tab.name) !== id))
+    tabs.update((t) => t.filter((item) => (item.id ?? item.name) !== id))
     contentCache.delete(id)
 
     // If closing the active tab, switch to adjacent
