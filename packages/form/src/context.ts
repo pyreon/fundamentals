@@ -1,11 +1,5 @@
 import type { Props, VNode, VNodeChild } from '@pyreon/core'
-import {
-  createContext,
-  onUnmount,
-  popContext,
-  pushContext,
-  useContext,
-} from '@pyreon/core'
+import { createContext, provide, useContext } from '@pyreon/core'
 import type { FormState } from './types'
 
 const FormContext = createContext<FormState<Record<string, unknown>> | null>(
@@ -33,10 +27,7 @@ export interface FormProviderProps<TValues extends Record<string, unknown>>
 export function FormProvider<TValues extends Record<string, unknown>>(
   props: FormProviderProps<TValues>,
 ): VNode {
-  const frame = new Map([[FormContext.id, props.form]])
-  pushContext(frame)
-
-  onUnmount(() => popContext())
+  provide(FormContext, props.form as FormState<Record<string, unknown>>)
 
   const ch = props.children
   return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode

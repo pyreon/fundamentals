@@ -1,11 +1,5 @@
 import type { Props, VNode, VNodeChild } from '@pyreon/core'
-import {
-  createContext,
-  onUnmount,
-  popContext,
-  pushContext,
-  useContext,
-} from '@pyreon/core'
+import { createContext, provide, useContext } from '@pyreon/core'
 import type { I18nInstance } from './types'
 
 export const I18nContext = createContext<I18nInstance | null>(null)
@@ -27,10 +21,7 @@ export interface I18nProviderProps extends Props {
  * </I18nProvider>
  */
 export function I18nProvider(props: I18nProviderProps): VNode {
-  const frame = new Map([[I18nContext.id, props.instance]])
-  pushContext(frame)
-
-  onUnmount(() => popContext())
+  provide(I18nContext, props.instance)
 
   const ch = props.children
   return (typeof ch === 'function' ? (ch as () => VNodeChild)() : ch) as VNode
