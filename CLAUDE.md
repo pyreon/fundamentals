@@ -24,6 +24,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/permissions` | Reactive permissions — type-safe, signal-driven, universal (RBAC, ABAC, feature flags) |
 | `@pyreon/machine` | Reactive state machines — constrained signals with type-safe transitions |
 | `@pyreon/flow` | Reactive flow diagrams — signal-native nodes, edges, pan/zoom, auto-layout via elkjs |
+| `@pyreon/code` | Reactive code editor — CodeMirror 6 with signals, minimap, diff editor, lazy-loaded languages |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -235,6 +236,22 @@ packages/[name]/
 - Guards: `{ target: 'state', guard: (payload?) => boolean }` for conditional transitions
 - Type-safe: states and events inferred from definition, invalid events are TS errors
 - No context — use signals alongside the machine for data
+
+### @pyreon/code
+
+- `createEditor({ value, language, theme, minimap, ... })` — create a reactive editor instance
+- `editor.value` — reactive Signal<string>, two-way sync with CodeMirror
+- `editor.language` / `editor.theme` / `editor.readOnly` — reactive signals, dynamic reconfiguration
+- `editor.cursor` / `editor.selection` / `editor.lineCount` / `editor.focused` — reactive computeds
+- `editor.focus()` / `insert()` / `replaceSelection()` / `select()` / `goToLine()` — actions
+- `editor.undo()` / `editor.redo()` / `editor.foldAll()` / `editor.unfoldAll()` — editing
+- `<CodeEditor instance={editor} />` — mount component
+- `<DiffEditor original="..." modified="..." />` — side-by-side or inline diff via @codemirror/merge
+- `minimapExtension()` — canvas-based code overview with viewport indicator and click-to-scroll
+- `loadLanguage(lang)` — lazy-load language grammar (20+ languages)
+- `darkTheme` / `lightTheme` / `resolveTheme()` — built-in themes
+- Languages: javascript, typescript, jsx, tsx, html, css, json, markdown, python, rust, sql, xml, yaml, cpp, java, go, php
+- Built on CodeMirror 6 (~250KB vs Monaco's ~2.5MB)
 
 ### @pyreon/storybook
 

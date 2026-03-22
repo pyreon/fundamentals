@@ -33,7 +33,7 @@
       }
     },
     {
-      "includes": ["packages/flow/src/components/**"],
+      "includes": ["packages/flow/src/components/**", "packages/code/src/components/**"],
       "linter": {
         "rules": {
           "a11y": {
