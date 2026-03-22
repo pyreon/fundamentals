@@ -188,3 +188,66 @@ export interface DiffEditorProps {
   style?: string
   class?: string
 }
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+
+export interface Tab {
+  /** Unique tab identifier — defaults to name */
+  id?: string
+  /** File name displayed in the tab */
+  name: string
+  /** Language for syntax highlighting */
+  language?: EditorLanguage
+  /** File content */
+  value: string
+  /** Whether the tab has unsaved changes */
+  modified?: boolean
+  /** Whether the tab can be closed — default: true */
+  closable?: boolean
+}
+
+export interface TabbedEditorConfig {
+  /** Initial tabs */
+  tabs?: Tab[]
+  /** Theme — 'light', 'dark', or custom */
+  theme?: EditorTheme
+  /** Editor config applied to all tabs */
+  editorConfig?: Omit<EditorConfig, 'value' | 'language' | 'theme'>
+}
+
+export interface TabbedEditorInstance {
+  /** The underlying editor instance */
+  editor: EditorInstance
+  /** All open tabs — reactive */
+  tabs: Signal<Tab[]>
+  /** Active tab — reactive */
+  activeTab: Computed<Tab | null>
+  /** Active tab ID — reactive */
+  activeTabId: Signal<string>
+  /** Open a new tab (or switch to it if already open) */
+  openTab: (tab: Tab) => void
+  /** Close a tab by ID */
+  closeTab: (id: string) => void
+  /** Switch to a tab by ID */
+  switchTab: (id: string) => void
+  /** Rename a tab */
+  renameTab: (id: string, name: string) => void
+  /** Mark a tab as modified/saved */
+  setModified: (id: string, modified: boolean) => void
+  /** Reorder tabs */
+  moveTab: (fromIndex: number, toIndex: number) => void
+  /** Get tab by ID */
+  getTab: (id: string) => Tab | undefined
+  /** Close all tabs */
+  closeAll: () => void
+  /** Close all tabs except the given one */
+  closeOthers: (id: string) => void
+  /** Dispose */
+  dispose: () => void
+}
+
+export interface TabbedEditorProps {
+  instance: TabbedEditorInstance
+  style?: string
+  class?: string
+}

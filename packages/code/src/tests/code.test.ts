@@ -2,6 +2,7 @@ import { effect } from '@pyreon/reactivity'
 import { describe, expect, it } from 'vitest'
 import { createEditor } from '../editor'
 import { getAvailableLanguages } from '../languages'
+import { createTabbedEditor } from '../tabbed-editor'
 
 describe('createEditor', () => {
   describe('initialization', () => {
@@ -275,6 +276,216 @@ describe('createEditor', () => {
       expect(editor.config.lineWrapping).toBe(true)
       expect(editor.config.placeholder).toBe('Type here...')
     })
+  })
+})
+
+describe('createTabbedEditor', () => {
+  it('creates with initial tabs', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'index.ts', language: 'typescript', value: 'const x = 1' },
+        { name: 'style.css', language: 'css', value: '.app {}' },
+      ],
+    })
+    expect(te.tabs()).toHaveLength(2)
+    expect(te.activeTabId()).toBe('index.ts')
+    expect(te.activeTab()?.name).toBe('index.ts')
+    expect(te.editor.value()).toBe('const x = 1')
+  })
+
+  it('creates with no tabs', () => {
+    const te = createTabbedEditor()
+    expect(te.tabs()).toHaveLength(0)
+    expect(te.activeTabId()).toBe('')
+    expect(te.activeTab()).toBeNull()
+  })
+
+  it('switchTab changes active tab and editor content', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+    expect(te.editor.value()).toBe('aaa')
+
+    te.switchTab('b.ts')
+    expect(te.activeTabId()).toBe('b.ts')
+    expect(te.editor.value()).toBe('bbb')
+
+    te.switchTab('a.ts')
+    expect(te.editor.value()).toBe('aaa')
+  })
+
+  it('openTab adds and switches to new tab', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: 'aaa' }],
+    })
+
+    te.openTab({ name: 'b.ts', language: 'typescript', value: 'bbb' })
+    expect(te.tabs()).toHaveLength(2)
+    expect(te.activeTabId()).toBe('b.ts')
+    expect(te.editor.value()).toBe('bbb')
+  })
+
+  it('openTab switches to existing tab', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+
+    te.openTab({ name: 'b.ts', value: 'bbb' })
+    expect(te.tabs()).toHaveLength(2) // not duplicated
+    expect(te.activeTabId()).toBe('b.ts')
+  })
+
+  it('closeTab removes tab', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+
+    te.closeTab('b.ts')
+    expect(te.tabs()).toHaveLength(1)
+    expect(te.tabs()[0]!.name).toBe('a.ts')
+  })
+
+  it('closeTab switches to adjacent when closing active', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+        { name: 'c.ts', value: 'ccc' },
+      ],
+    })
+
+    te.switchTab('b.ts')
+    te.closeTab('b.ts')
+    // Should switch to c.ts (next) or a.ts
+    expect(te.activeTabId()).not.toBe('b.ts')
+    expect(te.tabs()).toHaveLength(2)
+  })
+
+  it('closeTab respects closable: false', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'main.ts', value: 'main', closable: false }],
+    })
+
+    te.closeTab('main.ts')
+    expect(te.tabs()).toHaveLength(1) // not closed
+  })
+
+  it('renameTab changes tab name', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'old.ts', value: '' }],
+    })
+
+    te.renameTab('old.ts', 'new.ts')
+    expect(te.tabs()[0]!.name).toBe('new.ts')
+  })
+
+  it('setModified marks tab', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: '' }],
+    })
+
+    te.setModified('a.ts', true)
+    expect(te.tabs()[0]!.modified).toBe(true)
+
+    te.setModified('a.ts', false)
+    expect(te.tabs()[0]!.modified).toBe(false)
+  })
+
+  it('moveTab reorders tabs', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: '' },
+        { name: 'b.ts', value: '' },
+        { name: 'c.ts', value: '' },
+      ],
+    })
+
+    te.moveTab(0, 2)
+    expect(te.tabs().map((t: any) => t.name)).toEqual(['b.ts', 'c.ts', 'a.ts'])
+  })
+
+  it('getTab returns tab by id', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: 'content' }],
+    })
+
+    expect(te.getTab('a.ts')?.value).toBe('content')
+    expect(te.getTab('missing')).toBeUndefined()
+  })
+
+  it('closeAll closes all closable tabs', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: '', closable: false },
+        { name: 'b.ts', value: '' },
+        { name: 'c.ts', value: '' },
+      ],
+    })
+
+    te.closeAll()
+    expect(te.tabs()).toHaveLength(1)
+    expect(te.tabs()[0]!.name).toBe('a.ts')
+  })
+
+  it('closeOthers closes all except specified', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: '' },
+        { name: 'b.ts', value: '' },
+        { name: 'c.ts', value: '' },
+      ],
+    })
+
+    te.closeOthers('b.ts')
+    expect(te.tabs()).toHaveLength(1)
+    expect(te.tabs()[0]!.name).toBe('b.ts')
+  })
+
+  it('preserves content when switching tabs', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'original-a' },
+        { name: 'b.ts', value: 'original-b' },
+      ],
+    })
+
+    // Modify a.ts via signal
+    te.editor.value.set('modified-a')
+
+    // Switch to b.ts
+    te.switchTab('b.ts')
+    expect(te.editor.value()).toBe('original-b')
+
+    // Switch back — should have the modified content
+    te.switchTab('a.ts')
+    expect(te.editor.value()).toBe('modified-a')
+  })
+
+  it('dispose cleans up', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: '' }],
+    })
+    expect(() => te.dispose()).not.toThrow()
+  })
+
+  it('close last tab clears editor', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: 'content' }],
+    })
+
+    te.closeTab('a.ts')
+    expect(te.tabs()).toHaveLength(0)
+    expect(te.activeTabId()).toBe('')
+    expect(te.editor.value()).toBe('')
   })
 })
 

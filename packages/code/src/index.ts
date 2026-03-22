@@ -26,9 +26,9 @@
 // Components
 export { CodeEditor } from './components/code-editor'
 export { DiffEditor } from './components/diff-editor'
+export { TabbedEditor } from './components/tabbed-editor'
 // Core
 export { createEditor } from './editor'
-
 // Languages
 export { getAvailableLanguages, loadLanguage } from './languages'
 // Minimap
@@ -44,4 +44,9 @@ export type {
   EditorInstance,
   EditorLanguage,
   EditorTheme,
+  GutterMarker,
+  Tab,
+  TabbedEditorConfig,
+  TabbedEditorInstance,
+  TabbedEditorProps,
 } from './types'
