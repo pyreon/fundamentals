@@ -11,7 +11,7 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 }
 
 function esc(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 function getTextContent(children: DocChild[]): string {

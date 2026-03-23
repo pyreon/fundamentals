@@ -21,12 +21,29 @@ interface DiscordField {
   inline?: boolean
 }
 
-function nodeToMarkdown(node: DocNode): { content: string; fields: DiscordField[]; title?: string; imageUrl?: string } {
+/** Extract the first h1 title and first HTTP image from the tree. */
+function extractMeta(node: DocNode): { title?: string; imageUrl?: string } {
+  if (node.type === 'heading') {
+    const level = (node.props.level as number) ?? 1
+    if (level === 1) return { title: getTextContent(node.children) }
+  }
+  if (node.type === 'image') {
+    const src = node.props.src as string
+    if (src.startsWith('http')) return { imageUrl: src }
+  }
+  for (const child of node.children) {
+    if (typeof child !== 'string') {
+      const result = extractMeta(child)
+      if (result.title || result.imageUrl) return result
+    }
+  }
+  return {}
+}
+
+function nodeToMarkdown(node: DocNode, meta: { title?: string }): { content: string; fields: DiscordField[] } {
   const p = node.props
   let content = ''
   const fields: DiscordField[] = []
-  let title: string | undefined
-  let imageUrl: string | undefined
 
   switch (node.type) {
     case 'document':
@@ -36,11 +53,9 @@ function nodeToMarkdown(node: DocNode): { content: string; fields: DiscordField[
     case 'column':
       for (const child of node.children) {
         if (typeof child !== 'string') {
-          const result = nodeToMarkdown(child)
+          const result = nodeToMarkdown(child, meta)
           content += result.content
           fields.push(...result.fields)
-          if (!title && result.title) title = result.title
-          if (!imageUrl && result.imageUrl) imageUrl = result.imageUrl
         }
       }
       break
@@ -48,11 +63,11 @@ function nodeToMarkdown(node: DocNode): { content: string; fields: DiscordField[
     case 'heading': {
       const text = getTextContent(node.children)
       const level = (p.level as number) ?? 1
-      if (level === 1 && !title) {
-        title = text
-      } else {
-        content += `**${text}**\n\n`
+      // Skip the first h1 — it's used as embed title
+      if (level === 1 && text === meta.title) {
+        break
       }
+      content += `**${text}**\n\n`
       break
     }
 
@@ -72,13 +87,9 @@ function nodeToMarkdown(node: DocNode): { content: string; fields: DiscordField[
       break
     }
 
-    case 'image': {
-      const src = p.src as string
-      if (src.startsWith('http') && !imageUrl) {
-        imageUrl = src
-      }
+    case 'image':
+      // Image handled via extractMeta — embedded as embed.image
       break
-    }
 
     case 'table': {
       const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
@@ -144,21 +155,22 @@ function nodeToMarkdown(node: DocNode): { content: string; fields: DiscordField[
     }
   }
 
-  return { content, fields, title, imageUrl }
+  return { content, fields }
 }
 
 export const discordRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<string> {
-    const { content, fields, title, imageUrl } = nodeToMarkdown(node)
+    const meta = extractMeta(node)
+    const { content, fields } = nodeToMarkdown(node, meta)
 
     const embed: Record<string, unknown> = {
-      title: title ?? (node.props.title as string) ?? undefined,
+      title: meta.title ?? (node.props.title as string) ?? undefined,
       description: content.trim() || undefined,
       color: 0x4f46e5,
     }
 
     if (fields.length > 0) embed.fields = fields
-    if (imageUrl) embed.image = { url: imageUrl }
+    if (meta.imageUrl) embed.image = { url: meta.imageUrl }
 
     return JSON.stringify({ embeds: [embed] }, null, 2)
   },
