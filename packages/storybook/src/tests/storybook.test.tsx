@@ -27,7 +27,9 @@ function makeRenderContext(overrides: {
   return {
     storyFn: overrides.storyFn ?? (() => <div>default</div>),
     storyContext: {
-      ...(overrides.component != null ? { component: overrides.component } : {}),
+      ...(overrides.component != null
+        ? { component: overrides.component }
+        : {}),
       args: overrides.args ?? {},
     },
     showMain: () => {
