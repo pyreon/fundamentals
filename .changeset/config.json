@@ -20,7 +20,8 @@
       "@pyreon/permissions",
       "@pyreon/machine",
       "@pyreon/flow",
-      "@pyreon/code"
+      "@pyreon/code",
+      "@pyreon/document"
     ]
   ],
   "access": "public",
