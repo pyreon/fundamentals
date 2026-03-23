@@ -125,6 +125,6 @@ function renderNode(node: DocNode): string {
 
 export const markdownRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<string> {
-    return renderNode(node).trim() + '\n'
+    return `${renderNode(node).trim()}\n`
   },
 }

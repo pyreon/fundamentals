@@ -304,9 +304,9 @@ function processSlide(
 export const pptxRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
     const PptxGenJS = await import('pptxgenjs')
-    const PptxGen = PptxGenJS.default ?? PptxGenJS
+    const PptxGenClass = PptxGenJS.default ?? PptxGenJS
 
-    const pptx = new PptxGen() as PptxGen
+    const pptx = new PptxGenClass() as PptxGen
 
     // Set metadata
     if (node.props.title) pptx.title = node.props.title as string
