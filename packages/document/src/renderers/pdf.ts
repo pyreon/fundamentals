@@ -196,6 +196,7 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
           body: [headerRow, ...dataRows],
         },
         layout: p.bordered ? undefined : 'lightHorizontalLines',
+        unbreakable: p.keepTogether ?? false,
         margin: [0, 0, 0, 12],
       }
     }
@@ -221,6 +222,9 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
         background: '#f5f5f5',
         margin: [0, 0, 0, 8],
       }
+
+    case 'page-break':
+      return { text: '', pageBreak: 'after' }
 
     case 'divider':
       return {

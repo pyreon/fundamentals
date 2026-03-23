@@ -79,6 +79,10 @@ registerRenderer('pptx', () =>
   import('./renderers/pptx').then((m) => m.pptxRenderer),
 )
 
+registerRenderer('slack', () =>
+  import('./renderers/slack').then((m) => m.slackRenderer),
+)
+
 // ─── Render Function ────────────────────────────────────────────────────────
 
 async function resolveRenderer(format: string): Promise<DocumentRenderer> {
@@ -135,4 +139,5 @@ export function _resetRenderers(): void {
   registerRenderer('docx', () => import('./renderers/docx').then((m) => m.docxRenderer))
   registerRenderer('xlsx', () => import('./renderers/xlsx').then((m) => m.xlsxRenderer))
   registerRenderer('pptx', () => import('./renderers/pptx').then((m) => m.pptxRenderer))
+  registerRenderer('slack', () => import('./renderers/slack').then((m) => m.slackRenderer))
 }

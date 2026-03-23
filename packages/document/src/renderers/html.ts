@@ -186,7 +186,11 @@ function renderNode(node: DocNode): string {
 type PageMargin = number | [number, number] | [number, number, number, number]
 
 export const htmlRenderer: DocumentRenderer = {
-  async render(node: DocNode, _options?: RenderOptions): Promise<string> {
-    return renderNode(node)
+  async render(node: DocNode, options?: RenderOptions): Promise<string> {
+    let html = renderNode(node)
+    if (options?.direction === 'rtl') {
+      html = html.replace('<body>', '<body dir="rtl" style="direction:rtl">')
+    }
+    return html
   },
 }

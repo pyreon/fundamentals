@@ -13,6 +13,7 @@ import {
   List,
   ListItem,
   Page,
+  PageBreak,
   Quote,
   Row,
   Section,
@@ -1652,4 +1653,226 @@ describe('PPTX renderer', () => {
     expect(result).toBeInstanceOf(Uint8Array)
     expect((result as Uint8Array).length).toBeGreaterThan(0)
   }, 15000)
+})
+
+// ─── Slack Renderer ─────────────────────────────────────────────────────────
+
+describe('Slack renderer', () => {
+  it('renders heading as header block', async () => {
+    const doc = Document({ children: Heading({ children: 'Hello' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks).toHaveLength(1)
+    expect(parsed.blocks[0].type).toBe('header')
+  })
+
+  it('renders text with bold as mrkdwn', async () => {
+    const doc = Document({ children: Text({ bold: true, children: 'Bold text' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('*Bold text*')
+  })
+
+  it('renders button as actions block', async () => {
+    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].type).toBe('actions')
+    expect(parsed.blocks[0].elements[0].type).toBe('button')
+  })
+
+  it('renders table as code block', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
+    })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('*A*')
+    expect(parsed.blocks[0].text.text).toContain('1 | 2')
+  })
+
+  it('renders divider', async () => {
+    const doc = Document({ children: Divider() })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].type).toBe('divider')
+  })
+
+  it('renders list as bullet points', async () => {
+    const doc = Document({
+      children: List({
+        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+      }),
+    })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('• one')
+    expect(parsed.blocks[0].text.text).toContain('• two')
+  })
+
+  it('renders ordered list', async () => {
+    const doc = Document({
+      children: List({
+        ordered: true,
+        children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
+      }),
+    })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('1. a')
+    expect(parsed.blocks[0].text.text).toContain('2. b')
+  })
+
+  it('renders link in mrkdwn format', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('<https://x.com|X>')
+  })
+
+  it('renders code block', async () => {
+    const doc = Document({ children: Code({ language: 'js', children: 'const x = 1' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('```js')
+    expect(parsed.blocks[0].text.text).toContain('const x = 1')
+  })
+
+  it('renders quote with >', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('> wise')
+  })
+
+  it('renders image with URL', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].type).toBe('image')
+    expect(parsed.blocks[0].image_url).toBe('https://x.com/img.png')
+  })
+
+  it('skips non-URL images', async () => {
+    const doc = Document({ children: Image({ src: 'data:image/png;base64,abc' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks).toHaveLength(0)
+  })
+
+  it('renders page-break as divider', async () => {
+    const doc = Document({ children: PageBreak() })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].type).toBe('divider')
+  })
+
+  it('renders text with italic and strikethrough', async () => {
+    const doc = Document({
+      children: [
+        Text({ italic: true, children: 'italic' }),
+        Text({ strikethrough: true, children: 'struck' }),
+      ],
+    })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('_italic_')
+    expect(parsed.blocks[1].text.text).toContain('~struck~')
+  })
+
+  it('renders image with caption', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png', caption: 'Nice' }) })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].title.text).toBe('Nice')
+  })
+
+  it('renders table with caption', async () => {
+    const doc = Document({
+      children: Table({ columns: ['X'], rows: [['1']], caption: 'My Table' }),
+    })
+    const json = await render(doc, 'slack') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.blocks[0].text.text).toContain('_My Table_')
+  })
+})
+
+// ─── PageBreak ──────────────────────────────────────────────────────────────
+
+describe('PageBreak', () => {
+  it('creates a page-break node', () => {
+    const pb = PageBreak()
+    expect(pb.type).toBe('page-break')
+    expect(pb.children).toEqual([])
+  })
+
+  it('renders as CSS page-break in HTML', async () => {
+    const doc = Document({ children: PageBreak() })
+    const html = await render(doc, 'html') as string
+    expect(html).toContain('page-break-after:always')
+  })
+
+  it('renders as separator in email', async () => {
+    const doc = Document({ children: PageBreak() })
+    const html = await render(doc, 'email') as string
+    expect(html).toContain('border-top:2px solid')
+  })
+
+  it('renders as --- in markdown', async () => {
+    const doc = Document({ children: PageBreak() })
+    const md = await render(doc, 'md') as string
+    expect(md).toContain('---')
+  })
+
+  it('renders as separator in text', async () => {
+    const doc = Document({ children: PageBreak() })
+    const text = await render(doc, 'text') as string
+    expect(text).toContain('═')
+  })
+
+  it('builder pageBreak inserts page-break node', async () => {
+    const doc = createDocument().heading('Page 1').pageBreak().heading('Page 2')
+    const html = await doc.toHtml()
+    expect(html).toContain('page-break-after:always')
+    expect(html).toContain('Page 1')
+    expect(html).toContain('Page 2')
+  })
+})
+
+// ─── RTL Support ────────────────────────────────────────────────────────────
+
+describe('RTL support', () => {
+  it('adds dir=rtl to HTML body', async () => {
+    const doc = Document({ children: Text({ children: 'مرحبا' }) })
+    const html = await render(doc, 'html', { direction: 'rtl' }) as string
+    expect(html).toContain('dir="rtl"')
+    expect(html).toContain('direction:rtl')
+  })
+
+  it('does not add dir for ltr (default)', async () => {
+    const doc = Document({ children: Text({ children: 'Hello' }) })
+    const html = await render(doc, 'html') as string
+    expect(html).not.toContain('dir="rtl"')
+  })
+})
+
+// ─── keepTogether ───────────────────────────────────────────────────────────
+
+describe('keepTogether', () => {
+  it('table accepts keepTogether prop', () => {
+    const t = Table({ columns: ['A'], rows: [['1']], keepTogether: true })
+    expect(t.props.keepTogether).toBe(true)
+  })
+})
+
+// ─── Builder toSlack ────────────────────────────────────────────────────────
+
+describe('builder toSlack', () => {
+  it('renders to Slack JSON', async () => {
+    const result = await createDocument().heading('Hi').text('World').toSlack()
+    const parsed = JSON.parse(result)
+    expect(parsed.blocks).toHaveLength(2)
+    expect(parsed.blocks[0].type).toBe('header')
+    expect(parsed.blocks[1].type).toBe('section')
+  })
 })

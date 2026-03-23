@@ -154,6 +154,8 @@ export interface TableProps {
   striped?: boolean
   bordered?: boolean
   caption?: string
+  /** Keep table together on one page — avoid page breaks within table (PDF/DOCX). */
+  keepTogether?: boolean
 }
 
 export interface ListProps {
@@ -207,12 +209,17 @@ export type OutputFormat =
   | 'text'
   | 'csv'
   | 'svg'
+  | 'slack'
 
 export interface RenderOptions {
   /** Custom styles to apply (overrides component styles). */
   styles?: Record<string, ResolvedStyles>
   /** Base URL for relative image sources. */
   baseUrl?: string
+  /** Text direction — 'ltr' (default) or 'rtl'. */
+  direction?: 'ltr' | 'rtl'
+  /** Custom font configuration for PDF. */
+  fonts?: Record<string, { normal?: string; bold?: string; italics?: string; bolditalics?: string }>
 }
 
 export type RenderResult = string | Uint8Array
@@ -254,6 +261,7 @@ export interface DocumentBuilder {
   toMarkdown(options?: RenderOptions): Promise<string>
   toText(options?: RenderOptions): Promise<string>
   toCsv(options?: RenderOptions): Promise<string>
+  toSlack(options?: RenderOptions): Promise<string>
   /** Download the document (browser only). */
   download(filename: string, options?: RenderOptions): Promise<void>
 }

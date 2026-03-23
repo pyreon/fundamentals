@@ -158,6 +158,10 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
       return render(getNode(), 'csv', options) as Promise<string>
     },
 
+    async toSlack(options?: RenderOptions) {
+      return render(getNode(), 'slack', options) as Promise<string>
+    },
+
     async download(filename: string, options?: RenderOptions) {
       return download(getNode(), filename, options)
     },
