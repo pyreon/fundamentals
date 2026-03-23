@@ -162,6 +162,10 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
       return render(getNode(), 'slack', options) as Promise<string>
     },
 
+    async toSvg(options?: RenderOptions) {
+      return render(getNode(), 'svg', options) as Promise<string>
+    },
+
     async download(filename: string, options?: RenderOptions) {
       return download(getNode(), filename, options)
     },

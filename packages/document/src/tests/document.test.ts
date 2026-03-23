@@ -1867,6 +1867,179 @@ describe('keepTogether', () => {
 
 // ─── Builder toSlack ────────────────────────────────────────────────────────
 
+// ─── SVG Renderer ───────────────────────────────────────────────────────────
+
+describe('SVG renderer', () => {
+  it('renders a valid SVG document', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"')
+    expect(svg).toContain('</svg>')
+    expect(svg).toContain('Title')
+  })
+
+  it('renders heading with correct font size', async () => {
+    const doc = Document({ children: Heading({ level: 2, children: 'Sub' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('font-size="24"')
+    expect(svg).toContain('font-weight="bold"')
+  })
+
+  it('renders text with bold and italic', async () => {
+    const doc = Document({
+      children: [
+        Text({ bold: true, children: 'Bold' }),
+        Text({ italic: true, children: 'Italic' }),
+      ],
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('font-weight="bold"')
+    expect(svg).toContain('font-style="italic"')
+  })
+
+  it('renders table with header and rows', async () => {
+    const doc = Document({
+      children: Table({
+        columns: ['Name', 'Price'],
+        rows: [['Widget', '$10']],
+        headerStyle: { background: '#000', color: '#fff' },
+        striped: true,
+      }),
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('Name')
+    expect(svg).toContain('Widget')
+    expect(svg).toContain('fill="#000"')
+  })
+
+  it('renders image from data URL', async () => {
+    const doc = Document({
+      children: Image({ src: 'data:image/png;base64,abc', width: 200, height: 100, caption: 'Photo' }),
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('<image')
+    expect(svg).toContain('data:image/png;base64,abc')
+    expect(svg).toContain('Photo')
+  })
+
+  it('renders image placeholder for local paths', async () => {
+    const doc = Document({
+      children: Image({ src: '/local.png', alt: 'Local' }),
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('Local')
+    expect(svg).toContain('fill="#f0f0f0"')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({
+        ordered: true,
+        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+      }),
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('1. one')
+    expect(svg).toContain('2. two')
+  })
+
+  it('renders unordered list', async () => {
+    const doc = Document({
+      children: List({
+        children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
+      }),
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('• a')
+    expect(svg).toContain('• b')
+  })
+
+  it('renders code block', async () => {
+    const doc = Document({ children: Code({ children: 'const x = 1' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('const x = 1')
+    expect(svg).toContain('font-family="monospace"')
+    expect(svg).toContain('fill="#f5f5f5"') // background
+  })
+
+  it('renders divider', async () => {
+    const doc = Document({ children: Divider({ color: '#ccc', thickness: 2 }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('stroke="#ccc"')
+    expect(svg).toContain('stroke-width="2"')
+  })
+
+  it('renders button', async () => {
+    const doc = Document({ children: Button({ href: '/pay', background: '#4f46e5', children: 'Pay' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('fill="#4f46e5"')
+    expect(svg).toContain('Pay')
+  })
+
+  it('renders quote', async () => {
+    const doc = Document({ children: Quote({ children: 'wise words' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('wise words')
+    expect(svg).toContain('font-style="italic"')
+  })
+
+  it('renders link', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('<a href="https://x.com">')
+    expect(svg).toContain('X')
+  })
+
+  it('renders spacer', async () => {
+    const doc = Document({
+      children: [Text({ children: 'A' }), Spacer({ height: 50 }), Text({ children: 'B' })],
+    })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('A')
+    expect(svg).toContain('B')
+  })
+
+  it('renders page-break as dashed line', async () => {
+    const doc = Document({ children: PageBreak() })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('stroke-dasharray')
+  })
+
+  it('supports RTL direction', async () => {
+    const doc = Document({ children: Text({ children: 'مرحبا' }) })
+    const svg = await render(doc, 'svg', { direction: 'rtl' }) as string
+    expect(svg).toContain('direction="rtl"')
+  })
+
+  it('auto-calculates height from content', async () => {
+    const doc = Document({
+      children: [
+        Heading({ children: 'A' }),
+        Text({ children: 'B' }),
+        Text({ children: 'C' }),
+      ],
+    })
+    const svg = await render(doc, 'svg') as string
+    const match = svg.match(/height="(\d+)"/)
+    expect(match).toBeTruthy()
+    expect(Number(match![1])).toBeGreaterThan(80)
+  })
+
+  it('renders image from HTTP URL', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png', width: 300 }) })
+    const svg = await render(doc, 'svg') as string
+    expect(svg).toContain('<image')
+    expect(svg).toContain('https://x.com/img.png')
+  })
+
+  it('builder toSvg works', async () => {
+    const svg = await createDocument().heading('Hi').text('World').toSvg()
+    expect(svg).toContain('<svg')
+    expect(svg).toContain('Hi')
+    expect(svg).toContain('World')
+  })
+})
+
 describe('builder toSlack', () => {
   it('renders to Slack JSON', async () => {
     const result = await createDocument().heading('Hi').text('World').toSlack()

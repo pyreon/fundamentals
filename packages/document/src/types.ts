@@ -262,6 +262,7 @@ export interface DocumentBuilder {
   toText(options?: RenderOptions): Promise<string>
   toCsv(options?: RenderOptions): Promise<string>
   toSlack(options?: RenderOptions): Promise<string>
+  toSvg(options?: RenderOptions): Promise<string>
   /** Download the document (browser only). */
   download(filename: string, options?: RenderOptions): Promise<void>
 }
