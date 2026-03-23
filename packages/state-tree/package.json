@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/state-tree",
-  "version": "1.0.0",
+  "version": "0.7.0",
   "description": "Structured reactive state tree — composable models with snapshots, patches, and middleware",
   "license": "MIT",
   "repository": {
