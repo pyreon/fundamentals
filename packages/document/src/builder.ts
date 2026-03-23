@@ -1,5 +1,5 @@
 import { download } from './download'
-import { Button, Code, Divider, Document, Heading, Image, Link, List, ListItem, Page, Quote, Spacer, Table, Text } from './nodes'
+import { Button, Code, Divider, Document, Heading, Image, Link, List, ListItem, Page, PageBreak, Quote, Spacer, Table, Text } from './nodes'
 import { render } from './render'
 import type { ButtonProps, CodeProps, DividerProps, DocNode, DocumentBuilder, DocumentProps, HeadingProps, ImageProps, LinkProps, ListProps, QuoteProps, RenderOptions, TableProps, TextProps } from './types'
 
@@ -90,12 +90,7 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
     },
 
     pageBreak() {
-      // Add a new page node — renderer handles pagination
-      const currentChildren = [...sections]
-      sections.length = 0
-      // Wrap current content in a page and start a new one
-      const page = Page({ children: currentChildren })
-      sections.push(page)
+      sections.push(PageBreak())
       return builder
     },
 
@@ -141,6 +136,10 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
 
     async toEmail(options?: RenderOptions) {
       return render(getNode(), 'email', options) as Promise<string>
+    },
+
+    async toPptx(options?: RenderOptions) {
+      return render(getNode(), 'pptx', options) as Promise<Uint8Array>
     },
 
     async toXlsx(options?: RenderOptions) {

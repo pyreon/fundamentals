@@ -3,6 +3,17 @@ import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } 
 /**
  * PDF renderer — lazy-loads pdfmake on first use.
  * pdfmake handles pagination, tables, text wrapping, and font embedding.
+ *
+ * @example
+ * ```ts
+ * import { render, Document, Page, Heading } from '@pyreon/document'
+ *
+ * const doc = Document({
+ *   title: 'Report',
+ *   children: Page({ children: Heading({ children: 'Hello' }) }),
+ * })
+ * const pdf = await render(doc, 'pdf') // → Uint8Array
+ * ```
  */
 
 function resolveColumn(col: string | TableColumn): TableColumn {
@@ -17,13 +28,34 @@ function getTextContent(children: DocChild[]): string {
 
 type PdfContent = Record<string, unknown> | string | PdfContent[]
 
-const PAGE_SIZES: Record<string, [number, number]> = {
-  A3: [841.89, 1190.55],
-  A4: [595.28, 841.89],
-  A5: [419.53, 595.28],
-  letter: [612, 792],
-  legal: [612, 1008],
-  tabloid: [792, 1224],
+/** pdfmake expects page sizes as `{ width, height }` objects. */
+const PAGE_SIZES: Record<string, { width: number; height: number }> = {
+  A3: { width: 841.89, height: 1190.55 },
+  A4: { width: 595.28, height: 841.89 },
+  A5: { width: 419.53, height: 595.28 },
+  letter: { width: 612, height: 792 },
+  legal: { width: 612, height: 1008 },
+  tabloid: { width: 792, height: 1224 },
+}
+
+/**
+ * Resolve an image `src` for pdfmake.
+ *
+ * - `data:` URIs are passed through directly (pdfmake supports base64).
+ * - `http(s)://` URLs cannot be resolved at render time in the browser.
+ *   A placeholder text node is returned instead.
+ * - Relative / absolute paths (e.g. `/logo.png`) cannot be resolved without
+ *   a server-side fetch, so they are skipped with a placeholder.
+ */
+function resolveImageSrc(src: string): { image: string } | { text: string; italics: true; color: string } {
+  if (src.startsWith('data:')) {
+    return { image: src }
+  }
+  if (src.startsWith('http://') || src.startsWith('https://')) {
+    return { text: `[Image: ${src}]`, italics: true, color: '#999999' }
+  }
+  // Local path — cannot resolve in browser
+  return { text: `[Image: ${src}]`, italics: true, color: '#999999' }
 }
 
 function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
@@ -110,14 +142,22 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
       }
 
     case 'image': {
-      const result: Record<string, unknown> = {
-        image: p.src as string,
-        fit: [p.width ?? 500, p.height ?? 400],
-        margin: [0, 0, 0, 8],
+      const src = p.src as string
+      const resolved = resolveImageSrc(src)
+
+      if ('image' in resolved) {
+        const result: Record<string, unknown> = {
+          image: resolved.image,
+          fit: [p.width ?? 500, p.height ?? 400],
+          margin: [0, 0, 0, 8],
+        }
+        if (p.align === 'center') result.alignment = 'center'
+        if (p.align === 'right') result.alignment = 'right'
+        return result
       }
-      if (p.align === 'center') result.alignment = 'center'
-      if (p.align === 'right') result.alignment = 'right'
-      return result
+
+      // Placeholder for non-resolvable images
+      return { ...resolved, margin: [0, 0, 0, 8] }
     }
 
     case 'table': {
@@ -245,17 +285,44 @@ function resolveMargin(
   return margin
 }
 
+/**
+ * Render header/footer DocNodes into pdfmake content for page headers/footers.
+ *
+ * pdfmake header/footer functions receive `(currentPage, pageCount, pageSize)`
+ * and must return a content object. We flatten the DocNode into static content.
+ */
+function renderHeaderFooter(
+  node: DocNode | undefined,
+): PdfContent | undefined {
+  if (!node) return undefined
+  const content = nodeToContent(node)
+  if (content == null) return undefined
+  if (Array.isArray(content)) return { stack: content, margin: [40, 10, 40, 0] }
+  if (typeof content === 'object') return { ...content, margin: [40, 10, 40, 0] }
+  return { text: content, margin: [40, 10, 40, 0] }
+}
+
 export const pdfRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
-    // Lazy-load pdfmake
-    const pdfMake = await import('pdfmake/build/pdfmake')
-    const pdfFonts = await import('pdfmake/build/vfs_fonts')
+    // Lazy-load pdfmake — handle ESM/CJS interop
+    const pdfMakeModule = await import('pdfmake/build/pdfmake')
+    const pdfFontsModule = await import('pdfmake/build/vfs_fonts')
 
-    if (pdfMake.default?.vfs) {
-      pdfMake.default.vfs = pdfFonts.default?.pdfMake?.vfs ?? pdfFonts.pdfMake?.vfs
+    // Resolve the actual exports (handle .default for ESM wrappers).
+    // pdfmake's default export is a singleton instance of browser_extensions_pdfmake.
+    // ESM interop may wrap it in an extra .default layer.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pdfmake types are incomplete
+    let pdfMake: any = pdfMakeModule.default ?? pdfMakeModule
+    if (pdfMake.default && typeof pdfMake.default.createPdf === 'function') {
+      pdfMake = pdfMake.default
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pdfmake types are incomplete
+    const pdfFonts: any = pdfFontsModule.default ?? pdfFontsModule
 
-    const createPdf = pdfMake.default?.createPdf ?? pdfMake.createPdf
+    // Assign virtual filesystem for fonts
+    if (pdfMake.vfs == null) {
+      pdfMake.vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs
+    }
 
     // Find page config
     const pageNode = node.children.find(
@@ -269,7 +336,11 @@ export const pdfRenderer: DocumentRenderer = {
 
     const content = [nodeToContent(node)].flat().filter(Boolean) as PdfContent[]
 
-    const docDefinition = {
+    // Build header/footer from PageProps if present
+    const headerFn = renderHeaderFooter(pageNode?.props.header as DocNode | undefined)
+    const footerFn = renderHeaderFooter(pageNode?.props.footer as DocNode | undefined)
+
+    const docDefinition: Record<string, unknown> = {
       pageSize: PAGE_SIZES[pageSize] ?? PAGE_SIZES.A4,
       pageOrientation,
       pageMargins: pageMargin,
@@ -284,17 +355,29 @@ export const pdfRenderer: DocumentRenderer = {
         fontSize: 12,
         lineHeight: 1.4,
       },
+      // Keep sections together — break before a heading if it would be
+      // orphaned at the bottom of a page.
+      pageBreakBefore: (
+        currentNode: { headlineLevel?: number },
+        helpers: { getFollowingNodesOnPage?: () => unknown[] },
+      ) => {
+        if (currentNode.headlineLevel && helpers.getFollowingNodesOnPage) {
+          const following = helpers.getFollowingNodesOnPage()
+          if (following.length === 0) return true
+        }
+        return false
+      },
     }
 
-    return new Promise<Uint8Array>((resolve, reject) => {
-      try {
-        const pdf = createPdf(docDefinition)
-        pdf.getBuffer((buffer: ArrayBuffer) => {
-          resolve(new Uint8Array(buffer))
-        })
-      } catch (err) {
-        reject(new Error(`[@pyreon/document] PDF generation failed: ${err}`))
-      }
-    })
+    if (headerFn) docDefinition.header = headerFn
+    if (footerFn) docDefinition.footer = footerFn
+
+    try {
+      const pdf = pdfMake.createPdf(docDefinition)
+      const buffer = await pdf.getBuffer()
+      return new Uint8Array(buffer)
+    } catch (err) {
+      throw new Error(`[@pyreon/document] PDF generation failed: ${err}`)
+    }
   },
 }

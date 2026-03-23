@@ -106,6 +106,9 @@ function renderNode(node: DocNode): string {
     case 'divider':
       return '---\n\n'
 
+    case 'page-break':
+      return '---\n\n'
+
     case 'spacer':
       return '\n'
 

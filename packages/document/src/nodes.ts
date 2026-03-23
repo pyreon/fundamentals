@@ -262,6 +262,20 @@ export function Divider(props: DividerProps = {}): DocNode {
 Divider._documentType = 'divider' as const
 
 /**
+ * Page break — forces content after this point to the next page (PDF/DOCX)
+ * or inserts a visual separator (HTML/email).
+ *
+ * @example
+ * ```tsx
+ * <PageBreak />
+ * ```
+ */
+export function PageBreak(): DocNode {
+  return createNode('page-break', {}, [])
+}
+PageBreak._documentType = 'page-break' as const
+
+/**
  * Vertical spacer.
  *
  * @example

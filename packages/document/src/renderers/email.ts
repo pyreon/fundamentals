@@ -155,6 +155,9 @@ function renderNode(node: DocNode): string {
       return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td style="border-top:${thickness}px solid ${color};font-size:0;line-height:0">&nbsp;</td></tr></table>`
     }
 
+    case 'page-break':
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0"><tr><td style="border-top:2px solid #dddddd;font-size:0;line-height:0">&nbsp;</td></tr></table>`
+
     case 'spacer':
       return `<div style="height:${p.height}px;line-height:${p.height}px;font-size:0">&nbsp;</div>`
 

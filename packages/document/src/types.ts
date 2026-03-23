@@ -13,6 +13,7 @@ export type NodeType =
   | 'table'
   | 'list'
   | 'list-item'
+  | 'page-break'
   | 'code'
   | 'divider'
   | 'spacer'
@@ -199,6 +200,7 @@ export type OutputFormat =
   | 'html'
   | 'pdf'
   | 'docx'
+  | 'pptx'
   | 'email'
   | 'xlsx'
   | 'md'
@@ -246,6 +248,7 @@ export interface DocumentBuilder {
   toHtml(options?: RenderOptions): Promise<string>
   toPdf(options?: RenderOptions): Promise<Uint8Array>
   toDocx(options?: RenderOptions): Promise<Uint8Array>
+  toPptx(options?: RenderOptions): Promise<Uint8Array>
   toEmail(options?: RenderOptions): Promise<string>
   toXlsx(options?: RenderOptions): Promise<Uint8Array>
   toMarkdown(options?: RenderOptions): Promise<string>

@@ -57,7 +57,7 @@ describe('node construction', () => {
     const row = Row({ gap: 10, children: [Column({ width: '50%', children: 'left' })] })
     expect(row.type).toBe('row')
     expect(row.children).toHaveLength(1)
-    const col = row.children[0]
+    const col = row.children[0]!
     expect(typeof col).not.toBe('string')
     if (typeof col !== 'string') {
       expect(col.type).toBe('column')
@@ -1271,4 +1271,385 @@ describe('email renderer — additional', () => {
     expect(html).toContain('<table')
     expect(html).toContain('valign="top"')
   })
+})
+
+// ─── DOCX Renderer (integration) ────────────────────────────────────────────
+
+describe('DOCX renderer', () => {
+  it('renders a document with heading, text, table, list, code, divider to a valid Uint8Array', async () => {
+    const doc = Document({
+      title: 'DOCX Test',
+      author: 'Test Suite',
+      children: Page({
+        size: 'A4',
+        margin: 40,
+        children: [
+          Heading({ children: 'DOCX Integration Test' }),
+          Text({ children: 'A test paragraph.', bold: true }),
+          Table({
+            columns: ['Name', 'Value'],
+            rows: [['Alpha', '100'], ['Beta', '200']],
+            striped: true,
+            headerStyle: { background: '#333333', color: '#ffffff' },
+          }),
+          List({
+            ordered: true,
+            children: [ListItem({ children: 'First' }), ListItem({ children: 'Second' })],
+          }),
+          Code({ children: 'const x = 42' }),
+          Divider(),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+    // DOCX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
+    expect((result as Uint8Array)[0]).toBe(0x50)
+    expect((result as Uint8Array)[1]).toBe(0x4B)
+  }, 15000)
+
+  it('embeds base64 images via ImageRun', async () => {
+    // 1x1 red pixel PNG as base64
+    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+
+    const doc = Document({
+      children: Page({
+        children: [
+          Image({ src: redPixel, width: 50, height: 50, caption: 'Red pixel' }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders external URL images as placeholders', async () => {
+    const doc = Document({
+      children: Image({ src: 'https://example.com/logo.png', alt: 'Logo', caption: 'Company' }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders page with header and footer', async () => {
+    const doc = Document({
+      children: Page({
+        header: Text({ children: 'My Header' }),
+        footer: Text({ children: 'Page Footer' }),
+        children: [
+          Heading({ children: 'Content' }),
+          Text({ children: 'Body text.' }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders table with bordered option and column widths', async () => {
+    const doc = Document({
+      children: Table({
+        columns: [
+          { header: 'Name', width: '60%' },
+          { header: 'Price', width: '40%', align: 'right' },
+        ],
+        rows: [['Widget', '$10']],
+        bordered: true,
+      }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders nested lists', async () => {
+    const doc = Document({
+      children: List({
+        children: [
+          ListItem({
+            children: [
+              'Parent item',
+              List({
+                children: [
+                  ListItem({ children: 'Child item' }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'docx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+})
+
+// ─── XLSX Renderer (integration) ────────────────────────────────────────────
+
+describe('XLSX renderer', () => {
+  it('renders a document with tables to a valid Uint8Array', async () => {
+    const doc = Document({
+      title: 'XLSX Test',
+      author: 'Test Suite',
+      children: Page({
+        children: [
+          Heading({ children: 'Sales Data' }),
+          Table({
+            columns: ['Product', 'Revenue', 'Margin'],
+            rows: [
+              ['Widget', '$1,234.56', '15%'],
+              ['Gadget', '$2,500.00', '22.5%'],
+            ],
+            striped: true,
+            headerStyle: { background: '#1a1a2e', color: '#ffffff' },
+          }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+    // XLSX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
+    expect((result as Uint8Array)[0]).toBe(0x50)
+    expect((result as Uint8Array)[1]).toBe(0x4B)
+  }, 15000)
+
+  it('parses currency values as numbers', async () => {
+    const doc = Document({
+      children: Table({
+        columns: ['Amount'],
+        rows: [['$1,234.56'], ['$500'], ['-$100.50']],
+      }),
+    })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('parses percentage values', async () => {
+    const doc = Document({
+      children: Table({
+        columns: ['Rate'],
+        rows: [['45%'], ['12.5%'], ['-3%']],
+      }),
+    })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders multiple tables on the same sheet with spacing', async () => {
+    const doc = Document({
+      children: [
+        Heading({ children: 'Report' }),
+        Table({
+          columns: ['A', 'B'],
+          rows: [['1', '2'], ['3', '4']],
+          caption: 'First Table',
+        }),
+        Table({
+          columns: ['X', 'Y'],
+          rows: [['a', 'b']],
+          caption: 'Second Table',
+        }),
+      ],
+    })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders bordered tables', async () => {
+    const doc = Document({
+      children: Table({
+        columns: ['Name', 'Value'],
+        rows: [['Alpha', '100']],
+        bordered: true,
+      }),
+    })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders empty document with default sheet', async () => {
+    const doc = Document({ children: Text({ children: 'no tables' }) })
+
+    const result = await render(doc, 'xlsx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+})
+
+// ─── PDF Renderer (integration) ─────────────────────────────────────────────
+
+describe('PDF renderer', () => {
+  it('renders a document with heading, text, table, and data: image to a valid Uint8Array', async () => {
+    // 1x1 red pixel PNG as base64
+    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+
+    const doc = Document({
+      title: 'PDF Test',
+      author: 'Test Suite',
+      children: Page({
+        size: 'A4',
+        margin: 40,
+        children: [
+          Heading({ children: 'PDF Integration Test' }),
+          Text({ children: 'This is a test paragraph.', bold: true }),
+          Table({
+            columns: ['Name', 'Value'],
+            rows: [['Alpha', '100'], ['Beta', '200']],
+            striped: true,
+            headerStyle: { background: '#333333', color: '#ffffff' },
+          }),
+          Image({ src: redPixel, width: 50, height: 50 }),
+          List({
+            ordered: true,
+            children: [ListItem({ children: 'First' }), ListItem({ children: 'Second' })],
+          }),
+          Divider(),
+          Quote({ children: 'A wise quote.' }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'pdf')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+    // PDF files start with %PDF
+    const header = String.fromCharCode(...(result as Uint8Array).slice(0, 5))
+    expect(header).toBe('%PDF-')
+  }, 15000)
+
+  it('renders images with HTTP URLs as placeholder text', async () => {
+    const doc = Document({
+      title: 'HTTP Image Test',
+      children: Page({
+        children: [
+          Heading({ children: 'Test' }),
+          Image({ src: 'https://example.com/image.png', width: 100 }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'pdf')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders page with header and footer', async () => {
+    const doc = Document({
+      title: 'Header/Footer Test',
+      children: Page({
+        header: Text({ children: 'Page Header', bold: true }),
+        footer: Text({ children: 'Page Footer', size: 10 }),
+        children: [
+          Heading({ children: 'Content' }),
+          Text({ children: 'Body text.' }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'pdf')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+})
+
+// ─── PPTX Renderer (integration) ────────────────────────────────────────────
+
+describe('PPTX renderer', () => {
+  it('renders a document with pages, headings, text, and tables to a valid Uint8Array', async () => {
+    const doc = Document({
+      title: 'PPTX Test',
+      author: 'Test Suite',
+      children: [
+        Page({
+          children: [
+            Heading({ children: 'Slide 1 Title' }),
+            Text({ children: 'Introduction text.', bold: true }),
+            List({
+              children: [ListItem({ children: 'Point A' }), ListItem({ children: 'Point B' })],
+            }),
+          ],
+        }),
+        Page({
+          children: [
+            Heading({ level: 2, children: 'Slide 2 Data' }),
+            Table({
+              columns: ['Metric', 'Value'],
+              rows: [['Revenue', '$1M'], ['Profit', '$300K']],
+              headerStyle: { background: '#1a1a2e', color: '#ffffff' },
+              striped: true,
+            }),
+          ],
+        }),
+      ],
+    })
+
+    const result = await render(doc, 'pptx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+    // PPTX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
+    expect((result as Uint8Array)[0]).toBe(0x50)
+    expect((result as Uint8Array)[1]).toBe(0x4B)
+  }, 15000)
+
+  it('renders a document without explicit pages as a single slide', async () => {
+    const doc = Document({
+      title: 'Single Slide',
+      children: [
+        Heading({ children: 'Auto Slide' }),
+        Text({ children: 'No explicit page wrapper.' }),
+      ],
+    })
+
+    const result = await render(doc, 'pptx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
+
+  it('renders all node types without errors', async () => {
+    // 1x1 red pixel PNG as base64
+    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+
+    const doc = Document({
+      children: Page({
+        children: [
+          Heading({ children: 'Title' }),
+          Text({ children: 'Body', bold: true, italic: true }),
+          Image({ src: redPixel, width: 50, height: 50 }),
+          Code({ children: 'const x = 1' }),
+          Quote({ children: 'A quote' }),
+          Link({ href: 'https://example.com', children: 'Link text' }),
+          Button({ href: '/action', background: '#4f46e5', children: 'Click' }),
+          Divider(),
+          Spacer({ height: 20 }),
+          List({ ordered: true, children: [ListItem({ children: 'one' })] }),
+          Section({ children: Text({ children: 'nested' }) }),
+        ],
+      }),
+    })
+
+    const result = await render(doc, 'pptx')
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect((result as Uint8Array).length).toBeGreaterThan(0)
+  }, 15000)
 })

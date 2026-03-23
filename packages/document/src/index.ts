@@ -44,6 +44,7 @@ export {
   List,
   ListItem,
   Page,
+  PageBreak,
   Quote,
   Row,
   Section,

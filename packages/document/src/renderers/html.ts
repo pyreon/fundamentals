@@ -158,6 +158,9 @@ function renderNode(node: DocNode): string {
       return `<hr style="border:none;border-top:${thickness}px solid ${color};margin:16px 0" />`
     }
 
+    case 'page-break':
+      return '<div style="page-break-after:always;break-after:page"></div>'
+
     case 'spacer':
       return `<div style="height:${p.height}px"></div>`
 
