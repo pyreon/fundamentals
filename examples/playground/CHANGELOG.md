@@ -1,5 +1,23 @@
 # @pyreon/playground
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`deb9834`](https://github.com/pyreon/fundamentals/commit/deb983456472cc685d80e97b21196588af53b502)]:
+  - @pyreon/store@0.7.0
+  - @pyreon/state-tree@0.7.0
+  - @pyreon/form@0.7.0
+  - @pyreon/validation@0.7.0
+  - @pyreon/query@0.7.0
+  - @pyreon/table@0.7.0
+  - @pyreon/virtual@0.7.0
+  - @pyreon/i18n@0.7.0
+  - @pyreon/storage@0.7.0
+  - @pyreon/hotkeys@0.7.0
+  - @pyreon/permissions@0.7.0
+  - @pyreon/machine@0.7.0
+
 ## 0.0.5
 
 ### Patch Changes
