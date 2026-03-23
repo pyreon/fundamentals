@@ -55,7 +55,10 @@ describe('node construction', () => {
   })
 
   it('Row and Column', () => {
-    const row = Row({ gap: 10, children: [Column({ width: '50%', children: 'left' })] })
+    const row = Row({
+      gap: 10,
+      children: [Column({ width: '50%', children: 'left' })],
+    })
     expect(row.type).toBe('row')
     expect(row.children).toHaveLength(1)
     const col = row.children[0]!
@@ -78,7 +81,13 @@ describe('node construction', () => {
   })
 
   it('Text with formatting', () => {
-    const t = Text({ bold: true, italic: true, size: 14, color: '#333', children: 'hello' })
+    const t = Text({
+      bold: true,
+      italic: true,
+      size: 14,
+      color: '#333',
+      children: 'hello',
+    })
     expect(t.type).toBe('text')
     expect(t.props.bold).toBe(true)
     expect(t.props.italic).toBe(true)
@@ -92,7 +101,13 @@ describe('node construction', () => {
   })
 
   it('Image with all props', () => {
-    const img = Image({ src: '/logo.png', width: 100, height: 50, alt: 'Logo', caption: 'Company logo' })
+    const img = Image({
+      src: '/logo.png',
+      width: 100,
+      height: 50,
+      alt: 'Logo',
+      caption: 'Company logo',
+    })
     expect(img.type).toBe('image')
     expect(img.props.src).toBe('/logo.png')
     expect(img.props.width).toBe(100)
@@ -198,7 +213,7 @@ describe('HTML renderer', () => {
       title: 'Test',
       children: Page({ children: Heading({ children: 'Hello' }) }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<!DOCTYPE html>')
     expect(html).toContain('<title>Test</title>')
     expect(html).toContain('<h1')
@@ -207,9 +222,15 @@ describe('HTML renderer', () => {
 
   it('renders text with formatting', async () => {
     const doc = Document({
-      children: Text({ bold: true, color: '#f00', size: 20, align: 'center', children: 'Bold Red' }),
+      children: Text({
+        bold: true,
+        color: '#f00',
+        size: 20,
+        align: 'center',
+        children: 'Bold Red',
+      }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('font-weight:bold')
     expect(html).toContain('color:#f00')
     expect(html).toContain('font-size:20px')
@@ -220,12 +241,15 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: Table({
         columns: ['Name', { header: 'Price', align: 'right' }],
-        rows: [['Widget', '$10'], ['Gadget', '$20']],
+        rows: [
+          ['Widget', '$10'],
+          ['Gadget', '$20'],
+        ],
         striped: true,
         headerStyle: { background: '#000', color: '#fff' },
       }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<table')
     expect(html).toContain('Widget')
     expect(html).toContain('$10')
@@ -235,9 +259,14 @@ describe('HTML renderer', () => {
 
   it('renders an image with caption', async () => {
     const doc = Document({
-      children: Image({ src: '/img.png', width: 200, alt: 'Photo', caption: 'A photo' }),
+      children: Image({
+        src: '/img.png',
+        width: 200,
+        alt: 'Photo',
+        caption: 'A photo',
+      }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<img')
     expect(html).toContain('src="/img.png"')
     expect(html).toContain('<figcaption>')
@@ -248,7 +277,7 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: Link({ href: 'https://example.com', children: 'Click me' }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('href="https://example.com"')
     expect(html).toContain('Click me')
   })
@@ -257,17 +286,20 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: List({
         ordered: true,
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<ol>')
     expect(html).toContain('<li>one</li>')
   })
 
   it('renders code blocks', async () => {
     const doc = Document({ children: Code({ children: 'const x = 1' }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<pre')
     expect(html).toContain('<code>')
     expect(html).toContain('const x = 1')
@@ -275,22 +307,27 @@ describe('HTML renderer', () => {
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider({ color: '#ccc', thickness: 2 }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<hr')
     expect(html).toContain('2px solid #ccc')
   })
 
   it('renders spacer', async () => {
     const doc = Document({ children: Spacer({ height: 30 }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('height:30px')
   })
 
   it('renders button', async () => {
     const doc = Document({
-      children: Button({ href: '/pay', background: '#4f46e5', color: '#fff', children: 'Pay' }),
+      children: Button({
+        href: '/pay',
+        background: '#4f46e5',
+        color: '#fff',
+        children: 'Pay',
+      }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('href="/pay"')
     expect(html).toContain('background:#4f46e5')
     expect(html).toContain('Pay')
@@ -298,7 +335,7 @@ describe('HTML renderer', () => {
 
   it('renders blockquote', async () => {
     const doc = Document({ children: Quote({ children: 'A wise quote' }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<blockquote')
     expect(html).toContain('A wise quote')
   })
@@ -312,7 +349,7 @@ describe('HTML renderer', () => {
         children: [Text({ children: 'A' }), Text({ children: 'B' })],
       }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('display:flex')
     expect(html).toContain('flex-direction:row')
   })
@@ -321,7 +358,7 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: Image({ src: '/img.png', align: 'center' }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('margin:0 auto')
   })
 
@@ -329,7 +366,7 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], bordered: true }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('border:1px solid #ddd')
   })
 
@@ -337,27 +374,37 @@ describe('HTML renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], caption: 'My Table' }),
     })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('<caption>My Table</caption>')
   })
 
   it('escapes HTML in text', async () => {
-    const doc = Document({ children: Text({ children: '<script>alert(1)</script>' }) })
-    const html = await render(doc, 'html') as string
+    const doc = Document({
+      children: Text({ children: '<script>alert(1)</script>' }),
+    })
+    const html = (await render(doc, 'html')) as string
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
   })
 
   it('renders text with underline and strikethrough', async () => {
-    const ul = Document({ children: Text({ underline: true, children: 'underlined' }) })
-    const st = Document({ children: Text({ strikethrough: true, children: 'struck' }) })
-    expect(await render(ul, 'html') as string).toContain('text-decoration:underline')
-    expect(await render(st, 'html') as string).toContain('text-decoration:line-through')
+    const ul = Document({
+      children: Text({ underline: true, children: 'underlined' }),
+    })
+    const st = Document({
+      children: Text({ strikethrough: true, children: 'struck' }),
+    })
+    expect((await render(ul, 'html')) as string).toContain(
+      'text-decoration:underline',
+    )
+    expect((await render(st, 'html')) as string).toContain(
+      'text-decoration:line-through',
+    )
   })
 
   it('renders image with right alignment', async () => {
     const doc = Document({ children: Image({ src: '/x.png', align: 'right' }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('margin-left:auto')
   })
 })
@@ -373,7 +420,7 @@ describe('email renderer', () => {
         Text({ children: 'Welcome to our service.' }),
       ],
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('<!DOCTYPE html>')
     expect(html).toContain('max-width:600px')
     expect(html).toContain('Hello!')
@@ -383,9 +430,13 @@ describe('email renderer', () => {
 
   it('renders bulletproof buttons', async () => {
     const doc = Document({
-      children: Button({ href: '/pay', background: '#4f46e5', children: 'Pay Now' }),
+      children: Button({
+        href: '/pay',
+        background: '#4f46e5',
+        children: 'Pay Now',
+      }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     // VML for Outlook
     expect(html).toContain('v:roundrect')
     // CSS for others
@@ -401,7 +452,7 @@ describe('email renderer', () => {
         headerStyle: { background: '#000', color: '#fff' },
       }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('background-color:#000')
     expect(html).toContain('color:#fff')
     expect(html).toContain('Widget')
@@ -414,7 +465,7 @@ describe('email renderer', () => {
         children: [Text({ children: 'Left' }), Text({ children: 'Right' })],
       }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     // Should use table layout, not flexbox
     expect(html).not.toContain('display:flex')
     expect(html).toContain('<table')
@@ -424,13 +475,13 @@ describe('email renderer', () => {
 
   it('renders divider using table', async () => {
     const doc = Document({ children: Divider() })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('border-top:1px solid')
   })
 
   it('renders quote using table with border-left', async () => {
     const doc = Document({ children: Quote({ children: 'A quote' }) })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('border-left:4px solid')
   })
 })
@@ -445,7 +496,7 @@ describe('markdown renderer', () => {
         Heading({ level: 3, children: 'Subtitle' }),
       ],
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('# Title')
     expect(md).toContain('### Subtitle')
   })
@@ -458,7 +509,7 @@ describe('markdown renderer', () => {
         Text({ strikethrough: true, children: 'struck' }),
       ],
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('**bold**')
     expect(md).toContain('*italic*')
     expect(md).toContain('~~struck~~')
@@ -471,7 +522,7 @@ describe('markdown renderer', () => {
         rows: [['Widget', '$10']],
       }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('| Name | Price |')
     expect(md).toContain('| --- | ---: |')
     expect(md).toContain('| Widget | $10 |')
@@ -481,7 +532,7 @@ describe('markdown renderer', () => {
     const doc = Document({
       children: Link({ href: 'https://example.com', children: 'click' }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('[click](https://example.com)')
   })
 
@@ -489,7 +540,7 @@ describe('markdown renderer', () => {
     const doc = Document({
       children: Image({ src: '/img.png', alt: 'Photo', caption: 'A photo' }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('![Photo](/img.png)')
     expect(md).toContain('*A photo*')
   })
@@ -498,7 +549,7 @@ describe('markdown renderer', () => {
     const doc = Document({
       children: Code({ language: 'typescript', children: 'const x = 1' }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('```typescript')
     expect(md).toContain('const x = 1')
     expect(md).toContain('```')
@@ -508,7 +559,10 @@ describe('markdown renderer', () => {
     const ol = Document({
       children: List({
         ordered: true,
-        children: [ListItem({ children: 'first' }), ListItem({ children: 'second' })],
+        children: [
+          ListItem({ children: 'first' }),
+          ListItem({ children: 'second' }),
+        ],
       }),
     })
     const ul = Document({
@@ -516,8 +570,8 @@ describe('markdown renderer', () => {
         children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
       }),
     })
-    const orderedMd = await render(ol, 'md') as string
-    const unorderedMd = await render(ul, 'md') as string
+    const orderedMd = (await render(ol, 'md')) as string
+    const unorderedMd = (await render(ul, 'md')) as string
     expect(orderedMd).toContain('1. first')
     expect(orderedMd).toContain('2. second')
     expect(unorderedMd).toContain('- a')
@@ -526,19 +580,21 @@ describe('markdown renderer', () => {
 
   it('renders divider as ---', async () => {
     const doc = Document({ children: Divider() })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('---')
   })
 
   it('renders button as link', async () => {
-    const doc = Document({ children: Button({ href: '/pay', children: 'Pay' }) })
-    const md = await render(doc, 'md') as string
+    const doc = Document({
+      children: Button({ href: '/pay', children: 'Pay' }),
+    })
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('[Pay](/pay)')
   })
 
   it('renders quote with >', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('> wise')
   })
 
@@ -546,7 +602,7 @@ describe('markdown renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], caption: 'My Table' }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('*My Table*')
   })
 })
@@ -561,7 +617,7 @@ describe('text renderer', () => {
         Heading({ level: 2, children: 'Sub' }),
       ],
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('TITLE')
     expect(text).toContain('=====')
     expect(text).toContain('Sub')
@@ -571,26 +627,33 @@ describe('text renderer', () => {
   it('renders aligned table columns', async () => {
     const doc = Document({
       children: Table({
-        columns: [{ header: 'Name', align: 'left' }, { header: 'Price', align: 'right' }],
+        columns: [
+          { header: 'Name', align: 'left' },
+          { header: 'Price', align: 'right' },
+        ],
         rows: [['Widget', '$10']],
       }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('Name')
     expect(text).toContain('Price')
     expect(text).toContain('Widget')
   })
 
   it('renders button as link reference', async () => {
-    const doc = Document({ children: Button({ href: '/pay', children: 'Pay' }) })
-    const text = await render(doc, 'text') as string
+    const doc = Document({
+      children: Button({ href: '/pay', children: 'Pay' }),
+    })
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('[Pay]')
     expect(text).toContain('/pay')
   })
 
   it('renders image as placeholder', async () => {
-    const doc = Document({ children: Image({ src: '/x.png', alt: 'Photo', caption: 'Nice' }) })
-    const text = await render(doc, 'text') as string
+    const doc = Document({
+      children: Image({ src: '/x.png', alt: 'Photo', caption: 'Nice' }),
+    })
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('[Photo — Nice]')
   })
 })
@@ -602,10 +665,13 @@ describe('CSV renderer', () => {
     const doc = Document({
       children: Table({
         columns: ['Name', 'Price'],
-        rows: [['Widget', '$10'], ['Gadget', '$20']],
+        rows: [
+          ['Widget', '$10'],
+          ['Gadget', '$20'],
+        ],
       }),
     })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('Name,Price')
     expect(csv).toContain('Widget,$10')
     expect(csv).toContain('Gadget,$20')
@@ -618,14 +684,14 @@ describe('CSV renderer', () => {
         rows: [['Widget, Inc.'], ['He said "hello"']],
       }),
     })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('"Widget, Inc."')
     expect(csv).toContain('"He said ""hello"""')
   })
 
   it('returns message when no tables', async () => {
     const doc = Document({ children: Text({ children: 'no tables here' }) })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('No tables found')
   })
 
@@ -636,7 +702,7 @@ describe('CSV renderer', () => {
         Table({ columns: ['B'], rows: [['2']] }),
       ],
     })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('A')
     expect(csv).toContain('B')
   })
@@ -645,7 +711,7 @@ describe('CSV renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], caption: 'My Data' }),
     })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('# My Data')
   })
 })
@@ -691,9 +757,7 @@ describe('createDocument builder', () => {
   })
 
   it('renders to text', async () => {
-    const doc = createDocument()
-      .heading('Title')
-      .text('Body')
+    const doc = createDocument().heading('Title').text('Body')
 
     const text = await doc.toText()
     expect(text).toContain('TITLE')
@@ -701,8 +765,7 @@ describe('createDocument builder', () => {
   })
 
   it('renders to CSV', async () => {
-    const doc = createDocument()
-      .table({ columns: ['X'], rows: [['1'], ['2']] })
+    const doc = createDocument().table({ columns: ['X'], rows: [['1'], ['2']] })
 
     const csv = await doc.toCsv()
     expect(csv).toContain('X')
@@ -729,16 +792,14 @@ describe('createDocument builder', () => {
   })
 
   it('chart without instance shows placeholder', async () => {
-    const doc = createDocument()
-      .chart(null)
+    const doc = createDocument().chart(null)
 
     const html = await doc.toHtml()
     expect(html).toContain('[Chart]')
   })
 
   it('flow without instance shows placeholder', async () => {
-    const doc = createDocument()
-      .flow(null)
+    const doc = createDocument().flow(null)
 
     const html = await doc.toHtml()
     expect(html).toContain('[Flow Diagram]')
@@ -779,20 +840,32 @@ describe('custom renderers', () => {
   })
 
   it('unregisterRenderer removes a format', () => {
-    registerRenderer('temp', { async render() { return 'x' } })
+    registerRenderer('temp', {
+      async render() {
+        return 'x'
+      },
+    })
     unregisterRenderer('temp')
-    expect(render(Document({ children: 'x' }), 'temp')).rejects.toThrow('No renderer registered')
+    expect(render(Document({ children: 'x' }), 'temp')).rejects.toThrow(
+      'No renderer registered',
+    )
   })
 
   it('throws for unknown format', () => {
-    expect(render(Document({ children: 'x' }), 'unknown')).rejects.toThrow('No renderer registered')
+    expect(render(Document({ children: 'x' }), 'unknown')).rejects.toThrow(
+      'No renderer registered',
+    )
   })
 
   it('lazy renderer is cached after first use', async () => {
     let loadCount = 0
     registerRenderer('lazy', async () => {
       loadCount++
-      return { async render() { return 'lazy-result' } }
+      return {
+        async render() {
+          return 'lazy-result'
+        },
+      }
     })
 
     await render(Document({ children: 'x' }), 'lazy')
@@ -815,7 +888,9 @@ describe('real-world document', () => {
           Row({
             gap: 20,
             children: [
-              Column({ children: Image({ src: '/logo.png', width: 80, alt: 'Logo' }) }),
+              Column({
+                children: Image({ src: '/logo.png', width: 80, alt: 'Logo' }),
+              }),
               Column({
                 children: [
                   Heading({ children: 'Invoice #1234' }),
@@ -841,17 +916,31 @@ describe('real-world document', () => {
             headerStyle: { background: '#1a1a2e', color: '#fff' },
           }),
           Spacer({ height: 20 }),
-          Text({ bold: true, align: 'right', size: 18, children: 'Total: $200' }),
+          Text({
+            bold: true,
+            align: 'right',
+            size: 18,
+            children: 'Total: $200',
+          }),
           Divider(),
-          Text({ color: '#999', size: 12, children: 'Thank you for your business!' }),
-          Button({ href: 'https://acme.com/pay/1234', background: '#4f46e5', align: 'center', children: 'Pay Now' }),
+          Text({
+            color: '#999',
+            size: 12,
+            children: 'Thank you for your business!',
+          }),
+          Button({
+            href: 'https://acme.com/pay/1234',
+            background: '#4f46e5',
+            align: 'center',
+            children: 'Pay Now',
+          }),
         ],
       }),
     })
   }
 
   it('renders as HTML', async () => {
-    const html = await render(createInvoice(), 'html') as string
+    const html = (await render(createInvoice(), 'html')) as string
     expect(html).toContain('Invoice #1234')
     expect(html).toContain('Widget Pro')
     expect(html).toContain('Total: $200')
@@ -859,28 +948,28 @@ describe('real-world document', () => {
   })
 
   it('renders as email', async () => {
-    const html = await render(createInvoice(), 'email') as string
+    const html = (await render(createInvoice(), 'email')) as string
     expect(html).toContain('Invoice #1234')
     expect(html).toContain('max-width:600px')
     expect(html).toContain('v:roundrect') // Outlook button
   })
 
   it('renders as markdown', async () => {
-    const md = await render(createInvoice(), 'md') as string
+    const md = (await render(createInvoice(), 'md')) as string
     expect(md).toContain('# Invoice #1234')
     expect(md).toContain('| Widget Pro')
     expect(md).toContain('**Total: $200**')
   })
 
   it('renders as text', async () => {
-    const text = await render(createInvoice(), 'text') as string
+    const text = (await render(createInvoice(), 'text')) as string
     expect(text).toContain('INVOICE #1234')
     expect(text).toContain('Widget Pro')
     expect(text).toContain('Total: $200')
   })
 
   it('renders as CSV', async () => {
-    const csv = await render(createInvoice(), 'csv') as string
+    const csv = (await render(createInvoice(), 'csv')) as string
     expect(csv).toContain('Item,Qty,Price,Total')
     expect(csv).toContain('Widget Pro,2,$50,$100')
   })
@@ -890,8 +979,10 @@ describe('real-world document', () => {
 
 describe('text renderer — additional', () => {
   it('renders link with URL', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'Link' }) })
-    const text = await render(doc, 'text') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'Link' }),
+    })
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('Link (https://x.com)')
   })
 
@@ -899,7 +990,7 @@ describe('text renderer — additional', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], caption: 'Data' }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('Data')
   })
 
@@ -907,10 +998,13 @@ describe('text renderer — additional', () => {
     const doc = Document({
       children: List({
         ordered: true,
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('1. one')
     expect(text).toContain('2. two')
   })
@@ -921,33 +1015,39 @@ describe('text renderer — additional', () => {
         children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
       }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('* a')
     expect(text).toContain('* b')
   })
 
   it('renders code block', async () => {
     const doc = Document({ children: Code({ children: 'x = 1' }) })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('x = 1')
   })
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider() })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('─')
   })
 
   it('renders spacer as newline', async () => {
-    const doc = Document({ children: [Text({ children: 'A' }), Spacer({ height: 20 }), Text({ children: 'B' })] })
-    const text = await render(doc, 'text') as string
+    const doc = Document({
+      children: [
+        Text({ children: 'A' }),
+        Spacer({ height: 20 }),
+        Text({ children: 'B' }),
+      ],
+    })
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('A')
     expect(text).toContain('B')
   })
 
   it('renders quote with indentation', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('"wise"')
   })
 
@@ -959,13 +1059,13 @@ describe('text renderer — additional', () => {
         }),
       }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('nested')
   })
 
   it('renders heading level 3+', async () => {
     const doc = Document({ children: Heading({ level: 4, children: 'Sub' }) })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('Sub')
     // Level 3+ should not have underline
     expect(text).not.toContain('===')
@@ -979,7 +1079,7 @@ describe('text renderer — additional', () => {
         rows: [['X']],
       }),
     })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('Name')
     expect(text).toContain('X')
   })
@@ -989,10 +1089,7 @@ describe('text renderer — additional', () => {
 
 describe('builder — additional', () => {
   it('pageBreak wraps content', () => {
-    const doc = createDocument()
-      .heading('Page 1')
-      .pageBreak()
-      .heading('Page 2')
+    const doc = createDocument().heading('Page 1').pageBreak().heading('Page 2')
     const node = doc.build()
     expect(node.type).toBe('document')
   })
@@ -1004,7 +1101,9 @@ describe('builder — additional', () => {
   })
 
   it('toCsv renders', async () => {
-    const csv = await createDocument().table({ columns: ['X'], rows: [['1']] }).toCsv()
+    const csv = await createDocument()
+      .table({ columns: ['X'], rows: [['1']] })
+      .toCsv()
     expect(csv).toContain('X')
   })
 
@@ -1024,15 +1123,18 @@ describe('markdown — additional branches', () => {
         rows: [['1']],
       }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain(':---:')
   })
 
   it('renders table with left aligned column (default)', async () => {
     const doc = Document({
-      children: Table({ columns: [{ header: 'X', align: 'left' }], rows: [['1']] }),
+      children: Table({
+        columns: [{ header: 'X', align: 'left' }],
+        rows: [['1']],
+      }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('| --- |')
   })
 
@@ -1040,32 +1142,32 @@ describe('markdown — additional branches', () => {
     const doc = Document({
       children: Table({ columns: [], rows: [] }),
     })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toBeDefined()
   })
 
   it('renders image without caption', async () => {
     const doc = Document({ children: Image({ src: '/x.png', alt: 'X' }) })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('![X](/x.png)')
     expect(md).not.toContain('*')
   })
 
   it('renders image without alt', async () => {
     const doc = Document({ children: Image({ src: '/x.png' }) })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('![](/x.png)')
   })
 
   it('renders code without language', async () => {
     const doc = Document({ children: Code({ children: 'x = 1' }) })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('```\nx = 1\n```')
   })
 
   it('renders spacer as newline', async () => {
     const doc = Document({ children: Spacer({ height: 20 }) })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toBeDefined()
   })
 })
@@ -1075,16 +1177,21 @@ describe('markdown — additional branches', () => {
 describe('email — additional branches', () => {
   it('renders section with background and padding', async () => {
     const doc = Document({
-      children: Section({ background: '#f00', padding: [10, 20], borderRadius: 8, children: Text({ children: 'hi' }) }),
+      children: Section({
+        background: '#f00',
+        padding: [10, 20],
+        borderRadius: 8,
+        children: Text({ children: 'hi' }),
+      }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('background-color:#f00')
     expect(html).toContain('border-radius:8px')
   })
 
   it('renders image with right alignment', async () => {
     const doc = Document({ children: Image({ src: '/x.png', align: 'right' }) })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('text-align:right')
   })
 
@@ -1096,22 +1203,30 @@ describe('email — additional branches', () => {
         striped: true,
       }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('background-color:#f9f9f9')
   })
 
   it('renders heading level 2', async () => {
     const doc = Document({ children: Heading({ level: 2, children: 'Sub' }) })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('<h2')
     expect(html).toContain('font-size:24px')
   })
 
   it('renders text with all formatting options', async () => {
     const doc = Document({
-      children: Text({ size: 16, bold: true, italic: true, underline: true, align: 'center', lineHeight: 2, children: 'styled' }),
+      children: Text({
+        size: 16,
+        bold: true,
+        italic: true,
+        underline: true,
+        align: 'center',
+        lineHeight: 2,
+        children: 'styled',
+      }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('font-size:16px')
     expect(html).toContain('font-weight:bold')
     expect(html).toContain('font-style:italic')
@@ -1120,14 +1235,18 @@ describe('email — additional branches', () => {
   })
 
   it('renders text with strikethrough', async () => {
-    const doc = Document({ children: Text({ strikethrough: true, children: 'old' }) })
-    const html = await render(doc, 'email') as string
+    const doc = Document({
+      children: Text({ strikethrough: true, children: 'old' }),
+    })
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('text-decoration:line-through')
   })
 
   it('renders button with custom alignment', async () => {
-    const doc = Document({ children: Button({ href: '/x', align: 'center', children: 'Go' }) })
-    const html = await render(doc, 'email') as string
+    const doc = Document({
+      children: Button({ href: '/x', align: 'center', children: 'Go' }),
+    })
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('text-align:center')
   })
 
@@ -1135,15 +1254,19 @@ describe('email — additional branches', () => {
     const doc = Document({
       children: Section({ children: Text({ children: 'content' }) }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('content')
   })
 
   it('renders section with gap in row', async () => {
     const doc = Document({
-      children: Section({ direction: 'row', gap: 16, children: [Text({ children: 'a' }), Text({ children: 'b' })] }),
+      children: Section({
+        direction: 'row',
+        gap: 16,
+        children: [Text({ children: 'a' }), Text({ children: 'b' })],
+      }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('padding:0 8px')
   })
 })
@@ -1152,26 +1275,37 @@ describe('email — additional branches', () => {
 
 describe('html — additional branches', () => {
   it('renders section column direction (default)', async () => {
-    const doc = Document({ children: Section({ children: Text({ children: 'x' }) }) })
-    const html = await render(doc, 'html') as string
+    const doc = Document({
+      children: Section({ children: Text({ children: 'x' }) }),
+    })
+    const html = (await render(doc, 'html')) as string
     expect(html).not.toContain('display:flex')
   })
 
   it('renders page with margin as array', async () => {
-    const doc = Document({ children: Page({ margin: [10, 20], children: Text({ children: 'hi' }) }) })
-    const html = await render(doc, 'html') as string
+    const doc = Document({
+      children: Page({ margin: [10, 20], children: Text({ children: 'hi' }) }),
+    })
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('10px 20px')
   })
 
   it('renders page with 4-value margin', async () => {
-    const doc = Document({ children: Page({ margin: [10, 20, 30, 40], children: Text({ children: 'hi' }) }) })
-    const html = await render(doc, 'html') as string
+    const doc = Document({
+      children: Page({
+        margin: [10, 20, 30, 40],
+        children: Text({ children: 'hi' }),
+      }),
+    })
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('10px 20px 30px 40px')
   })
 
   it('renders text with lineHeight', async () => {
-    const doc = Document({ children: Text({ lineHeight: 1.8, children: 'text' }) })
-    const html = await render(doc, 'html') as string
+    const doc = Document({
+      children: Text({ lineHeight: 1.8, children: 'text' }),
+    })
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('line-height:1.8')
   })
 })
@@ -1187,7 +1321,7 @@ describe('csv — additional branches', () => {
         }),
       }),
     })
-    const csv = await render(doc, 'csv') as string
+    const csv = (await render(doc, 'csv')) as string
     expect(csv).toContain('Nested')
     expect(csv).toContain('val')
   })
@@ -1211,27 +1345,31 @@ describe('render dispatcher — additional', () => {
 
 describe('email renderer — additional', () => {
   it('renders image with caption', async () => {
-    const doc = Document({ children: Image({ src: '/x.png', alt: 'Photo', caption: 'Nice' }) })
-    const html = await render(doc, 'email') as string
+    const doc = Document({
+      children: Image({ src: '/x.png', alt: 'Photo', caption: 'Nice' }),
+    })
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('Nice')
   })
 
   it('renders image with center alignment', async () => {
-    const doc = Document({ children: Image({ src: '/x.png', align: 'center' }) })
-    const html = await render(doc, 'email') as string
+    const doc = Document({
+      children: Image({ src: '/x.png', align: 'center' }),
+    })
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('text-align:center')
   })
 
   it('renders code block', async () => {
     const doc = Document({ children: Code({ children: 'const x = 1' }) })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('Courier New')
     expect(html).toContain('const x = 1')
   })
 
   it('renders spacer with line-height trick', async () => {
     const doc = Document({ children: Spacer({ height: 20 }) })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('height:20px')
     expect(html).toContain('line-height:20px')
   })
@@ -1239,10 +1377,13 @@ describe('email renderer — additional', () => {
   it('renders list', async () => {
     const doc = Document({
       children: List({
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('<ul')
     expect(html).toContain('<li')
   })
@@ -1251,13 +1392,15 @@ describe('email renderer — additional', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']], caption: 'Data' }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('Data')
   })
 
   it('renders link with target _blank', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const html = await render(doc, 'email') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('target="_blank"')
   })
 
@@ -1268,7 +1411,7 @@ describe('email renderer — additional', () => {
         children: [Text({ children: 'L' }), Text({ children: 'R' })],
       }),
     })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('<table')
     expect(html).toContain('valign="top"')
   })
@@ -1289,13 +1432,19 @@ describe('DOCX renderer', () => {
           Text({ children: 'A test paragraph.', bold: true }),
           Table({
             columns: ['Name', 'Value'],
-            rows: [['Alpha', '100'], ['Beta', '200']],
+            rows: [
+              ['Alpha', '100'],
+              ['Beta', '200'],
+            ],
             striped: true,
             headerStyle: { background: '#333333', color: '#ffffff' },
           }),
           List({
             ordered: true,
-            children: [ListItem({ children: 'First' }), ListItem({ children: 'Second' })],
+            children: [
+              ListItem({ children: 'First' }),
+              ListItem({ children: 'Second' }),
+            ],
           }),
           Code({ children: 'const x = 42' }),
           Divider(),
@@ -1308,12 +1457,13 @@ describe('DOCX renderer', () => {
     expect((result as Uint8Array).length).toBeGreaterThan(0)
     // DOCX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
     expect((result as Uint8Array)[0]).toBe(0x50)
-    expect((result as Uint8Array)[1]).toBe(0x4B)
+    expect((result as Uint8Array)[1]).toBe(0x4b)
   }, 15000)
 
   it('embeds base64 images via ImageRun', async () => {
     // 1x1 red pixel PNG as base64
-    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    const redPixel =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
 
     const doc = Document({
       children: Page({
@@ -1330,7 +1480,11 @@ describe('DOCX renderer', () => {
 
   it('renders external URL images as placeholders', async () => {
     const doc = Document({
-      children: Image({ src: 'https://example.com/logo.png', alt: 'Logo', caption: 'Company' }),
+      children: Image({
+        src: 'https://example.com/logo.png',
+        alt: 'Logo',
+        caption: 'Company',
+      }),
     })
 
     const result = await render(doc, 'docx')
@@ -1380,9 +1534,7 @@ describe('DOCX renderer', () => {
             children: [
               'Parent item',
               List({
-                children: [
-                  ListItem({ children: 'Child item' }),
-                ],
+                children: [ListItem({ children: 'Child item' })],
               }),
             ],
           }),
@@ -1424,7 +1576,7 @@ describe('XLSX renderer', () => {
     expect((result as Uint8Array).length).toBeGreaterThan(0)
     // XLSX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
     expect((result as Uint8Array)[0]).toBe(0x50)
-    expect((result as Uint8Array)[1]).toBe(0x4B)
+    expect((result as Uint8Array)[1]).toBe(0x4b)
   }, 15000)
 
   it('parses currency values as numbers', async () => {
@@ -1459,7 +1611,10 @@ describe('XLSX renderer', () => {
         Heading({ children: 'Report' }),
         Table({
           columns: ['A', 'B'],
-          rows: [['1', '2'], ['3', '4']],
+          rows: [
+            ['1', '2'],
+            ['3', '4'],
+          ],
           caption: 'First Table',
         }),
         Table({
@@ -1503,7 +1658,8 @@ describe('XLSX renderer', () => {
 describe('PDF renderer', () => {
   it('renders a document with heading, text, table, and data: image to a valid Uint8Array', async () => {
     // 1x1 red pixel PNG as base64
-    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    const redPixel =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
 
     const doc = Document({
       title: 'PDF Test',
@@ -1516,14 +1672,20 @@ describe('PDF renderer', () => {
           Text({ children: 'This is a test paragraph.', bold: true }),
           Table({
             columns: ['Name', 'Value'],
-            rows: [['Alpha', '100'], ['Beta', '200']],
+            rows: [
+              ['Alpha', '100'],
+              ['Beta', '200'],
+            ],
             striped: true,
             headerStyle: { background: '#333333', color: '#ffffff' },
           }),
           Image({ src: redPixel, width: 50, height: 50 }),
           List({
             ordered: true,
-            children: [ListItem({ children: 'First' }), ListItem({ children: 'Second' })],
+            children: [
+              ListItem({ children: 'First' }),
+              ListItem({ children: 'Second' }),
+            ],
           }),
           Divider(),
           Quote({ children: 'A wise quote.' }),
@@ -1587,7 +1749,10 @@ describe('PPTX renderer', () => {
             Heading({ children: 'Slide 1 Title' }),
             Text({ children: 'Introduction text.', bold: true }),
             List({
-              children: [ListItem({ children: 'Point A' }), ListItem({ children: 'Point B' })],
+              children: [
+                ListItem({ children: 'Point A' }),
+                ListItem({ children: 'Point B' }),
+              ],
             }),
           ],
         }),
@@ -1596,7 +1761,10 @@ describe('PPTX renderer', () => {
             Heading({ level: 2, children: 'Slide 2 Data' }),
             Table({
               columns: ['Metric', 'Value'],
-              rows: [['Revenue', '$1M'], ['Profit', '$300K']],
+              rows: [
+                ['Revenue', '$1M'],
+                ['Profit', '$300K'],
+              ],
               headerStyle: { background: '#1a1a2e', color: '#ffffff' },
               striped: true,
             }),
@@ -1610,7 +1778,7 @@ describe('PPTX renderer', () => {
     expect((result as Uint8Array).length).toBeGreaterThan(0)
     // PPTX files are ZIP archives — first two bytes are PK (0x50, 0x4B)
     expect((result as Uint8Array)[0]).toBe(0x50)
-    expect((result as Uint8Array)[1]).toBe(0x4B)
+    expect((result as Uint8Array)[1]).toBe(0x4b)
   }, 15000)
 
   it('renders a document without explicit pages as a single slide', async () => {
@@ -1629,7 +1797,8 @@ describe('PPTX renderer', () => {
 
   it('renders all node types without errors', async () => {
     // 1x1 red pixel PNG as base64
-    const redPixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    const redPixel =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
 
     const doc = Document({
       children: Page({
@@ -1660,22 +1829,26 @@ describe('PPTX renderer', () => {
 describe('Slack renderer', () => {
   it('renders heading as header block', async () => {
     const doc = Document({ children: Heading({ children: 'Hello' }) })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks).toHaveLength(1)
     expect(parsed.blocks[0].type).toBe('header')
   })
 
   it('renders text with bold as mrkdwn', async () => {
-    const doc = Document({ children: Text({ bold: true, children: 'Bold text' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Text({ bold: true, children: 'Bold text' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('*Bold text*')
   })
 
   it('renders button as actions block', async () => {
-    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Button({ href: '/go', children: 'Click' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].type).toBe('actions')
     expect(parsed.blocks[0].elements[0].type).toBe('button')
@@ -1685,7 +1858,7 @@ describe('Slack renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
     })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('*A*')
     expect(parsed.blocks[0].text.text).toContain('1 | 2')
@@ -1693,7 +1866,7 @@ describe('Slack renderer', () => {
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider() })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].type).toBe('divider')
   })
@@ -1701,10 +1874,13 @@ describe('Slack renderer', () => {
   it('renders list as bullet points', async () => {
     const doc = Document({
       children: List({
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('• one')
     expect(parsed.blocks[0].text.text).toContain('• two')
@@ -1717,22 +1893,26 @@ describe('Slack renderer', () => {
         children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
       }),
     })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('1. a')
     expect(parsed.blocks[0].text.text).toContain('2. b')
   })
 
   it('renders link in mrkdwn format', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('<https://x.com|X>')
   })
 
   it('renders code block', async () => {
-    const doc = Document({ children: Code({ language: 'js', children: 'const x = 1' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Code({ language: 'js', children: 'const x = 1' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('```js')
     expect(parsed.blocks[0].text.text).toContain('const x = 1')
@@ -1740,29 +1920,33 @@ describe('Slack renderer', () => {
 
   it('renders quote with >', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('> wise')
   })
 
   it('renders image with URL', async () => {
-    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].type).toBe('image')
     expect(parsed.blocks[0].image_url).toBe('https://x.com/img.png')
   })
 
   it('skips non-URL images', async () => {
-    const doc = Document({ children: Image({ src: 'data:image/png;base64,abc' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Image({ src: 'data:image/png;base64,abc' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks).toHaveLength(0)
   })
 
   it('renders page-break as divider', async () => {
     const doc = Document({ children: PageBreak() })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].type).toBe('divider')
   })
@@ -1774,15 +1958,17 @@ describe('Slack renderer', () => {
         Text({ strikethrough: true, children: 'struck' }),
       ],
     })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('_italic_')
     expect(parsed.blocks[1].text.text).toContain('~struck~')
   })
 
   it('renders image with caption', async () => {
-    const doc = Document({ children: Image({ src: 'https://x.com/img.png', caption: 'Nice' }) })
-    const json = await render(doc, 'slack') as string
+    const doc = Document({
+      children: Image({ src: 'https://x.com/img.png', caption: 'Nice' }),
+    })
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].title.text).toBe('Nice')
   })
@@ -1791,7 +1977,7 @@ describe('Slack renderer', () => {
     const doc = Document({
       children: Table({ columns: ['X'], rows: [['1']], caption: 'My Table' }),
     })
-    const json = await render(doc, 'slack') as string
+    const json = (await render(doc, 'slack')) as string
     const parsed = JSON.parse(json)
     expect(parsed.blocks[0].text.text).toContain('_My Table_')
   })
@@ -1808,25 +1994,25 @@ describe('PageBreak', () => {
 
   it('renders as CSS page-break in HTML', async () => {
     const doc = Document({ children: PageBreak() })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).toContain('page-break-after:always')
   })
 
   it('renders as separator in email', async () => {
     const doc = Document({ children: PageBreak() })
-    const html = await render(doc, 'email') as string
+    const html = (await render(doc, 'email')) as string
     expect(html).toContain('border-top:2px solid')
   })
 
   it('renders as --- in markdown', async () => {
     const doc = Document({ children: PageBreak() })
-    const md = await render(doc, 'md') as string
+    const md = (await render(doc, 'md')) as string
     expect(md).toContain('---')
   })
 
   it('renders as separator in text', async () => {
     const doc = Document({ children: PageBreak() })
-    const text = await render(doc, 'text') as string
+    const text = (await render(doc, 'text')) as string
     expect(text).toContain('═')
   })
 
@@ -1844,14 +2030,14 @@ describe('PageBreak', () => {
 describe('RTL support', () => {
   it('adds dir=rtl to HTML body', async () => {
     const doc = Document({ children: Text({ children: 'مرحبا' }) })
-    const html = await render(doc, 'html', { direction: 'rtl' }) as string
+    const html = (await render(doc, 'html', { direction: 'rtl' })) as string
     expect(html).toContain('dir="rtl"')
     expect(html).toContain('direction:rtl')
   })
 
   it('does not add dir for ltr (default)', async () => {
     const doc = Document({ children: Text({ children: 'Hello' }) })
-    const html = await render(doc, 'html') as string
+    const html = (await render(doc, 'html')) as string
     expect(html).not.toContain('dir="rtl"')
   })
 })
@@ -1872,7 +2058,7 @@ describe('keepTogether', () => {
 describe('SVG renderer', () => {
   it('renders a valid SVG document', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"')
     expect(svg).toContain('</svg>')
     expect(svg).toContain('Title')
@@ -1880,7 +2066,7 @@ describe('SVG renderer', () => {
 
   it('renders heading with correct font size', async () => {
     const doc = Document({ children: Heading({ level: 2, children: 'Sub' }) })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('font-size="24"')
     expect(svg).toContain('font-weight="bold"')
   })
@@ -1892,7 +2078,7 @@ describe('SVG renderer', () => {
         Text({ italic: true, children: 'Italic' }),
       ],
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('font-weight="bold"')
     expect(svg).toContain('font-style="italic"')
   })
@@ -1906,7 +2092,7 @@ describe('SVG renderer', () => {
         striped: true,
       }),
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('Name')
     expect(svg).toContain('Widget')
     expect(svg).toContain('fill="#000"')
@@ -1914,9 +2100,14 @@ describe('SVG renderer', () => {
 
   it('renders image from data URL', async () => {
     const doc = Document({
-      children: Image({ src: 'data:image/png;base64,abc', width: 200, height: 100, caption: 'Photo' }),
+      children: Image({
+        src: 'data:image/png;base64,abc',
+        width: 200,
+        height: 100,
+        caption: 'Photo',
+      }),
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('<image')
     expect(svg).toContain('data:image/png;base64,abc')
     expect(svg).toContain('Photo')
@@ -1926,7 +2117,7 @@ describe('SVG renderer', () => {
     const doc = Document({
       children: Image({ src: '/local.png', alt: 'Local' }),
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('Local')
     expect(svg).toContain('fill="#f0f0f0"')
   })
@@ -1935,10 +2126,13 @@ describe('SVG renderer', () => {
     const doc = Document({
       children: List({
         ordered: true,
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('1. one')
     expect(svg).toContain('2. two')
   })
@@ -1949,14 +2143,14 @@ describe('SVG renderer', () => {
         children: [ListItem({ children: 'a' }), ListItem({ children: 'b' })],
       }),
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('• a')
     expect(svg).toContain('• b')
   })
 
   it('renders code block', async () => {
     const doc = Document({ children: Code({ children: 'const x = 1' }) })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('const x = 1')
     expect(svg).toContain('font-family="monospace"')
     expect(svg).toContain('fill="#f5f5f5"') // background
@@ -1964,50 +2158,62 @@ describe('SVG renderer', () => {
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider({ color: '#ccc', thickness: 2 }) })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('stroke="#ccc"')
     expect(svg).toContain('stroke-width="2"')
   })
 
   it('renders button', async () => {
-    const doc = Document({ children: Button({ href: '/pay', background: '#4f46e5', children: 'Pay' }) })
-    const svg = await render(doc, 'svg') as string
+    const doc = Document({
+      children: Button({
+        href: '/pay',
+        background: '#4f46e5',
+        children: 'Pay',
+      }),
+    })
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('fill="#4f46e5"')
     expect(svg).toContain('Pay')
   })
 
   it('renders quote', async () => {
     const doc = Document({ children: Quote({ children: 'wise words' }) })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('wise words')
     expect(svg).toContain('font-style="italic"')
   })
 
   it('renders link', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const svg = await render(doc, 'svg') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('<a href="https://x.com">')
     expect(svg).toContain('X')
   })
 
   it('renders spacer', async () => {
     const doc = Document({
-      children: [Text({ children: 'A' }), Spacer({ height: 50 }), Text({ children: 'B' })],
+      children: [
+        Text({ children: 'A' }),
+        Spacer({ height: 50 }),
+        Text({ children: 'B' }),
+      ],
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('A')
     expect(svg).toContain('B')
   })
 
   it('renders page-break as dashed line', async () => {
     const doc = Document({ children: PageBreak() })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('stroke-dasharray')
   })
 
   it('supports RTL direction', async () => {
     const doc = Document({ children: Text({ children: 'مرحبا' }) })
-    const svg = await render(doc, 'svg', { direction: 'rtl' }) as string
+    const svg = (await render(doc, 'svg', { direction: 'rtl' })) as string
     expect(svg).toContain('direction="rtl"')
   })
 
@@ -2019,15 +2225,17 @@ describe('SVG renderer', () => {
         Text({ children: 'C' }),
       ],
     })
-    const svg = await render(doc, 'svg') as string
+    const svg = (await render(doc, 'svg')) as string
     const match = svg.match(/height="(\d+)"/)
     expect(match).toBeTruthy()
     expect(Number(match![1])).toBeGreaterThan(80)
   })
 
   it('renders image from HTTP URL', async () => {
-    const doc = Document({ children: Image({ src: 'https://x.com/img.png', width: 300 }) })
-    const svg = await render(doc, 'svg') as string
+    const doc = Document({
+      children: Image({ src: 'https://x.com/img.png', width: 300 }),
+    })
+    const svg = (await render(doc, 'svg')) as string
     expect(svg).toContain('<image')
     expect(svg).toContain('https://x.com/img.png')
   })
@@ -2045,7 +2253,7 @@ describe('SVG renderer', () => {
 describe('Teams renderer', () => {
   it('renders heading as TextBlock', async () => {
     const doc = Document({ children: Heading({ children: 'Hello' }) })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.type).toBe('AdaptiveCard')
     expect(card.body[0].type).toBe('TextBlock')
@@ -2055,14 +2263,16 @@ describe('Teams renderer', () => {
 
   it('renders bold text', async () => {
     const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].text).toContain('**Bold**')
   })
 
   it('renders button as Action.OpenUrl', async () => {
-    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
-    const json = await render(doc, 'teams') as string
+    const doc = Document({
+      children: Button({ href: '/go', children: 'Click' }),
+    })
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].type).toBe('ActionSet')
     expect(card.body[0].actions[0].type).toBe('Action.OpenUrl')
@@ -2072,7 +2282,7 @@ describe('Teams renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
     })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].type).toBe('ColumnSet')
   })
@@ -2080,46 +2290,53 @@ describe('Teams renderer', () => {
   it('renders list', async () => {
     const doc = Document({
       children: List({
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].text).toContain('• one')
   })
 
   it('renders code as monospace', async () => {
     const doc = Document({ children: Code({ children: 'x = 1' }) })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].fontType).toBe('monospace')
   })
 
   it('renders divider as separator', async () => {
     const doc = Document({ children: Divider() })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].separator).toBe(true)
   })
 
   it('renders image with URL', async () => {
-    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
-    const json = await render(doc, 'teams') as string
+    const doc = Document({
+      children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }),
+    })
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].type).toBe('Image')
   })
 
   it('renders quote as Container', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const json = await render(doc, 'teams') as string
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].type).toBe('Container')
     expect(card.body[0].style).toBe('emphasis')
   })
 
   it('renders link as markdown', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const json = await render(doc, 'teams') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const json = (await render(doc, 'teams')) as string
     const card = JSON.parse(json)
     expect(card.body[0].text).toContain('[X](https://x.com)')
   })
@@ -2136,23 +2353,31 @@ describe('Teams renderer', () => {
 describe('Discord renderer', () => {
   it('renders heading as embed title', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const json = await render(doc, 'discord') as string
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].title).toBe('Title')
   })
 
   it('renders text in description', async () => {
-    const doc = Document({ children: [Heading({ children: 'T' }), Text({ children: 'Body' })] })
-    const json = await render(doc, 'discord') as string
+    const doc = Document({
+      children: [Heading({ children: 'T' }), Text({ children: 'Body' })],
+    })
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].description).toContain('Body')
   })
 
   it('renders small table as fields', async () => {
     const doc = Document({
-      children: Table({ columns: ['A', 'B'], rows: [['1', '2'], ['3', '4']] }),
+      children: Table({
+        columns: ['A', 'B'],
+        rows: [
+          ['1', '2'],
+          ['3', '4'],
+        ],
+      }),
     })
-    const json = await render(doc, 'discord') as string
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].fields).toHaveLength(2)
     expect(payload.embeds[0].fields[0].name).toBe('A')
@@ -2161,30 +2386,35 @@ describe('Discord renderer', () => {
 
   it('renders image as embed image', async () => {
     const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
-    const json = await render(doc, 'discord') as string
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].image.url).toBe('https://x.com/img.png')
   })
 
   it('renders quote with >', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const json = await render(doc, 'discord') as string
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].description).toContain('> wise')
   })
 
   it('renders code block', async () => {
-    const doc = Document({ children: Code({ language: 'js', children: 'x()' }) })
-    const json = await render(doc, 'discord') as string
+    const doc = Document({
+      children: Code({ language: 'js', children: 'x()' }),
+    })
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].description).toContain('```js')
   })
 
   it('renders list', async () => {
     const doc = Document({
-      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+      children: List({
+        ordered: true,
+        children: [ListItem({ children: 'a' })],
+      }),
     })
-    const json = await render(doc, 'discord') as string
+    const json = (await render(doc, 'discord')) as string
     const payload = JSON.parse(json)
     expect(payload.embeds[0].description).toContain('1. a')
   })
@@ -2201,7 +2431,7 @@ describe('Discord renderer', () => {
 describe('Telegram renderer', () => {
   it('renders heading as bold', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<b>Title</b>')
   })
 
@@ -2214,7 +2444,7 @@ describe('Telegram renderer', () => {
         Text({ strikethrough: true, children: 'Struck' }),
       ],
     })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<b>Bold</b>')
     expect(html).toContain('<i>Italic</i>')
     expect(html).toContain('<u>Under</u>')
@@ -2222,8 +2452,10 @@ describe('Telegram renderer', () => {
   })
 
   it('renders link as <a>', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const html = await render(doc, 'telegram') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<a href="https://x.com">X</a>')
   })
 
@@ -2231,57 +2463,66 @@ describe('Telegram renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
     })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<pre>')
     expect(html).toContain('A | B')
     expect(html).toContain('1 | 2')
   })
 
   it('renders code with language', async () => {
-    const doc = Document({ children: Code({ language: 'python', children: 'x = 1' }) })
-    const html = await render(doc, 'telegram') as string
+    const doc = Document({
+      children: Code({ language: 'python', children: 'x = 1' }),
+    })
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('language-python')
     expect(html).toContain('x = 1')
   })
 
   it('renders code without language', async () => {
     const doc = Document({ children: Code({ children: 'x = 1' }) })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<pre>x = 1</pre>')
   })
 
   it('renders quote as blockquote', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<blockquote>wise</blockquote>')
   })
 
   it('renders list', async () => {
     const doc = Document({
       children: List({
-        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+        children: [
+          ListItem({ children: 'one' }),
+          ListItem({ children: 'two' }),
+        ],
       }),
     })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('• one')
     expect(html).toContain('• two')
   })
 
   it('renders button as link', async () => {
-    const doc = Document({ children: Button({ href: '/pay', children: 'Pay' }) })
-    const html = await render(doc, 'telegram') as string
+    const doc = Document({
+      children: Button({ href: '/pay', children: 'Pay' }),
+    })
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toContain('<a href="/pay">Pay</a>')
   })
 
   it('skips images (sent separately in Telegram)', async () => {
     const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
-    const html = await render(doc, 'telegram') as string
+    const html = (await render(doc, 'telegram')) as string
     expect(html).toBe('')
   })
 
   it('escapes HTML entities', async () => {
-    const doc = Document({ children: Text({ children: '<script>alert(1)</script>' }) })
-    const html = await render(doc, 'telegram') as string
+    const doc = Document({
+      children: Text({ children: '<script>alert(1)</script>' }),
+    })
+    const html = (await render(doc, 'telegram')) as string
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
   })
@@ -2298,38 +2539,40 @@ describe('Telegram renderer', () => {
 describe('Notion renderer', () => {
   it('renders heading as heading block', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('heading_1')
   })
 
   it('renders h2 as heading_2', async () => {
     const doc = Document({ children: Heading({ level: 2, children: 'Sub' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('heading_2')
   })
 
   it('renders h3+ as heading_3', async () => {
     const doc = Document({ children: Heading({ level: 4, children: 'Sub' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('heading_3')
   })
 
   it('renders text as paragraph', async () => {
     const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('paragraph')
-    expect(parsed.children[0].paragraph.rich_text[0].annotations.bold).toBe(true)
+    expect(parsed.children[0].paragraph.rich_text[0].annotations.bold).toBe(
+      true,
+    )
   })
 
   it('renders table with header row', async () => {
     const doc = Document({
       children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
     })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('table')
     expect(parsed.children[0].table.has_column_header).toBe(true)
@@ -2339,23 +2582,28 @@ describe('Notion renderer', () => {
     const doc = Document({
       children: List({ children: [ListItem({ children: 'a' })] }),
     })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('bulleted_list_item')
   })
 
   it('renders numbered list', async () => {
     const doc = Document({
-      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+      children: List({
+        ordered: true,
+        children: [ListItem({ children: 'a' })],
+      }),
     })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('numbered_list_item')
   })
 
   it('renders code block', async () => {
-    const doc = Document({ children: Code({ language: 'python', children: 'x = 1' }) })
-    const json = await render(doc, 'notion') as string
+    const doc = Document({
+      children: Code({ language: 'python', children: 'x = 1' }),
+    })
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('code')
     expect(parsed.children[0].code.language).toBe('python')
@@ -2363,30 +2611,34 @@ describe('Notion renderer', () => {
 
   it('renders quote', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('quote')
   })
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider() })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('divider')
   })
 
   it('renders image with URL', async () => {
     const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
-    const json = await render(doc, 'notion') as string
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
     expect(parsed.children[0].type).toBe('image')
   })
 
   it('renders link as paragraph with link', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const json = await render(doc, 'notion') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const json = (await render(doc, 'notion')) as string
     const parsed = JSON.parse(json)
-    expect(parsed.children[0].paragraph.rich_text[0].text.link.url).toBe('https://x.com')
+    expect(parsed.children[0].paragraph.rich_text[0].text.link.url).toBe(
+      'https://x.com',
+    )
   })
 
   it('builder toNotion works', async () => {
@@ -2401,7 +2653,7 @@ describe('Notion renderer', () => {
 describe('Confluence renderer', () => {
   it('renders ADF document', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const json = await render(doc, 'confluence') as string
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.version).toBe(1)
     expect(adf.type).toBe('doc')
@@ -2409,8 +2661,10 @@ describe('Confluence renderer', () => {
   })
 
   it('renders text with marks', async () => {
-    const doc = Document({ children: Text({ bold: true, italic: true, children: 'styled' }) })
-    const json = await render(doc, 'confluence') as string
+    const doc = Document({
+      children: Text({ bold: true, italic: true, children: 'styled' }),
+    })
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     const marks = adf.content[0].content[0].marks
     expect(marks.some((m: any) => m.type === 'strong')).toBe(true)
@@ -2421,7 +2675,7 @@ describe('Confluence renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A'], rows: [['1']] }),
     })
-    const json = await render(doc, 'confluence') as string
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].type).toBe('table')
     expect(adf.content[0].content[0].content[0].type).toBe('tableHeader')
@@ -2429,16 +2683,21 @@ describe('Confluence renderer', () => {
 
   it('renders ordered list', async () => {
     const doc = Document({
-      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+      children: List({
+        ordered: true,
+        children: [ListItem({ children: 'a' })],
+      }),
     })
-    const json = await render(doc, 'confluence') as string
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].type).toBe('orderedList')
   })
 
   it('renders code block', async () => {
-    const doc = Document({ children: Code({ language: 'java', children: 'int x = 1;' }) })
-    const json = await render(doc, 'confluence') as string
+    const doc = Document({
+      children: Code({ language: 'java', children: 'int x = 1;' }),
+    })
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].type).toBe('codeBlock')
     expect(adf.content[0].attrs.language).toBe('java')
@@ -2446,21 +2705,23 @@ describe('Confluence renderer', () => {
 
   it('renders blockquote', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const json = await render(doc, 'confluence') as string
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].type).toBe('blockquote')
   })
 
   it('renders rule (divider)', async () => {
     const doc = Document({ children: Divider() })
-    const json = await render(doc, 'confluence') as string
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].type).toBe('rule')
   })
 
   it('renders link with href', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const json = await render(doc, 'confluence') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const json = (await render(doc, 'confluence')) as string
     const adf = JSON.parse(json)
     expect(adf.content[0].content[0].marks[0].attrs.href).toBe('https://x.com')
   })
@@ -2477,7 +2738,7 @@ describe('Confluence renderer', () => {
 describe('WhatsApp renderer', () => {
   it('renders heading as bold', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('*Title*')
   })
 
@@ -2489,7 +2750,7 @@ describe('WhatsApp renderer', () => {
         Text({ strikethrough: true, children: 'Struck' }),
       ],
     })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('*Bold*')
     expect(text).toContain('_Italic_')
     expect(text).toContain('~Struck~')
@@ -2497,19 +2758,21 @@ describe('WhatsApp renderer', () => {
 
   it('renders code as triple backticks', async () => {
     const doc = Document({ children: Code({ children: 'x = 1' }) })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('```x = 1```')
   })
 
   it('renders quote with >', async () => {
     const doc = Document({ children: Quote({ children: 'wise' }) })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('> wise')
   })
 
   it('renders link as text + URL', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const text = await render(doc, 'whatsapp') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('X: https://x.com')
   })
 
@@ -2517,7 +2780,7 @@ describe('WhatsApp renderer', () => {
     const doc = Document({
       children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
     })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('*A* | *B*')
     expect(text).toContain('1 | 2')
   })
@@ -2526,13 +2789,13 @@ describe('WhatsApp renderer', () => {
     const doc = Document({
       children: List({ children: [ListItem({ children: 'one' })] }),
     })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toContain('• one')
   })
 
   it('skips images', async () => {
     const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
-    const text = await render(doc, 'whatsapp') as string
+    const text = (await render(doc, 'whatsapp')) as string
     expect(text).toBe('')
   })
 
@@ -2547,72 +2810,100 @@ describe('WhatsApp renderer', () => {
 
 describe('Google Chat renderer', () => {
   it('renders card with header', async () => {
-    const doc = Document({ title: 'Report', children: Text({ children: 'Body' }) })
-    const json = await render(doc, 'google-chat') as string
+    const doc = Document({
+      title: 'Report',
+      children: Text({ children: 'Body' }),
+    })
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
     expect(card.cardsV2[0].card.header.title).toBe('Report')
   })
 
   it('renders heading as decorated text', async () => {
     const doc = Document({ children: Heading({ children: 'Title' }) })
-    const json = await render(doc, 'google-chat') as string
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].decoratedText.text).toContain('<b>Title</b>')
+    expect(
+      card.cardsV2[0].card.sections[0].widgets[0].decoratedText.text,
+    ).toContain('<b>Title</b>')
   })
 
   it('renders text paragraph', async () => {
     const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
-    const json = await render(doc, 'google-chat') as string
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('<b>Bold</b>')
+    expect(
+      card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text,
+    ).toContain('<b>Bold</b>')
   })
 
   it('renders button', async () => {
-    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
-    const json = await render(doc, 'google-chat') as string
+    const doc = Document({
+      children: Button({ href: '/go', children: 'Click' }),
+    })
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].buttonList.buttons[0].text).toBe('Click')
+    expect(
+      card.cardsV2[0].card.sections[0].widgets[0].buttonList.buttons[0].text,
+    ).toBe('Click')
   })
 
   it('renders divider', async () => {
     const doc = Document({ children: Divider() })
-    const json = await render(doc, 'google-chat') as string
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
     expect(card.cardsV2[0].card.sections[0].widgets[0].divider).toBeDefined()
   })
 
   it('renders image', async () => {
-    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
-    const json = await render(doc, 'google-chat') as string
+    const doc = Document({
+      children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }),
+    })
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].image.imageUrl).toBe('https://x.com/img.png')
+    expect(card.cardsV2[0].card.sections[0].widgets[0].image.imageUrl).toBe(
+      'https://x.com/img.png',
+    )
   })
 
   it('renders link', async () => {
-    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
-    const json = await render(doc, 'google-chat') as string
+    const doc = Document({
+      children: Link({ href: 'https://x.com', children: 'X' }),
+    })
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('href="https://x.com"')
+    expect(
+      card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text,
+    ).toContain('href="https://x.com"')
   })
 
   it('renders list', async () => {
     const doc = Document({
       children: List({ children: [ListItem({ children: 'one' })] }),
     })
-    const json = await render(doc, 'google-chat') as string
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
-    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('• one')
+    expect(
+      card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text,
+    ).toContain('• one')
   })
 
   it('uses first heading as title when no title prop', async () => {
-    const doc = Document({ children: [Heading({ children: 'Auto Title' }), Text({ children: 'body' })] })
-    const json = await render(doc, 'google-chat') as string
+    const doc = Document({
+      children: [
+        Heading({ children: 'Auto Title' }),
+        Text({ children: 'body' }),
+      ],
+    })
+    const json = (await render(doc, 'google-chat')) as string
     const card = JSON.parse(json)
     expect(card.cardsV2[0].card.header.title).toBe('Auto Title')
   })
 
   it('builder toGoogleChat works', async () => {
-    const json = await createDocument({ title: 'Hi' }).text('World').toGoogleChat()
+    const json = await createDocument({ title: 'Hi' })
+      .text('World')
+      .toGoogleChat()
     const card = JSON.parse(json)
     expect(card.cardsV2[0].card.header.title).toBe('Hi')
   })

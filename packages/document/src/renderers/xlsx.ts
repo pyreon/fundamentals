@@ -249,12 +249,7 @@ function renderTable(
   for (let i = 0; i < columns.length; i++) {
     const col = columns[i]
     if (!col) continue
-    styleHeaderCell(
-      headerRow.getCell(i + 1) as any,
-      col,
-      hs,
-      bordered,
-    )
+    styleHeaderCell(headerRow.getCell(i + 1) as any, col, hs, bordered)
   }
   rowNum++
 

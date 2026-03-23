@@ -226,7 +226,10 @@ export interface RenderOptions {
   /** Text direction — 'ltr' (default) or 'rtl'. */
   direction?: 'ltr' | 'rtl'
   /** Custom font configuration for PDF. */
-  fonts?: Record<string, { normal?: string; bold?: string; italics?: string; bolditalics?: string }>
+  fonts?: Record<
+    string,
+    { normal?: string; bold?: string; italics?: string; bolditalics?: string }
+  >
 }
 
 export type RenderResult = string | Uint8Array
@@ -253,9 +256,15 @@ export interface DocumentBuilder {
   link(text: string, props: Omit<LinkProps, 'children'>): DocumentBuilder
   pageBreak(): DocumentBuilder
   /** Add a chart snapshot from a @pyreon/charts instance. */
-  chart(instance: unknown, props?: { width?: number; height?: number; caption?: string }): DocumentBuilder
+  chart(
+    instance: unknown,
+    props?: { width?: number; height?: number; caption?: string },
+  ): DocumentBuilder
   /** Add a flow diagram snapshot from a @pyreon/flow instance. */
-  flow(instance: unknown, props?: { width?: number; height?: number; caption?: string }): DocumentBuilder
+  flow(
+    instance: unknown,
+    props?: { width?: number; height?: number; caption?: string },
+  ): DocumentBuilder
   /** Build the document node tree. */
   build(): DocNode
   /** Render to a specific format. */

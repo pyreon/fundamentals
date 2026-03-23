@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 function resolveColumn(col: string | TableColumn): TableColumn {
   return typeof col === 'string' ? { header: col } : col
@@ -13,7 +19,11 @@ function renderChildren(children: DocChild[]): string {
   return children.map(renderChild).join('')
 }
 
-function pad(str: string, width: number, align: 'left' | 'center' | 'right' = 'left'): string {
+function pad(
+  str: string,
+  width: number,
+  align: 'left' | 'center' | 'right' = 'left',
+): string {
   if (str.length >= width) return str.slice(0, width)
   const diff = width - str.length
   if (align === 'center') {
@@ -42,7 +52,8 @@ function renderNode(node: DocNode): string {
     case 'heading': {
       const text = renderChildren(node.children)
       const level = (p.level as number) ?? 1
-      if (level === 1) return `${text.toUpperCase()}\n${'='.repeat(text.length)}\n\n`
+      if (level === 1)
+        return `${text.toUpperCase()}\n${'='.repeat(text.length)}\n\n`
       if (level === 2) return `${text}\n${'-'.repeat(text.length)}\n\n`
       return `${text}\n\n`
     }
@@ -60,7 +71,9 @@ function renderNode(node: DocNode): string {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       if (columns.length === 0) return ''
@@ -68,18 +81,29 @@ function renderNode(node: DocNode): string {
       // Calculate column widths
       const widths = columns.map((col, i) => {
         const headerLen = col.header.length
-        const maxDataLen = rows.reduce((max, row) => Math.max(max, String(row[i] ?? '').length), 0)
+        const maxDataLen = rows.reduce(
+          (max, row) => Math.max(max, String(row[i] ?? '').length),
+          0,
+        )
         return Math.max(headerLen, maxDataLen, 3)
       })
 
       // Header
-      const header = columns.map((col, i) => pad(col.header, widths[i] ?? 3, col.align)).join(' | ')
+      const header = columns
+        .map((col, i) => pad(col.header, widths[i] ?? 3, col.align))
+        .join(' | ')
       const separator = widths.map((w) => '-'.repeat(w ?? 3)).join('-+-')
 
       // Rows
-      const body = rows.map((row) =>
-        columns.map((col, i) => pad(String(row[i] ?? ''), widths[i] ?? 3, col.align)).join(' | '),
-      ).join('\n')
+      const body = rows
+        .map((row) =>
+          columns
+            .map((col, i) =>
+              pad(String(row[i] ?? ''), widths[i] ?? 3, col.align),
+            )
+            .join(' | '),
+        )
+        .join('\n')
 
       let result = `${header}\n${separator}\n${body}\n\n`
       if (p.caption) result = `${p.caption}\n\n${result}`

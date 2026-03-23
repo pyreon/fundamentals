@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Notion renderer — outputs Notion Block JSON for the Notion API.
@@ -11,7 +17,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -27,8 +35,17 @@ interface RichText {
   }
 }
 
-function textToRichText(text: string, annotations?: RichText['annotations']): RichText[] {
-  return [{ type: 'text', text: { content: text }, ...(annotations ? { annotations } : {}) }]
+function textToRichText(
+  text: string,
+  annotations?: RichText['annotations'],
+): RichText[] {
+  return [
+    {
+      type: 'text',
+      text: { content: text },
+      ...(annotations ? { annotations } : {}),
+    },
+  ]
 }
 
 interface NotionBlock {
@@ -57,7 +74,8 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
     case 'heading': {
       const level = (p.level as number) ?? 1
       const text = getTextContent(node.children)
-      const type = level <= 1 ? 'heading_1' : level === 2 ? 'heading_2' : 'heading_3'
+      const type =
+        level <= 1 ? 'heading_1' : level === 2 ? 'heading_2' : 'heading_3'
       blocks.push({
         object: 'block',
         type,
@@ -76,7 +94,12 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
       blocks.push({
         object: 'block',
         type: 'paragraph',
-        paragraph: { rich_text: textToRichText(text, Object.keys(annotations).length > 0 ? annotations : undefined) },
+        paragraph: {
+          rich_text: textToRichText(
+            text,
+            Object.keys(annotations).length > 0 ? annotations : undefined,
+          ),
+        },
       })
       break
     }
@@ -88,7 +111,9 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
         object: 'block',
         type: 'paragraph',
         paragraph: {
-          rich_text: [{ type: 'text', text: { content: text, link: { url: href } } }],
+          rich_text: [
+            { type: 'text', text: { content: text, link: { url: href } } },
+          ],
         },
       })
       break
@@ -103,7 +128,9 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
           image: {
             type: 'external',
             external: { url: src },
-            ...(p.caption ? { caption: textToRichText(p.caption as string) } : {}),
+            ...(p.caption
+              ? { caption: textToRichText(p.caption as string) }
+              : {}),
           },
         })
       }
@@ -111,7 +138,9 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       const tableRows: NotionBlock[] = []
@@ -121,7 +150,9 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
         object: 'block',
         type: 'table_row',
         table_row: {
-          cells: columns.map((col) => textToRichText(col.header, { bold: true })),
+          cells: columns.map((col) =>
+            textToRichText(col.header, { bold: true }),
+          ),
         },
       })
 
@@ -150,7 +181,9 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
 
     case 'list': {
       const ordered = p.ordered as boolean | undefined
-      const items = node.children.filter((c): c is DocNode => typeof c !== 'string')
+      const items = node.children.filter(
+        (c): c is DocNode => typeof c !== 'string',
+      )
       for (const item of items) {
         const text = getTextContent(item.children)
         const type = ordered ? 'numbered_list_item' : 'bulleted_list_item'
@@ -197,7 +230,13 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
         object: 'block',
         type: 'paragraph',
         paragraph: {
-          rich_text: [{ type: 'text', text: { content: text, link: { url: href } }, annotations: { bold: true } }],
+          rich_text: [
+            {
+              type: 'text',
+              text: { content: text, link: { url: href } },
+              annotations: { bold: true },
+            },
+          ],
         },
       })
       break

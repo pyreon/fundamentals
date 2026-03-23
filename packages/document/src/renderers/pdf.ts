@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * PDF renderer — lazy-loads pdfmake on first use.
@@ -22,7 +28,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -47,7 +55,9 @@ const PAGE_SIZES: Record<string, { width: number; height: number }> = {
  * - Relative / absolute paths (e.g. `/logo.png`) cannot be resolved without
  *   a server-side fetch, so they are skipped with a placeholder.
  */
-function resolveImageSrc(src: string): { image: string } | { text: string; italics: true; color: string } {
+function resolveImageSrc(
+  src: string,
+): { image: string } | { text: string; italics: true; color: string } {
   if (src.startsWith('data:')) {
     return { image: src }
   }
@@ -80,7 +90,10 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
             .filter((c): c is DocNode => typeof c !== 'string')
             .map((child) => ({
               stack: [nodeToContent(child)].flat().filter(Boolean),
-              width: child.props.width === '*' || !child.props.width ? '*' : child.props.width,
+              width:
+                child.props.width === '*' || !child.props.width
+                  ? '*'
+                  : child.props.width,
             })),
           columnGap: (p.gap as number) ?? 0,
         }
@@ -109,7 +122,14 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
 
     case 'heading': {
       const level = (p.level as number) ?? 1
-      const sizes: Record<number, number> = { 1: 24, 2: 20, 3: 18, 4: 16, 5: 14, 6: 12 }
+      const sizes: Record<number, number> = {
+        1: 24,
+        2: 20,
+        3: 18,
+        4: 16,
+        5: 14,
+        6: 12,
+      }
       return {
         text: getTextContent(node.children),
         fontSize: sizes[level] ?? 18,
@@ -127,7 +147,11 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
         color: (p.color as string) ?? '#333333',
         bold: p.bold ?? false,
         italics: p.italic ?? false,
-        decoration: p.underline ? 'underline' : p.strikethrough ? 'lineThrough' : undefined,
+        decoration: p.underline
+          ? 'underline'
+          : p.strikethrough
+            ? 'lineThrough'
+            : undefined,
         alignment: (p.align as string) ?? 'left',
         lineHeight: (p.lineHeight as number) ?? 1.4,
         margin: [0, 0, 0, 8],
@@ -161,9 +185,13 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
-      const hs = p.headerStyle as { background?: string; color?: string } | undefined
+      const hs = p.headerStyle as
+        | { background?: string; color?: string }
+        | undefined
 
       const headerRow = columns.map((col) => ({
         text: col.header,
@@ -281,7 +309,11 @@ function nodeToContent(node: DocNode): PdfContent | PdfContent[] | null {
 }
 
 function resolveMargin(
-  margin: number | [number, number] | [number, number, number, number] | undefined,
+  margin:
+    | number
+    | [number, number]
+    | [number, number, number, number]
+    | undefined,
 ): [number, number, number, number] {
   if (margin == null) return [40, 40, 40, 40]
   if (typeof margin === 'number') return [margin, margin, margin, margin]
@@ -295,14 +327,13 @@ function resolveMargin(
  * pdfmake header/footer functions receive `(currentPage, pageCount, pageSize)`
  * and must return a content object. We flatten the DocNode into static content.
  */
-function renderHeaderFooter(
-  node: DocNode | undefined,
-): PdfContent | undefined {
+function renderHeaderFooter(node: DocNode | undefined): PdfContent | undefined {
   if (!node) return undefined
   const content = nodeToContent(node)
   if (content == null) return undefined
   if (Array.isArray(content)) return { stack: content, margin: [40, 10, 40, 0] }
-  if (typeof content === 'object') return { ...content, margin: [40, 10, 40, 0] }
+  if (typeof content === 'object')
+    return { ...content, margin: [40, 10, 40, 0] }
   return { text: content, margin: [40, 10, 40, 0] }
 }
 
@@ -333,16 +364,25 @@ export const pdfRenderer: DocumentRenderer = {
       (c): c is DocNode => typeof c !== 'string' && c.type === 'page',
     )
     const pageSize = (pageNode?.props.size as string) ?? 'A4'
-    const pageOrientation = (pageNode?.props.orientation as string) ?? 'portrait'
+    const pageOrientation =
+      (pageNode?.props.orientation as string) ?? 'portrait'
     const pageMargin = resolveMargin(
-      pageNode?.props.margin as number | [number, number] | [number, number, number, number] | undefined,
+      pageNode?.props.margin as
+        | number
+        | [number, number]
+        | [number, number, number, number]
+        | undefined,
     )
 
     const content = [nodeToContent(node)].flat().filter(Boolean) as PdfContent[]
 
     // Build header/footer from PageProps if present
-    const headerFn = renderHeaderFooter(pageNode?.props.header as DocNode | undefined)
-    const footerFn = renderHeaderFooter(pageNode?.props.footer as DocNode | undefined)
+    const headerFn = renderHeaderFooter(
+      pageNode?.props.header as DocNode | undefined,
+    )
+    const footerFn = renderHeaderFooter(
+      pageNode?.props.footer as DocNode | undefined,
+    )
 
     const docDefinition: Record<string, unknown> = {
       pageSize: PAGE_SIZES[pageSize] ?? PAGE_SIZES.A4,

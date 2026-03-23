@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Email renderer — generates table-based HTML with inline styles
@@ -13,7 +19,11 @@ import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } 
  */
 
 function esc(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function resolveColumn(col: string | TableColumn): TableColumn {
@@ -39,7 +49,9 @@ function renderNode(node: DocNode): string {
   switch (node.type) {
     case 'document': {
       const title = p.title ? `<title>${esc(p.title as string)}</title>` : ''
-      const preview = p.subject ? `<div style="display:none;max-height:0;overflow:hidden">${esc(p.subject as string)}</div>` : ''
+      const preview = p.subject
+        ? `<div style="display:none;max-height:0;overflow:hidden">${esc(p.subject as string)}</div>`
+        : ''
       return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${title}<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]--></head><body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif">${preview}<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4"><tr><td align="center" style="padding:20px 0"><table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;max-width:600px;width:100%"><tr><td>${renderChildren(node.children)}</td></tr></table></td></tr></table></body></html>`
     }
 
@@ -49,12 +61,16 @@ function renderNode(node: DocNode): string {
 
     case 'section': {
       const bg = p.background ? `background-color:${p.background};` : ''
-      const pad = p.padding ? `padding:${typeof p.padding === 'number' ? `${p.padding}px` : Array.isArray(p.padding) ? (p.padding as number[]).map((v) => `${v}px`).join(' ') : '0'}` : 'padding:0'
+      const pad = p.padding
+        ? `padding:${typeof p.padding === 'number' ? `${p.padding}px` : Array.isArray(p.padding) ? (p.padding as number[]).map((v) => `${v}px`).join(' ') : '0'}`
+        : 'padding:0'
       const radius = p.borderRadius ? `border-radius:${p.borderRadius}px;` : ''
 
       if (p.direction === 'row') {
         // Row layout via nested table
-        const children = node.children.filter((c): c is DocNode => typeof c !== 'string')
+        const children = node.children.filter(
+          (c): c is DocNode => typeof c !== 'string',
+        )
         const colWidth = Math.floor(100 / Math.max(children.length, 1))
         return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="${bg}${radius}${pad}"><tr>${children.map((child) => `<td width="${colWidth}%" valign="top" style="padding:${(p.gap as number | undefined) ? `0 ${(p.gap as number) / 2}px` : '0'}">${renderNode(child)}</td>`).join('')}</tr></table>`
       }
@@ -63,7 +79,9 @@ function renderNode(node: DocNode): string {
     }
 
     case 'row': {
-      const children = node.children.filter((c): c is DocNode => typeof c !== 'string')
+      const children = node.children.filter(
+        (c): c is DocNode => typeof c !== 'string',
+      )
       const gap = (p.gap as number) ?? 0
       return `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${children.map((child) => `<td valign="top" style="padding:0 ${gap / 2}px">${renderNode(child)}</td>`).join('')}</tr></table>`
     }
@@ -73,7 +91,14 @@ function renderNode(node: DocNode): string {
 
     case 'heading': {
       const level = (p.level as number) ?? 1
-      const sizes: Record<number, number> = { 1: 28, 2: 24, 3: 20, 4: 18, 5: 16, 6: 14 }
+      const sizes: Record<number, number> = {
+        1: 28,
+        2: 24,
+        3: 20,
+        4: 18,
+        5: 16,
+        6: 14,
+      }
       const size = sizes[level] ?? 24
       const color = (p.color as string) ?? '#000000'
       const align = (p.align as string) ?? 'left'
@@ -85,7 +110,11 @@ function renderNode(node: DocNode): string {
       const color = (p.color as string) ?? '#333333'
       const weight = p.bold ? 'bold' : 'normal'
       const style = p.italic ? 'italic' : 'normal'
-      const decoration = p.underline ? 'underline' : p.strikethrough ? 'line-through' : 'none'
+      const decoration = p.underline
+        ? 'underline'
+        : p.strikethrough
+          ? 'line-through'
+          : 'none'
       const align = (p.align as string) ?? 'left'
       const lh = (p.lineHeight as number) ?? 1.5
       return `<p style="margin:0 0 12px 0;font-size:${size}px;color:${color};font-weight:${weight};font-style:${style};text-decoration:${decoration};text-align:${align};line-height:${lh}">${renderChildren(node.children)}</p>`
@@ -100,26 +129,37 @@ function renderNode(node: DocNode): string {
       if (p.caption) {
         return `<table cellpadding="0" cellspacing="0" border="0"${align === 'center' ? ' align="center"' : ''}><tr><td>${img}</td></tr><tr><td style="font-size:12px;color:#666;padding-top:4px;text-align:center">${esc(p.caption as string)}</td></tr></table>`
       }
-      if (align === 'center') return `<div style="text-align:center">${img}</div>`
+      if (align === 'center')
+        return `<div style="text-align:center">${img}</div>`
       if (align === 'right') return `<div style="text-align:right">${img}</div>`
       return img
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
-      const hs = p.headerStyle as { background?: string; color?: string; bold?: boolean } | undefined
+      const hs = p.headerStyle as
+        | { background?: string; color?: string; bold?: boolean }
+        | undefined
       const striped = p.striped as boolean | undefined
 
-      let html = '<table width="100%" cellpadding="8" cellspacing="0" border="0" style="border-collapse:collapse">'
-      if (p.caption) html += `<caption style="font-size:12px;color:#666;padding:8px;text-align:left">${esc(p.caption as string)}</caption>`
+      let html =
+        '<table width="100%" cellpadding="8" cellspacing="0" border="0" style="border-collapse:collapse">'
+      if (p.caption)
+        html += `<caption style="font-size:12px;color:#666;padding:8px;text-align:left">${esc(p.caption as string)}</caption>`
 
       html += '<tr>'
       for (const col of columns) {
-        const bg = hs?.background ? `background-color:${hs.background};` : 'background-color:#f5f5f5;'
+        const bg = hs?.background
+          ? `background-color:${hs.background};`
+          : 'background-color:#f5f5f5;'
         const color = hs?.color ? `color:${hs.color};` : ''
         const align = col.align ? `text-align:${col.align};` : ''
-        const width = col.width ? `width:${typeof col.width === 'number' ? `${col.width}px` : col.width};` : ''
+        const width = col.width
+          ? `width:${typeof col.width === 'number' ? `${col.width}px` : col.width};`
+          : ''
         html += `<th style="${bg}${color}font-weight:bold;${align}${width}padding:8px;border-bottom:2px solid #ddd">${esc(col.header)}</th>`
       }
       html += '</tr>'

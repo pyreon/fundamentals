@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * SVG renderer — generates a standalone SVG document from the node tree.
@@ -20,7 +26,9 @@ function escapeXml(str: string): string {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -50,7 +58,14 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
 
     case 'heading': {
       const level = (p.level as number) ?? 1
-      const sizes: Record<number, number> = { 1: 28, 2: 24, 3: 20, 4: 18, 5: 16, 6: 14 }
+      const sizes: Record<number, number> = {
+        1: 28,
+        2: 24,
+        3: 20,
+        4: 18,
+        5: 16,
+        6: 14,
+      }
       const size = sizes[level] ?? 24
       const color = (p.color as string) ?? '#000000'
       const text = escapeXml(getTextContent(node.children))
@@ -105,9 +120,13 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
-      const hs = p.headerStyle as { background?: string; color?: string } | undefined
+      const hs = p.headerStyle as
+        | { background?: string; color?: string }
+        | undefined
       const striped = p.striped as boolean | undefined
 
       const colWidth = contentWidth / columns.length
@@ -143,7 +162,9 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
 
     case 'list': {
       const ordered = p.ordered as boolean | undefined
-      const items = node.children.filter((c): c is DocNode => typeof c !== 'string')
+      const items = node.children.filter(
+        (c): c is DocNode => typeof c !== 'string',
+      )
       for (let i = 0; i < items.length; i++) {
         const item = items[i]
         if (!item) continue

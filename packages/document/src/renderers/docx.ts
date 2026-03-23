@@ -589,8 +589,9 @@ export const docxRenderer: DocumentRenderer = {
     }
 
     const doc = new docx.Document({
-      numbering:
-        (numberingConfigs.length > 0 ? { config: numberingConfigs } : undefined) as any,
+      numbering: (numberingConfigs.length > 0
+        ? { config: numberingConfigs }
+        : undefined) as any,
       sections: [
         {
           properties: sectionProperties,

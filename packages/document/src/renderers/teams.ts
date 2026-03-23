@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Microsoft Teams renderer — outputs Adaptive Cards JSON.
@@ -11,7 +17,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -40,7 +48,12 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
     case 'heading': {
       const level = (p.level as number) ?? 1
       const sizeMap: Record<number, string> = {
-        1: 'extraLarge', 2: 'large', 3: 'medium', 4: 'default', 5: 'small', 6: 'small',
+        1: 'extraLarge',
+        2: 'large',
+        3: 'medium',
+        4: 'default',
+        5: 'small',
+        6: 'small',
       }
       elements.push({
         type: 'TextBlock',
@@ -62,7 +75,9 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
         text,
         wrap: true,
         ...(p.color ? { color: 'default' } : {}),
-        ...(p.size ? { size: (p.size as number) >= 18 ? 'large' : 'default' } : {}),
+        ...(p.size
+          ? { size: (p.size as number) >= 18 ? 'large' : 'default' }
+          : {}),
       })
       break
     }
@@ -92,7 +107,9 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       // Adaptive Cards have native Table support (schema 1.5+)

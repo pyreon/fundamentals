@@ -46,7 +46,9 @@ export async function download(
 ): Promise<void> {
   const ext = filename.split('.').pop()?.toLowerCase()
   if (!ext) {
-    throw new Error('[@pyreon/document] Filename must have an extension (e.g., report.pdf).')
+    throw new Error(
+      '[@pyreon/document] Filename must have an extension (e.g., report.pdf).',
+    )
   }
 
   const format = FORMAT_MAP[ext]
@@ -61,7 +63,9 @@ export async function download(
   const blob =
     result instanceof Uint8Array
       ? new Blob([result as BlobPart])
-      : new Blob([result], { type: MIME_TYPES[format] ?? 'application/octet-stream' })
+      : new Blob([result], {
+          type: MIME_TYPES[format] ?? 'application/octet-stream',
+        })
 
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

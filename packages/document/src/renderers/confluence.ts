@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Atlassian Document Format (ADF) renderer — for Jira and Confluence.
@@ -12,7 +18,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -63,7 +71,8 @@ function nodeToAdf(node: DocNode): AdfNode[] {
       if (p.italic) marks.push({ type: 'em' })
       if (p.underline) marks.push({ type: 'underline' })
       if (p.strikethrough) marks.push({ type: 'strike' })
-      if (p.color) marks.push({ type: 'textColor', attrs: { color: p.color as string } })
+      if (p.color)
+        marks.push({ type: 'textColor', attrs: { color: p.color as string } })
       result.push({
         type: 'paragraph',
         content: [textNode(text, marks)],
@@ -104,14 +113,21 @@ function nodeToAdf(node: DocNode): AdfNode[] {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       const headerRow: AdfNode = {
         type: 'tableRow',
         content: columns.map((col) => ({
           type: 'tableHeader',
-          content: [{ type: 'paragraph', content: [textNode(col.header, [{ type: 'strong' }])] }],
+          content: [
+            {
+              type: 'paragraph',
+              content: [textNode(col.header, [{ type: 'strong' }])],
+            },
+          ],
         })),
       }
 
@@ -119,7 +135,12 @@ function nodeToAdf(node: DocNode): AdfNode[] {
         type: 'tableRow' as const,
         content: columns.map((_, i) => ({
           type: 'tableCell' as const,
-          content: [{ type: 'paragraph' as const, content: [textNode(String(row[i] ?? ''))] }],
+          content: [
+            {
+              type: 'paragraph' as const,
+              content: [textNode(String(row[i] ?? ''))],
+            },
+          ],
         })),
       }))
 
@@ -174,7 +195,12 @@ function nodeToAdf(node: DocNode): AdfNode[] {
       const text = getTextContent(node.children)
       result.push({
         type: 'paragraph',
-        content: [textNode(text, [{ type: 'link', attrs: { href } }, { type: 'strong' }])],
+        content: [
+          textNode(text, [
+            { type: 'link', attrs: { href } },
+            { type: 'strong' },
+          ]),
+        ],
       })
       break
     }

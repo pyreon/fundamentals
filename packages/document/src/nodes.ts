@@ -23,11 +23,7 @@ import type {
 
 // ─── Node Constructor ───────────────────────────────────────────────────────
 
-function createNode(
-  type: NodeType,
-  props: object,
-  children: unknown,
-): DocNode {
+function createNode(type: NodeType, props: object, children: unknown): DocNode {
   return {
     type,
     props: props as Record<string, unknown>,

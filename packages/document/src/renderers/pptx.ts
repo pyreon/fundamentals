@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * PPTX renderer — lazy-loads pptxgenjs on first use.
@@ -25,7 +31,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -128,9 +136,13 @@ function processNode(node: DocNode, ctx: SlideContext): void {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
-      const hs = p.headerStyle as { background?: string; color?: string } | undefined
+      const hs = p.headerStyle as
+        | { background?: string; color?: string }
+        | undefined
 
       const headerRow = columns.map((col) => ({
         text: col.header,
@@ -149,7 +161,8 @@ function processNode(node: DocNode, ctx: SlideContext): void {
           options: {
             align: col.align ?? 'left',
             fontSize: 11,
-            fill: p.striped && rowIdx % 2 === 1 ? { color: 'F9F9F9' } : undefined,
+            fill:
+              p.striped && rowIdx % 2 === 1 ? { color: 'F9F9F9' } : undefined,
           },
         })),
       )
@@ -245,7 +258,9 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         fontSize: 14,
         bold: true,
         color: ((p.color as string) ?? '#ffffff').replace('#', ''),
-        fill: { color: ((p.background as string) ?? '#4f46e5').replace('#', '') },
+        fill: {
+          color: ((p.background as string) ?? '#4f46e5').replace('#', ''),
+        },
         align: 'center',
         hyperlink: { url: p.href as string },
       })
@@ -287,10 +302,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
   }
 }
 
-function processSlide(
-  pageNode: DocNode,
-  pptx: PptxGen,
-): void {
+function processSlide(pageNode: DocNode, pptx: PptxGen): void {
   const slide = pptx.addSlide()
   const ctx: SlideContext = { slide, y: CONTENT_MARGIN }
 

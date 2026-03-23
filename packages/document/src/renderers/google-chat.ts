@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Google Chat renderer — outputs Card V2 JSON for Google Chat API.
@@ -11,7 +17,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -82,12 +90,16 @@ function nodeToWidgets(node: DocNode): CardWidget[] {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       // Google Chat Cards don't have native tables — use grid or formatted text
       const header = columns.map((c) => `<b>${c.header}</b>`).join(' | ')
-      const body = rows.map((row) => row.map((c) => String(c ?? '')).join(' | ')).join('\n')
+      const body = rows
+        .map((row) => row.map((c) => String(c ?? '')).join(' | '))
+        .join('\n')
 
       widgets.push({
         textParagraph: { text: `${header}\n${body}` },
@@ -113,7 +125,9 @@ function nodeToWidgets(node: DocNode): CardWidget[] {
     case 'code': {
       const text = getTextContent(node.children)
       widgets.push({
-        textParagraph: { text: `<font color="#333333"><code>${text}</code></font>` },
+        textParagraph: {
+          text: `<font color="#333333"><code>${text}</code></font>`,
+        },
       })
       break
     }

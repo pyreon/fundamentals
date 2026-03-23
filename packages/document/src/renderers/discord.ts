@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Discord renderer — outputs embed JSON for Discord webhooks/bots.
@@ -11,7 +17,9 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -40,7 +48,10 @@ function extractMeta(node: DocNode): { title?: string; imageUrl?: string } {
   return {}
 }
 
-function nodeToMarkdown(node: DocNode, meta: { title?: string }): { content: string; fields: DiscordField[] } {
+function nodeToMarkdown(
+  node: DocNode,
+  meta: { title?: string },
+): { content: string; fields: DiscordField[] } {
   const p = node.props
   let content = ''
   const fields: DiscordField[] = []
@@ -92,7 +103,9 @@ function nodeToMarkdown(node: DocNode, meta: { title?: string }): { content: str
       break
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       // Use Discord embed fields for small tables
@@ -110,7 +123,9 @@ function nodeToMarkdown(node: DocNode, meta: { title?: string }): { content: str
         // Fallback to code block for large tables
         const header = columns.map((c) => c.header).join(' | ')
         const separator = columns.map(() => '---').join(' | ')
-        const body = rows.map((row) => row.map((c) => String(c ?? '')).join(' | ')).join('\n')
+        const body = rows
+          .map((row) => row.map((c) => String(c ?? '')).join(' | '))
+          .join('\n')
         content += `\`\`\`\n${header}\n${separator}\n${body}\n\`\`\`\n\n`
       }
       break

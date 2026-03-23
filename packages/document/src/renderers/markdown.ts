@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 function resolveColumn(col: string | TableColumn): TableColumn {
   return typeof col === 'string' ? { header: col } : col
@@ -59,7 +65,9 @@ function renderNode(node: DocNode): string {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       if (columns.length === 0) return ''
@@ -68,15 +76,21 @@ function renderNode(node: DocNode): string {
       const header = `| ${columns.map((c) => c.header).join(' | ')} |`
 
       // Separator with alignment
-      const separator = `| ${columns.map((c) => {
-        const align = c.align ?? 'left'
-        if (align === 'center') return ':---:'
-        if (align === 'right') return '---:'
-        return '---'
-      }).join(' | ')} |`
+      const separator = `| ${columns
+        .map((c) => {
+          const align = c.align ?? 'left'
+          if (align === 'center') return ':---:'
+          if (align === 'right') return '---:'
+          return '---'
+        })
+        .join(' | ')} |`
 
       // Rows
-      const body = rows.map((row) => `| ${row.map((cell) => String(cell ?? '')).join(' | ')} |`).join('\n')
+      const body = rows
+        .map(
+          (row) => `| ${row.map((cell) => String(cell ?? '')).join(' | ')} |`,
+        )
+        .join('\n')
 
       let md = `${header}\n${separator}\n${body}\n\n`
       if (p.caption) md = `*${p.caption}*\n\n${md}`

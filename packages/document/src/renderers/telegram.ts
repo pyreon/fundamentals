@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 /**
  * Telegram renderer — outputs HTML using Telegram's supported subset.
@@ -11,12 +17,18 @@ function resolveColumn(col: string | TableColumn): TableColumn {
 }
 
 function esc(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function getTextContent(children: DocChild[]): string {
   return children
-    .map((c) => (typeof c === 'string' ? c : getTextContent((c as DocNode).children)))
+    .map((c) =>
+      typeof c === 'string' ? c : getTextContent((c as DocNode).children),
+    )
     .join('')
 }
 
@@ -59,13 +71,17 @@ function renderNode(node: DocNode): string {
       return ''
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
 
       // Render as preformatted text since Telegram has no table support
       const header = columns.map((c) => c.header).join(' | ')
       const separator = columns.map(() => '---').join('-+-')
-      const body = rows.map((row) => row.map((c) => String(c ?? '')).join(' | ')).join('\n')
+      const body = rows
+        .map((row) => row.map((c) => String(c ?? '')).join(' | '))
+        .join('\n')
 
       return `<pre>${esc(header)}\n${esc(separator)}\n${esc(body)}</pre>\n\n`
     }

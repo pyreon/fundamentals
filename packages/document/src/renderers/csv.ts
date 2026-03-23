@@ -1,4 +1,9 @@
-import type { DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 function resolveColumn(col: string | TableColumn): TableColumn {
   return typeof col === 'string' ? { header: col } : col
@@ -25,7 +30,9 @@ function findTables(node: DocNode): DocNode[] {
 }
 
 function tableToCsv(node: DocNode): string {
-  const columns = ((node.props.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+  const columns = ((node.props.columns ?? []) as (string | TableColumn)[]).map(
+    resolveColumn,
+  )
   const rows = (node.props.rows ?? []) as (string | number)[][]
 
   const lines: string[] = []

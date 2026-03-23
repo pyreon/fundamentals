@@ -1,4 +1,10 @@
-import type { DocChild, DocNode, DocumentRenderer, RenderOptions, TableColumn } from '../types'
+import type {
+  DocChild,
+  DocNode,
+  DocumentRenderer,
+  RenderOptions,
+  TableColumn,
+} from '../types'
 
 function escapeHtml(str: string): string {
   return str
@@ -23,7 +29,9 @@ function styleStr(styles: Record<string, string | number | undefined>): string {
   return parts.length > 0 ? ` style="${parts.join(';')}"` : ''
 }
 
-function padStr(pad: number | [number, number] | [number, number, number, number] | undefined): string | undefined {
+function padStr(
+  pad: number | [number, number] | [number, number, number, number] | undefined,
+): string | undefined {
   if (pad == null) return undefined
   if (typeof pad === 'number') return `${pad}px`
   if (pad.length === 2) return `${pad[0]}px ${pad[1]}px`
@@ -45,7 +53,9 @@ function renderNode(node: DocNode): string {
   switch (node.type) {
     case 'document': {
       const lang = (p.language as string) ?? 'en'
-      const title = p.title ? `<title>${escapeHtml(p.title as string)}</title>` : ''
+      const title = p.title
+        ? `<title>${escapeHtml(p.title as string)}</title>`
+        : ''
       return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8">${title}<meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${renderChildren(node.children)}</body></html>`
     }
 
@@ -84,7 +94,11 @@ function renderNode(node: DocNode): string {
         color: p.color as string | undefined,
         fontWeight: p.bold ? 'bold' : undefined,
         fontStyle: p.italic ? 'italic' : undefined,
-        textDecoration: p.underline ? 'underline' : p.strikethrough ? 'line-through' : undefined,
+        textDecoration: p.underline
+          ? 'underline'
+          : p.strikethrough
+            ? 'line-through'
+            : undefined,
         textAlign: p.align as string | undefined,
         lineHeight: p.lineHeight as number | undefined,
       })}>${renderChildren(node.children)}</p>`
@@ -94,7 +108,12 @@ function renderNode(node: DocNode): string {
       return `<a href="${escapeHtml(p.href as string)}"${styleStr({ color: p.color as string | undefined })}>${renderChildren(node.children)}</a>`
 
     case 'image': {
-      const alignStyle = p.align === 'center' ? 'display:block;margin:0 auto' : p.align === 'right' ? 'display:block;margin-left:auto' : ''
+      const alignStyle =
+        p.align === 'center'
+          ? 'display:block;margin:0 auto'
+          : p.align === 'right'
+            ? 'display:block;margin-left:auto'
+            : ''
       const img = `<img src="${escapeHtml(p.src as string)}"${p.width ? ` width="${p.width}"` : ''}${p.height ? ` height="${p.height}"` : ''}${p.alt ? ` alt="${escapeHtml(p.alt as string)}"` : ''}${alignStyle ? ` style="${alignStyle}"` : ''} />`
       if (p.caption) {
         return `<figure${p.align === 'center' ? ' style="text-align:center"' : ''}>${img}<figcaption>${escapeHtml(p.caption as string)}</figcaption></figure>`
@@ -103,15 +122,22 @@ function renderNode(node: DocNode): string {
     }
 
     case 'table': {
-      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(resolveColumn)
+      const columns = ((p.columns ?? []) as (string | TableColumn)[]).map(
+        resolveColumn,
+      )
       const rows = (p.rows ?? []) as (string | number)[][]
-      const hs = p.headerStyle as { background?: string; color?: string; bold?: boolean } | undefined
+      const hs = p.headerStyle as
+        | { background?: string; color?: string; bold?: boolean }
+        | undefined
       const striped = p.striped as boolean | undefined
       const bordered = p.bordered as boolean | undefined
-      const borderStyle = bordered ? 'border:1px solid #ddd;border-collapse:collapse;' : 'border-collapse:collapse;'
+      const borderStyle = bordered
+        ? 'border:1px solid #ddd;border-collapse:collapse;'
+        : 'border-collapse:collapse;'
 
       let html = `<table style="width:100%;${borderStyle}">`
-      if (p.caption) html += `<caption>${escapeHtml(p.caption as string)}</caption>`
+      if (p.caption)
+        html += `<caption>${escapeHtml(p.caption as string)}</caption>`
 
       html += '<thead><tr>'
       for (const col of columns) {
@@ -120,14 +146,17 @@ function renderNode(node: DocNode): string {
         const colorStyle = hs?.color ? `color:${hs.color};` : ''
         const fontStyle = hs?.bold !== false ? 'font-weight:bold;' : ''
         const alignStyle = col.align ? `text-align:${col.align};` : ''
-        const widthStyle = col.width ? `width:${typeof col.width === 'number' ? `${col.width}px` : col.width};` : ''
+        const widthStyle = col.width
+          ? `width:${typeof col.width === 'number' ? `${col.width}px` : col.width};`
+          : ''
         html += `<th style="${cellBorder}${bgStyle}${colorStyle}${fontStyle}${alignStyle}${widthStyle}padding:8px">${escapeHtml(col.header)}</th>`
       }
       html += '</tr></thead>'
 
       html += '<tbody>'
       for (let i = 0; i < rows.length; i++) {
-        const rowBg = striped && i % 2 === 1 ? ' style="background:#f9f9f9"' : ''
+        const rowBg =
+          striped && i % 2 === 1 ? ' style="background:#f9f9f9"' : ''
         html += `<tr${rowBg}>`
         for (let j = 0; j < columns.length; j++) {
           const cellBorder = bordered ? 'border:1px solid #ddd;' : ''

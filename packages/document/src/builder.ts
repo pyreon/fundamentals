@@ -1,7 +1,38 @@
 import { download } from './download'
-import { Button, Code, Divider, Document, Heading, Image, Link, List, ListItem, Page, PageBreak, Quote, Spacer, Table, Text } from './nodes'
+import {
+  Button,
+  Code,
+  Divider,
+  Document,
+  Heading,
+  Image,
+  Link,
+  List,
+  ListItem,
+  Page,
+  PageBreak,
+  Quote,
+  Spacer,
+  Table,
+  Text,
+} from './nodes'
 import { render } from './render'
-import type { ButtonProps, CodeProps, DividerProps, DocNode, DocumentBuilder, DocumentProps, HeadingProps, ImageProps, LinkProps, ListProps, QuoteProps, RenderOptions, TableProps, TextProps } from './types'
+import type {
+  ButtonProps,
+  CodeProps,
+  DividerProps,
+  DocNode,
+  DocumentBuilder,
+  DocumentProps,
+  HeadingProps,
+  ImageProps,
+  LinkProps,
+  ListProps,
+  QuoteProps,
+  RenderOptions,
+  TableProps,
+  TextProps,
+} from './types'
 
 /**
  * Create a document using the builder pattern — no JSX needed.
@@ -94,26 +125,58 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
       return builder
     },
 
-    chart(instance: unknown, p?: { width?: number; height?: number; caption?: string }) {
+    chart(
+      instance: unknown,
+      p?: { width?: number; height?: number; caption?: string },
+    ) {
       // Try to get data URL from chart instance
       const inst = instance as { getDataURL?: (opts: unknown) => string }
       if (inst?.getDataURL) {
         const dataUrl = inst.getDataURL({ type: 'png', pixelRatio: 2 })
-        sections.push(Image({ src: dataUrl, width: p?.width, height: p?.height, caption: p?.caption }))
+        sections.push(
+          Image({
+            src: dataUrl,
+            width: p?.width,
+            height: p?.height,
+            caption: p?.caption,
+          }),
+        )
       } else {
-        sections.push(Text({ children: '[Chart]', italic: true, color: '#999' } as TextProps & { children: string }))
+        sections.push(
+          Text({
+            children: '[Chart]',
+            italic: true,
+            color: '#999',
+          } as TextProps & { children: string }),
+        )
       }
       return builder
     },
 
-    flow(instance: unknown, p?: { width?: number; height?: number; caption?: string }) {
+    flow(
+      instance: unknown,
+      p?: { width?: number; height?: number; caption?: string },
+    ) {
       // Try to get SVG from flow instance
       const inst = instance as { toSVG?: () => string }
       if (inst?.toSVG) {
         const svg = inst.toSVG()
-        sections.push(Image({ src: `data:image/svg+xml,${encodeURIComponent(svg)}`, width: p?.width, height: p?.height, caption: p?.caption }))
+        sections.push(
+          Image({
+            src: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+            width: p?.width,
+            height: p?.height,
+            caption: p?.caption,
+          }),
+        )
       } else {
-        sections.push(Text({ children: '[Flow Diagram]', italic: true, color: '#999' } as TextProps & { children: string }))
+        sections.push(
+          Text({
+            children: '[Flow Diagram]',
+            italic: true,
+            color: '#999',
+          } as TextProps & { children: string }),
+        )
       }
       return builder
     },
