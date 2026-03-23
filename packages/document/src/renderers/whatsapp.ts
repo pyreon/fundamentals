@@ -1,3 +1,4 @@
+import { sanitizeHref } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -50,7 +51,7 @@ function renderNode(node: DocNode): string {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       return `${text}: ${href}\n\n`
     }
@@ -99,7 +100,7 @@ function renderNode(node: DocNode): string {
       return '\n'
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       return `*${text}*: ${href}\n\n`
     }

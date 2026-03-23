@@ -1,3 +1,7 @@
+import {
+  sanitizeHref,
+  sanitizeImageSrc,
+} from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -105,7 +109,7 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       blocks.push({
         object: 'block',
@@ -120,7 +124,7 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       if (src.startsWith('http')) {
         blocks.push({
           object: 'block',
@@ -224,7 +228,7 @@ function nodeToBlocks(node: DocNode): NotionBlock[] {
       break
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       blocks.push({
         object: 'block',

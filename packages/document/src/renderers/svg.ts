@@ -1,3 +1,8 @@
+import {
+  sanitizeColor,
+  sanitizeHref,
+  sanitizeImageSrc,
+} from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -67,7 +72,7 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
         6: 14,
       }
       const size = sizes[level] ?? 24
-      const color = (p.color as string) ?? '#000000'
+      const color = sanitizeColor((p.color as string) ?? '#000000')
       const text = escapeXml(getTextContent(node.children))
       ctx.y += size + 8
       svg += `<text x="${ctx.padding}" y="${ctx.y}" font-size="${size}" font-weight="bold" fill="${color}" font-family="system-ui, -apple-system, sans-serif">${text}</text>`
@@ -77,7 +82,7 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
 
     case 'text': {
       const size = (p.size as number) ?? 14
-      const color = (p.color as string) ?? '#333333'
+      const color = sanitizeColor((p.color as string) ?? '#333333')
       const weight = p.bold ? 'bold' : 'normal'
       const style = p.italic ? 'italic' : 'normal'
       const text = escapeXml(getTextContent(node.children))
@@ -88,9 +93,9 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = escapeXml(getTextContent(node.children))
-      const color = (p.color as string) ?? '#4f46e5'
+      const color = sanitizeColor((p.color as string) ?? '#4f46e5')
       ctx.y += 18
       svg += `<a href="${escapeXml(href)}"><text x="${ctx.padding}" y="${ctx.y}" font-size="14" fill="${color}" text-decoration="underline" font-family="system-ui, -apple-system, sans-serif">${text}</text></a>`
       ctx.y += 10
@@ -100,7 +105,7 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
     case 'image': {
       const width = (p.width as number) ?? Math.min(contentWidth, 400)
       const height = (p.height as number) ?? 200
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
 
       if (src.startsWith('data:') || src.startsWith('http')) {
         svg += `<image x="${ctx.padding}" y="${ctx.y}" width="${width}" height="${height}" href="${escapeXml(src)}" />`
@@ -131,8 +136,8 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
 
       const colWidth = contentWidth / columns.length
       const rowHeight = 28
-      const headerBg = hs?.background ?? '#f5f5f5'
-      const headerColor = hs?.color ?? '#000000'
+      const headerBg = sanitizeColor(hs?.background ?? '#f5f5f5')
+      const headerColor = sanitizeColor(hs?.color ?? '#000000')
 
       // Header
       svg += `<rect x="${ctx.padding}" y="${ctx.y}" width="${contentWidth}" height="${rowHeight}" fill="${headerBg}" />`
@@ -190,7 +195,7 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
     }
 
     case 'divider': {
-      const color = (p.color as string) ?? '#ddd'
+      const color = sanitizeColor((p.color as string) ?? '#ddd')
       const thickness = (p.thickness as number) ?? 1
       ctx.y += 12
       svg += `<line x1="${ctx.padding}" y1="${ctx.y}" x2="${ctx.padding + contentWidth}" y2="${ctx.y}" stroke="${color}" stroke-width="${thickness}" />`
@@ -209,8 +214,8 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
       break
 
     case 'button': {
-      const bg = (p.background as string) ?? '#4f46e5'
-      const color = (p.color as string) ?? '#ffffff'
+      const bg = sanitizeColor((p.background as string) ?? '#4f46e5')
+      const color = sanitizeColor((p.color as string) ?? '#ffffff')
       const text = escapeXml(getTextContent(node.children))
       const btnWidth = Math.min(text.length * 10 + 48, contentWidth)
       const btnHeight = 40
@@ -222,7 +227,7 @@ function renderNode(node: DocNode, ctx: RenderContext): string {
     }
 
     case 'quote': {
-      const borderColor = (p.borderColor as string) ?? '#ddd'
+      const borderColor = sanitizeColor((p.borderColor as string) ?? '#ddd')
       const text = escapeXml(getTextContent(node.children))
       ctx.y += 4
       svg += `<rect x="${ctx.padding}" y="${ctx.y}" width="4" height="20" fill="${borderColor}" />`

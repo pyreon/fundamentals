@@ -67,6 +67,12 @@ export async function download(
           type: MIME_TYPES[format] ?? 'application/octet-stream',
         })
 
+  if (typeof document === 'undefined') {
+    throw new Error(
+      '[@pyreon/document] download() requires a browser environment.',
+    )
+  }
+
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

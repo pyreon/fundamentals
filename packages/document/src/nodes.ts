@@ -37,6 +37,11 @@ function normalizeChildren(children: unknown): DocChild[] {
   if (typeof children === 'number') return [String(children)]
   if (Array.isArray(children)) return children.flatMap(normalizeChildren)
   if (isDocNode(children)) return [children]
+  if (typeof children === 'object') {
+    throw new Error(
+      '[@pyreon/document] Invalid child: plain objects are not valid document children. Use a document node (Text, Heading, etc.) instead.',
+    )
+  }
   return [String(children)]
 }
 
