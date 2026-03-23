@@ -2293,6 +2293,331 @@ describe('Telegram renderer', () => {
   })
 })
 
+// ─── Notion Renderer ────────────────────────────────────────────────────────
+
+describe('Notion renderer', () => {
+  it('renders heading as heading block', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('heading_1')
+  })
+
+  it('renders h2 as heading_2', async () => {
+    const doc = Document({ children: Heading({ level: 2, children: 'Sub' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('heading_2')
+  })
+
+  it('renders h3+ as heading_3', async () => {
+    const doc = Document({ children: Heading({ level: 4, children: 'Sub' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('heading_3')
+  })
+
+  it('renders text as paragraph', async () => {
+    const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('paragraph')
+    expect(parsed.children[0].paragraph.rich_text[0].annotations.bold).toBe(true)
+  })
+
+  it('renders table with header row', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
+    })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('table')
+    expect(parsed.children[0].table.has_column_header).toBe(true)
+  })
+
+  it('renders bulleted list', async () => {
+    const doc = Document({
+      children: List({ children: [ListItem({ children: 'a' })] }),
+    })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('bulleted_list_item')
+  })
+
+  it('renders numbered list', async () => {
+    const doc = Document({
+      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+    })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('numbered_list_item')
+  })
+
+  it('renders code block', async () => {
+    const doc = Document({ children: Code({ language: 'python', children: 'x = 1' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('code')
+    expect(parsed.children[0].code.language).toBe('python')
+  })
+
+  it('renders quote', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('quote')
+  })
+
+  it('renders divider', async () => {
+    const doc = Document({ children: Divider() })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('divider')
+  })
+
+  it('renders image with URL', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].type).toBe('image')
+  })
+
+  it('renders link as paragraph with link', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const json = await render(doc, 'notion') as string
+    const parsed = JSON.parse(json)
+    expect(parsed.children[0].paragraph.rich_text[0].text.link.url).toBe('https://x.com')
+  })
+
+  it('builder toNotion works', async () => {
+    const json = await createDocument().heading('Hi').toNotion()
+    const parsed = JSON.parse(json)
+    expect(parsed.children.length).toBeGreaterThan(0)
+  })
+})
+
+// ─── Confluence/Jira Renderer ───────────────────────────────────────────────
+
+describe('Confluence renderer', () => {
+  it('renders ADF document', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.version).toBe(1)
+    expect(adf.type).toBe('doc')
+    expect(adf.content[0].type).toBe('heading')
+  })
+
+  it('renders text with marks', async () => {
+    const doc = Document({ children: Text({ bold: true, italic: true, children: 'styled' }) })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    const marks = adf.content[0].content[0].marks
+    expect(marks.some((m: any) => m.type === 'strong')).toBe(true)
+    expect(marks.some((m: any) => m.type === 'em')).toBe(true)
+  })
+
+  it('renders table', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A'], rows: [['1']] }),
+    })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].type).toBe('table')
+    expect(adf.content[0].content[0].content[0].type).toBe('tableHeader')
+  })
+
+  it('renders ordered list', async () => {
+    const doc = Document({
+      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+    })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].type).toBe('orderedList')
+  })
+
+  it('renders code block', async () => {
+    const doc = Document({ children: Code({ language: 'java', children: 'int x = 1;' }) })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].type).toBe('codeBlock')
+    expect(adf.content[0].attrs.language).toBe('java')
+  })
+
+  it('renders blockquote', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].type).toBe('blockquote')
+  })
+
+  it('renders rule (divider)', async () => {
+    const doc = Document({ children: Divider() })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].type).toBe('rule')
+  })
+
+  it('renders link with href', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const json = await render(doc, 'confluence') as string
+    const adf = JSON.parse(json)
+    expect(adf.content[0].content[0].marks[0].attrs.href).toBe('https://x.com')
+  })
+
+  it('builder toConfluence works', async () => {
+    const json = await createDocument().heading('Hi').toConfluence()
+    const adf = JSON.parse(json)
+    expect(adf.type).toBe('doc')
+  })
+})
+
+// ─── WhatsApp Renderer ──────────────────────────────────────────────────────
+
+describe('WhatsApp renderer', () => {
+  it('renders heading as bold', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('*Title*')
+  })
+
+  it('renders bold, italic, strikethrough', async () => {
+    const doc = Document({
+      children: [
+        Text({ bold: true, children: 'Bold' }),
+        Text({ italic: true, children: 'Italic' }),
+        Text({ strikethrough: true, children: 'Struck' }),
+      ],
+    })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('*Bold*')
+    expect(text).toContain('_Italic_')
+    expect(text).toContain('~Struck~')
+  })
+
+  it('renders code as triple backticks', async () => {
+    const doc = Document({ children: Code({ children: 'x = 1' }) })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('```x = 1```')
+  })
+
+  it('renders quote with >', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('> wise')
+  })
+
+  it('renders link as text + URL', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('X: https://x.com')
+  })
+
+  it('renders table', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
+    })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('*A* | *B*')
+    expect(text).toContain('1 | 2')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({ children: [ListItem({ children: 'one' })] }),
+    })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toContain('• one')
+  })
+
+  it('skips images', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
+    const text = await render(doc, 'whatsapp') as string
+    expect(text).toBe('')
+  })
+
+  it('builder toWhatsApp works', async () => {
+    const text = await createDocument().heading('Hi').text('World').toWhatsApp()
+    expect(text).toContain('*Hi*')
+    expect(text).toContain('World')
+  })
+})
+
+// ─── Google Chat Renderer ───────────────────────────────────────────────────
+
+describe('Google Chat renderer', () => {
+  it('renders card with header', async () => {
+    const doc = Document({ title: 'Report', children: Text({ children: 'Body' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.header.title).toBe('Report')
+  })
+
+  it('renders heading as decorated text', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].decoratedText.text).toContain('<b>Title</b>')
+  })
+
+  it('renders text paragraph', async () => {
+    const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('<b>Bold</b>')
+  })
+
+  it('renders button', async () => {
+    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].buttonList.buttons[0].text).toBe('Click')
+  })
+
+  it('renders divider', async () => {
+    const doc = Document({ children: Divider() })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].divider).toBeDefined()
+  })
+
+  it('renders image', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].image.imageUrl).toBe('https://x.com/img.png')
+  })
+
+  it('renders link', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('href="https://x.com"')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({ children: [ListItem({ children: 'one' })] }),
+    })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.sections[0].widgets[0].textParagraph.text).toContain('• one')
+  })
+
+  it('uses first heading as title when no title prop', async () => {
+    const doc = Document({ children: [Heading({ children: 'Auto Title' }), Text({ children: 'body' })] })
+    const json = await render(doc, 'google-chat') as string
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.header.title).toBe('Auto Title')
+  })
+
+  it('builder toGoogleChat works', async () => {
+    const json = await createDocument({ title: 'Hi' }).text('World').toGoogleChat()
+    const card = JSON.parse(json)
+    expect(card.cardsV2[0].card.header.title).toBe('Hi')
+  })
+})
+
 describe('builder toSlack', () => {
   it('renders to Slack JSON', async () => {
     const result = await createDocument().heading('Hi').text('World').toSlack()

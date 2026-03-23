@@ -178,6 +178,22 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
       return render(getNode(), 'telegram', options) as Promise<string>
     },
 
+    async toNotion(options?: RenderOptions) {
+      return render(getNode(), 'notion', options) as Promise<string>
+    },
+
+    async toConfluence(options?: RenderOptions) {
+      return render(getNode(), 'confluence', options) as Promise<string>
+    },
+
+    async toWhatsApp(options?: RenderOptions) {
+      return render(getNode(), 'whatsapp', options) as Promise<string>
+    },
+
+    async toGoogleChat(options?: RenderOptions) {
+      return render(getNode(), 'google-chat', options) as Promise<string>
+    },
+
     async download(filename: string, options?: RenderOptions) {
       return download(getNode(), filename, options)
     },

@@ -213,6 +213,10 @@ export type OutputFormat =
   | 'teams'
   | 'discord'
   | 'telegram'
+  | 'notion'
+  | 'confluence'
+  | 'whatsapp'
+  | 'google-chat'
 
 export interface RenderOptions {
   /** Custom styles to apply (overrides component styles). */
@@ -269,6 +273,10 @@ export interface DocumentBuilder {
   toTeams(options?: RenderOptions): Promise<string>
   toDiscord(options?: RenderOptions): Promise<string>
   toTelegram(options?: RenderOptions): Promise<string>
+  toNotion(options?: RenderOptions): Promise<string>
+  toConfluence(options?: RenderOptions): Promise<string>
+  toWhatsApp(options?: RenderOptions): Promise<string>
+  toGoogleChat(options?: RenderOptions): Promise<string>
   /** Download the document (browser only). */
   download(filename: string, options?: RenderOptions): Promise<void>
 }

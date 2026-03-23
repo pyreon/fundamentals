@@ -99,6 +99,22 @@ registerRenderer('telegram', () =>
   import('./renderers/telegram').then((m) => m.telegramRenderer),
 )
 
+registerRenderer('notion', () =>
+  import('./renderers/notion').then((m) => m.notionRenderer),
+)
+
+registerRenderer('confluence', () =>
+  import('./renderers/confluence').then((m) => m.confluenceRenderer),
+)
+
+registerRenderer('whatsapp', () =>
+  import('./renderers/whatsapp').then((m) => m.whatsappRenderer),
+)
+
+registerRenderer('google-chat', () =>
+  import('./renderers/google-chat').then((m) => m.googleChatRenderer),
+)
+
 // ─── Render Function ────────────────────────────────────────────────────────
 
 async function resolveRenderer(format: string): Promise<DocumentRenderer> {
@@ -160,4 +176,8 @@ export function _resetRenderers(): void {
   registerRenderer('teams', () => import('./renderers/teams').then((m) => m.teamsRenderer))
   registerRenderer('discord', () => import('./renderers/discord').then((m) => m.discordRenderer))
   registerRenderer('telegram', () => import('./renderers/telegram').then((m) => m.telegramRenderer))
+  registerRenderer('notion', () => import('./renderers/notion').then((m) => m.notionRenderer))
+  registerRenderer('confluence', () => import('./renderers/confluence').then((m) => m.confluenceRenderer))
+  registerRenderer('whatsapp', () => import('./renderers/whatsapp').then((m) => m.whatsappRenderer))
+  registerRenderer('google-chat', () => import('./renderers/google-chat').then((m) => m.googleChatRenderer))
 }
