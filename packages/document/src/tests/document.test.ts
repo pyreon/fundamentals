@@ -2040,6 +2040,259 @@ describe('SVG renderer', () => {
   })
 })
 
+// ─── Teams Renderer ─────────────────────────────────────────────────────────
+
+describe('Teams renderer', () => {
+  it('renders heading as TextBlock', async () => {
+    const doc = Document({ children: Heading({ children: 'Hello' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.type).toBe('AdaptiveCard')
+    expect(card.body[0].type).toBe('TextBlock')
+    expect(card.body[0].text).toBe('Hello')
+    expect(card.body[0].weight).toBe('bolder')
+  })
+
+  it('renders bold text', async () => {
+    const doc = Document({ children: Text({ bold: true, children: 'Bold' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].text).toContain('**Bold**')
+  })
+
+  it('renders button as Action.OpenUrl', async () => {
+    const doc = Document({ children: Button({ href: '/go', children: 'Click' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].type).toBe('ActionSet')
+    expect(card.body[0].actions[0].type).toBe('Action.OpenUrl')
+  })
+
+  it('renders table as ColumnSet', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
+    })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].type).toBe('ColumnSet')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({
+        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+      }),
+    })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].text).toContain('• one')
+  })
+
+  it('renders code as monospace', async () => {
+    const doc = Document({ children: Code({ children: 'x = 1' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].fontType).toBe('monospace')
+  })
+
+  it('renders divider as separator', async () => {
+    const doc = Document({ children: Divider() })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].separator).toBe(true)
+  })
+
+  it('renders image with URL', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png', alt: 'Photo' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].type).toBe('Image')
+  })
+
+  it('renders quote as Container', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].type).toBe('Container')
+    expect(card.body[0].style).toBe('emphasis')
+  })
+
+  it('renders link as markdown', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const json = await render(doc, 'teams') as string
+    const card = JSON.parse(json)
+    expect(card.body[0].text).toContain('[X](https://x.com)')
+  })
+
+  it('builder toTeams works', async () => {
+    const json = await createDocument().heading('Hi').toTeams()
+    const card = JSON.parse(json)
+    expect(card.type).toBe('AdaptiveCard')
+  })
+})
+
+// ─── Discord Renderer ───────────────────────────────────────────────────────
+
+describe('Discord renderer', () => {
+  it('renders heading as embed title', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].title).toBe('Title')
+  })
+
+  it('renders text in description', async () => {
+    const doc = Document({ children: [Heading({ children: 'T' }), Text({ children: 'Body' })] })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].description).toContain('Body')
+  })
+
+  it('renders small table as fields', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2'], ['3', '4']] }),
+    })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].fields).toHaveLength(2)
+    expect(payload.embeds[0].fields[0].name).toBe('A')
+    expect(payload.embeds[0].fields[0].inline).toBe(true)
+  })
+
+  it('renders image as embed image', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].image.url).toBe('https://x.com/img.png')
+  })
+
+  it('renders quote with >', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].description).toContain('> wise')
+  })
+
+  it('renders code block', async () => {
+    const doc = Document({ children: Code({ language: 'js', children: 'x()' }) })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].description).toContain('```js')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({ ordered: true, children: [ListItem({ children: 'a' })] }),
+    })
+    const json = await render(doc, 'discord') as string
+    const payload = JSON.parse(json)
+    expect(payload.embeds[0].description).toContain('1. a')
+  })
+
+  it('builder toDiscord works', async () => {
+    const json = await createDocument().heading('Hi').text('World').toDiscord()
+    const payload = JSON.parse(json)
+    expect(payload.embeds).toHaveLength(1)
+  })
+})
+
+// ─── Telegram Renderer ──────────────────────────────────────────────────────
+
+describe('Telegram renderer', () => {
+  it('renders heading as bold', async () => {
+    const doc = Document({ children: Heading({ children: 'Title' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<b>Title</b>')
+  })
+
+  it('renders text with formatting', async () => {
+    const doc = Document({
+      children: [
+        Text({ bold: true, children: 'Bold' }),
+        Text({ italic: true, children: 'Italic' }),
+        Text({ underline: true, children: 'Under' }),
+        Text({ strikethrough: true, children: 'Struck' }),
+      ],
+    })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<b>Bold</b>')
+    expect(html).toContain('<i>Italic</i>')
+    expect(html).toContain('<u>Under</u>')
+    expect(html).toContain('<s>Struck</s>')
+  })
+
+  it('renders link as <a>', async () => {
+    const doc = Document({ children: Link({ href: 'https://x.com', children: 'X' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<a href="https://x.com">X</a>')
+  })
+
+  it('renders table as pre-formatted text', async () => {
+    const doc = Document({
+      children: Table({ columns: ['A', 'B'], rows: [['1', '2']] }),
+    })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<pre>')
+    expect(html).toContain('A | B')
+    expect(html).toContain('1 | 2')
+  })
+
+  it('renders code with language', async () => {
+    const doc = Document({ children: Code({ language: 'python', children: 'x = 1' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('language-python')
+    expect(html).toContain('x = 1')
+  })
+
+  it('renders code without language', async () => {
+    const doc = Document({ children: Code({ children: 'x = 1' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<pre>x = 1</pre>')
+  })
+
+  it('renders quote as blockquote', async () => {
+    const doc = Document({ children: Quote({ children: 'wise' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<blockquote>wise</blockquote>')
+  })
+
+  it('renders list', async () => {
+    const doc = Document({
+      children: List({
+        children: [ListItem({ children: 'one' }), ListItem({ children: 'two' })],
+      }),
+    })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('• one')
+    expect(html).toContain('• two')
+  })
+
+  it('renders button as link', async () => {
+    const doc = Document({ children: Button({ href: '/pay', children: 'Pay' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toContain('<a href="/pay">Pay</a>')
+  })
+
+  it('skips images (sent separately in Telegram)', async () => {
+    const doc = Document({ children: Image({ src: 'https://x.com/img.png' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).toBe('')
+  })
+
+  it('escapes HTML entities', async () => {
+    const doc = Document({ children: Text({ children: '<script>alert(1)</script>' }) })
+    const html = await render(doc, 'telegram') as string
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+
+  it('builder toTelegram works', async () => {
+    const html = await createDocument().heading('Hi').text('World').toTelegram()
+    expect(html).toContain('<b>Hi</b>')
+    expect(html).toContain('World')
+  })
+})
+
 describe('builder toSlack', () => {
   it('renders to Slack JSON', async () => {
     const result = await createDocument().heading('Hi').text('World').toSlack()

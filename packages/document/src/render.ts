@@ -87,6 +87,18 @@ registerRenderer('svg', () =>
   import('./renderers/svg').then((m) => m.svgRenderer),
 )
 
+registerRenderer('teams', () =>
+  import('./renderers/teams').then((m) => m.teamsRenderer),
+)
+
+registerRenderer('discord', () =>
+  import('./renderers/discord').then((m) => m.discordRenderer),
+)
+
+registerRenderer('telegram', () =>
+  import('./renderers/telegram').then((m) => m.telegramRenderer),
+)
+
 // ─── Render Function ────────────────────────────────────────────────────────
 
 async function resolveRenderer(format: string): Promise<DocumentRenderer> {
@@ -145,4 +157,7 @@ export function _resetRenderers(): void {
   registerRenderer('pptx', () => import('./renderers/pptx').then((m) => m.pptxRenderer))
   registerRenderer('slack', () => import('./renderers/slack').then((m) => m.slackRenderer))
   registerRenderer('svg', () => import('./renderers/svg').then((m) => m.svgRenderer))
+  registerRenderer('teams', () => import('./renderers/teams').then((m) => m.teamsRenderer))
+  registerRenderer('discord', () => import('./renderers/discord').then((m) => m.discordRenderer))
+  registerRenderer('telegram', () => import('./renderers/telegram').then((m) => m.telegramRenderer))
 }

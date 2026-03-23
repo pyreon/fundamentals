@@ -166,6 +166,18 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
       return render(getNode(), 'svg', options) as Promise<string>
     },
 
+    async toTeams(options?: RenderOptions) {
+      return render(getNode(), 'teams', options) as Promise<string>
+    },
+
+    async toDiscord(options?: RenderOptions) {
+      return render(getNode(), 'discord', options) as Promise<string>
+    },
+
+    async toTelegram(options?: RenderOptions) {
+      return render(getNode(), 'telegram', options) as Promise<string>
+    },
+
     async download(filename: string, options?: RenderOptions) {
       return download(getNode(), filename, options)
     },

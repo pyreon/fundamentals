@@ -210,6 +210,9 @@ export type OutputFormat =
   | 'csv'
   | 'svg'
   | 'slack'
+  | 'teams'
+  | 'discord'
+  | 'telegram'
 
 export interface RenderOptions {
   /** Custom styles to apply (overrides component styles). */
@@ -263,6 +266,9 @@ export interface DocumentBuilder {
   toCsv(options?: RenderOptions): Promise<string>
   toSlack(options?: RenderOptions): Promise<string>
   toSvg(options?: RenderOptions): Promise<string>
+  toTeams(options?: RenderOptions): Promise<string>
+  toDiscord(options?: RenderOptions): Promise<string>
+  toTelegram(options?: RenderOptions): Promise<string>
   /** Download the document (browser only). */
   download(filename: string, options?: RenderOptions): Promise<void>
 }
