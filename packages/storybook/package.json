@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/storybook",
-  "version": "1.0.0",
+  "version": "0.6.0",
   "description": "Storybook renderer for Pyreon — mount, render, and interact with Pyreon components in Storybook",
   "license": "MIT",
   "repository": {

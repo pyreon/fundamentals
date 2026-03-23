@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/charts",
-  "version": "1.0.0",
+  "version": "0.6.0",
   "description": "Reactive ECharts bridge for Pyreon — lazy loading, signal-driven, Canvas by default",
   "license": "MIT",
   "repository": {
