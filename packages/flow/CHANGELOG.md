@@ -1,4 +1,4 @@
-# @pyreon/machine
+# @pyreon/flow
 
 ## 1.0.0
 
@@ -14,9 +14,3 @@
   - Upgrade to pyreon 0.6.0
   - Use `provide()` for context providers (query, form, i18n, permissions)
   - Fix error message prefixes across packages
-
-## 1.0.0
-
-### Minor Changes
-
-- Add @pyreon/permissions (reactive type-safe permissions) and @pyreon/machine (reactive state machines). Update AI building rules.
