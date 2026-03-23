@@ -60,11 +60,15 @@ export function createTabbedEditor(
   // ── Editor instance ────────────────────────────────────────────────────
 
   const firstTab = tabsWithIds[0]
+  // Filter out undefined values to satisfy exactOptionalPropertyTypes
+  const filteredConfig = Object.fromEntries(
+    Object.entries(editorConfig).filter(([_, v]) => v !== undefined),
+  )
   const editor = createEditor({
     value: firstTab?.value ?? '',
     language: (firstTab?.language ?? 'plain') as EditorLanguage,
     theme,
-    ...editorConfig,
+    ...filteredConfig,
     onChange: (value) => {
       // Save content to cache and mark as modified
       const id = activeTabId.peek()

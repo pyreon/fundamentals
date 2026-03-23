@@ -5,9 +5,10 @@
     "": {
       "name": "pyreon-fundamentals",
       "dependencies": {
-        "@pyreon/core": "0.6.0",
-        "@pyreon/reactivity": "0.6.0",
-        "@pyreon/runtime-dom": "0.6.0",
+        "@pyreon/core": "0.7.2",
+        "@pyreon/reactivity": "0.7.2",
+        "@pyreon/runtime-dom": "0.7.2",
+        "@pyreon/typescript": "0.7.2",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.4.8",
@@ -26,7 +27,7 @@
     },
     "examples/playground": {
       "name": "@pyreon/playground",
-      "version": "0.0.5",
+      "version": "0.0.6",
       "dependencies": {
         "@pyreon/core": "^0.5.4",
         "@pyreon/form": "workspace:*",
@@ -56,22 +57,22 @@
     },
     "packages/charts": {
       "name": "@pyreon/charts",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
         "echarts": "^6.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "echarts": ">=5.6.0",
       },
     },
     "packages/code": {
       "name": "@pyreon/code",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "@codemirror/autocomplete": "^6.20.1",
         "@codemirror/commands": "^6.10.3",
@@ -85,8 +86,8 @@
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "optionalDependencies": {
@@ -106,17 +107,17 @@
         "@codemirror/lang-yaml": "^6.1.2",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/document": {
       "name": "@pyreon/document",
-      "version": "0.0.1",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
         "docx": "^9.6.0",
         "exceljs": "^4.4.0",
@@ -130,13 +131,13 @@
         "pptxgenjs": "^4.0.1",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/feature": {
       "name": "@pyreon/feature",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "@pyreon/form": "workspace:^",
         "@pyreon/query": "workspace:^",
@@ -146,189 +147,189 @@
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
         "zod": "^4.3.6",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/flow": {
       "name": "@pyreon/flow",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "elkjs": "^0.9.3",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/form": {
       "name": "@pyreon/form",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/hotkeys": {
       "name": "@pyreon/hotkeys",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/i18n": {
       "name": "@pyreon/i18n",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/machine": {
       "name": "@pyreon/machine",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/permissions": {
       "name": "@pyreon/permissions",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/query": {
       "name": "@pyreon/query",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "@tanstack/query-core": "^5.0.0",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/state-tree": {
       "name": "@pyreon/state-tree",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/storage": {
       "name": "@pyreon/storage",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/store": {
       "name": "@pyreon/store",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
         "@vitus-labs/tools-lint": "^1.11.0",
       },
       "peerDependencies": {
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/storybook": {
       "name": "@pyreon/storybook",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
         "storybook": ">=8.0.0",
       },
     },
     "packages/table": {
       "name": "@pyreon/table",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "@tanstack/table-core": "^8.0.0",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
     "packages/validation": {
       "name": "@pyreon/validation",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
         "@pyreon/form": "workspace:*",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
         "arktype": "^2.2.0",
         "valibot": "^1.2.0",
         "zod": "^4.3.6",
@@ -339,19 +340,19 @@
     },
     "packages/virtual": {
       "name": "@pyreon/virtual",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "dependencies": {
         "@tanstack/virtual-core": "^3.0.0",
       },
       "devDependencies": {
         "@happy-dom/global-registrator": "^20.8.3",
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
-        "@pyreon/runtime-dom": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+        "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
       },
       "peerDependencies": {
-        "@pyreon/core": ">=0.5.0 <1.0.0",
-        "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+        "@pyreon/core": ">=0.7.0 <1.0.0",
+        "@pyreon/reactivity": ">=0.7.0 <1.0.0",
       },
     },
   },
@@ -630,7 +631,7 @@
 
     "@pyreon/compiler": ["@pyreon/compiler@0.5.4", "", { "peerDependencies": { "typescript": ">=5.0.0" } }, "sha512-FfC4AWWVkA+rwbNglGit1xEYCtXXNxgVkc04twcj1PNwhFagOqYIXRcjryPredySojPKFG9BrYgC+B0yyNDx8Q=="],
 
-    "@pyreon/core": ["@pyreon/core@0.6.0", "", { "dependencies": { "@pyreon/reactivity": "^0.6.0" } }, "sha512-G+g/dKFg125hhSnfBqxiPALsuO6Tk358tVTr6BqEBUNqW4LP610frS347VDU2VeAP0dnhTXCZW8lMvWc/vUIqA=="],
+    "@pyreon/core": ["@pyreon/core@0.7.2", "", { "dependencies": { "@pyreon/reactivity": "^0.7.2" } }, "sha512-VE8iJSBF/F1LjTyTn1F5O7qBzs2zAw0JBHNe0w0tQdBI01npQcjQnxrPM5O+MBlqZBz6SGc2X5GPCTJi6n5oWg=="],
 
     "@pyreon/document": ["@pyreon/document@workspace:packages/document"],
 
@@ -652,9 +653,9 @@
 
     "@pyreon/query": ["@pyreon/query@workspace:packages/query"],
 
-    "@pyreon/reactivity": ["@pyreon/reactivity@0.6.0", "", {}, "sha512-1n1SM8M/pTbk+/zq65MTrONLpWg8sTAH5HCTXzYoBmPh9yM1qja0XSWmJeda4Wt+C402N+YYXllv6nJFg0kUtA=="],
+    "@pyreon/reactivity": ["@pyreon/reactivity@0.7.2", "", {}, "sha512-K8rUP43F9PKXbaW4lzIPamz4x1j6DF4qUkgw7ZzmVeqv96Ta72nM1i45g69lixfRRh8iS3tEVVj2As/2zRZFpA=="],
 
-    "@pyreon/runtime-dom": ["@pyreon/runtime-dom@0.6.0", "", { "dependencies": { "@pyreon/core": "^0.6.0", "@pyreon/reactivity": "^0.6.0" } }, "sha512-CEprHvVk5SIVvdNaR83j8p28sgORdxpuJOaW7SNxdlNdeC8TMUXP4wFuJFr+kB7rCyXnb6tYEt0BMJ4YePKyiA=="],
+    "@pyreon/runtime-dom": ["@pyreon/runtime-dom@0.7.2", "", { "dependencies": { "@pyreon/core": "^0.7.2", "@pyreon/reactivity": "^0.7.2" } }, "sha512-rC1tO6tS4HraIHcCN29wTDvYQ1X69irSjDbwGIHy1dm6GHD3IK6N8fVGrNFpVUPWZ50bInJukUacWGuZGsyB1w=="],
 
     "@pyreon/state-tree": ["@pyreon/state-tree@workspace:packages/state-tree"],
 
@@ -665,6 +666,8 @@
     "@pyreon/storybook": ["@pyreon/storybook@workspace:packages/storybook"],
 
     "@pyreon/table": ["@pyreon/table@workspace:packages/table"],
+
+    "@pyreon/typescript": ["@pyreon/typescript@0.7.2", "", { "peerDependencies": { "@pyreon/core": ">=0.7.2" } }, "sha512-c96CHfalXgH0FqjeWwEcMqBExoGPuXprEpyK6s8Bpp6YXTeHVy4ZYYejyzwkAumOmRaa/Fw1Xg3Jr7jpzjFGlA=="],
 
     "@pyreon/validation": ["@pyreon/validation@workspace:packages/validation"],
 
@@ -1720,27 +1723,11 @@
 
     "@npmcli/run-script/which": ["which@3.0.1", "", { "dependencies": { "isexe": "^2.0.0" }, "bin": { "node-which": "bin/which.js" } }, "sha512-XA1b62dzQzLfaEOSQFTCOd5KFf/1VSzZo7/7TUjnya6u0vGGKzU96UQBZTAThCb2j4/xjBAyii1OhRLJEivHvg=="],
 
-    "@pyreon/code/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
     "@pyreon/playground/@pyreon/core": ["@pyreon/core@0.5.7", "", { "dependencies": { "@pyreon/reactivity": "^0.5.7" } }, "sha512-aYBOgWMFiZjtzugKeMBfbd9UY0yX0MXUd6HSEmEIesKnbMcKA9nfKj3HvWwT1KV1pTBkgnCrh7aqOFd7iOzjzA=="],
 
     "@pyreon/playground/@pyreon/reactivity": ["@pyreon/reactivity@0.5.7", "", {}, "sha512-G9BpSvRrHG4E7EExyS0HPEqPRl9rb8FZCR5D5M6aJQnyJ6bRLwEhQ0+DJ/4nSAohLiHcxFcTjSBK22VfRU7zbA=="],
 
     "@pyreon/playground/@pyreon/runtime-dom": ["@pyreon/runtime-dom@0.5.7", "", { "dependencies": { "@pyreon/core": "^0.5.7", "@pyreon/reactivity": "^0.5.7" } }, "sha512-I6CnTlKXXV8QnX4f2oiadquerV5iYqMF5f67x4Z6mZViGhdvSxmTxOTW3BzrJPpFh8HEQpBkNhWjRzPGjvkepw=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint": ["@vitus-labs/tools-lint@1.15.0", "", { "dependencies": { "@biomejs/biome": "^2.4.7" } }, "sha512-gA+xBFmiOoADxUqN6+xE5AnICVML9RyvfdFLnGom8TECuNzcPvF/aG1q/keMbfy+kWc7gyd+MLmA/rNWrp0M2A=="],
 
     "@swc/helpers/tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
@@ -1868,22 +1855,6 @@
 
     "@npmcli/move-file/rimraf/glob": ["glob@7.2.3", "", { "dependencies": { "fs.realpath": "^1.0.0", "inflight": "^1.0.4", "inherits": "2", "minimatch": "^3.1.1", "once": "^1.3.0", "path-is-absolute": "^1.0.0" } }, "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="],
 
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome": ["@biomejs/biome@2.4.7", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.4.7", "@biomejs/cli-darwin-x64": "2.4.7", "@biomejs/cli-linux-arm64": "2.4.7", "@biomejs/cli-linux-arm64-musl": "2.4.7", "@biomejs/cli-linux-x64": "2.4.7", "@biomejs/cli-linux-x64-musl": "2.4.7", "@biomejs/cli-win32-arm64": "2.4.7", "@biomejs/cli-win32-x64": "2.4.7" }, "bin": { "biome": "bin/biome" } }, "sha512-vXrgcmNGZ4lpdwZSpMf1hWw1aWS6B+SyeSYKTLrNsiUsAdSRN0J4d/7mF3ogJFbIwFFSOL3wT92Zzxia/d5/ng=="],
-
     "@tufjs/models/minimatch/brace-expansion": ["brace-expansion@2.0.2", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ=="],
 
     "archiver-utils/glob/minimatch": ["minimatch@3.1.5", "", { "dependencies": { "brace-expansion": "^1.1.7" } }, "sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w=="],
@@ -1953,134 +1924,6 @@
     "zip-stream/archiver-utils/glob": ["glob@7.2.3", "", { "dependencies": { "fs.realpath": "^1.0.0", "inflight": "^1.0.4", "inherits": "2", "minimatch": "^3.1.1", "once": "^1.3.0", "path-is-absolute": "^1.0.0" } }, "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="],
 
     "@npmcli/move-file/rimraf/glob/minimatch": ["minimatch@3.1.5", "", { "dependencies": { "brace-expansion": "^1.1.7" } }, "sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/code/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/document/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/flow/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/hotkeys/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/machine/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/permissions/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/storage/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.4.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-Oo0cF5mHzmvDmTXw8XSjhCia8K6YrZnk7aCS54+/HxyMdZMruMO3nfpDsrlar/EQWe41r1qrwKiCa2QDYHDzWA=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.4.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-I+cOG3sd/7HdFtvDSnF9QQPrWguUH7zrkIMMykM3PtfWU9soTcS2yRb9Myq6MHmzbeCT08D1UmY+BaiMl5CcoQ=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-om6FugwmibzfP/6ALj5WRDVSND4H2G9X0nkI1HZpp2ySf9lW2j0X68oQSaHEnls6666oy4KDsc5RFjT4m0kV0w=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.4.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-I2NvM9KPb09jWml93O2/5WMfNR7Lee5Latag1JThDRMURVhPX74p9UDnyTw3Ae6cE1DgXfw7sqQgX7rkvpc0vw=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-bV8/uo2Tj+gumnk4sUdkerWyCPRabaZdv88IpbmDWARQQoA/Q0YaqPz1a+LSEDIL7OfrnPi9Hq1Llz4ZIGyIQQ=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.4.7", "", { "os": "linux", "cpu": "x64" }, "sha512-00kx4YrBMU8374zd2wHuRV5wseh0rom5HqRND+vDldJPrWwQw+mzd/d8byI9hPx926CG+vWzq6AeiT7Yi5y59g=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-hOUHBMlFCvDhu3WCq6vaBoG0dp0LkWxSEnEEsxxXvOa9TfT6ZBnbh72A/xBM7CBYB7WgwqboetzFEVDnMxelyw=="],
-
-    "@pyreon/store/@vitus-labs/tools-lint/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.7", "", { "os": "win32", "cpu": "x64" }, "sha512-qEpGjSkPC3qX4ycbMUthXvi9CkRq7kZpkqMY1OyhmYlYLnANnooDQ7hDerM8+0NJ+DZKVnsIc07h30XOpt7LtQ=="],
 
     "@tufjs/models/minimatch/brace-expansion/balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
 

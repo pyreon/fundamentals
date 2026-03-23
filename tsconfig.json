@@ -1,11 +1,8 @@
 {
-  "extends": "@vitus-labs/tools-typescript/lib",
+  "extends": "@pyreon/typescript/lib",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@pyreon/core",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "customConditions": ["bun"],
-    "skipLibCheck": true
-  },
-  "exclude": ["node_modules", "lib", "dist"]
+    "exactOptionalPropertyTypes": false
+  }
 }

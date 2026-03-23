@@ -209,7 +209,7 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
       this.markerClass = opts.class ?? ''
     }
 
-    toDOM() {
+    override toDOM() {
       const el = document.createElement('span')
       el.textContent = this.markerText
       el.title = this.markerTitle
@@ -466,7 +466,7 @@ export function createEditor(config: EditorConfig = {}): EditorInstance {
           to: d.to,
           severity: d.severity === 'hint' ? 'info' : d.severity,
           message: d.message,
-          source: d.source,
+          ...(d.source != null ? { source: d.source } : {}),
         })),
       ),
     )

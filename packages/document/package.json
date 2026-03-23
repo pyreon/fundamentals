@@ -40,8 +40,8 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/core": ">=0.5.0 <1.0.0",
-    "@pyreon/reactivity": ">=0.5.0 <1.0.0"
+    "@pyreon/core": ">=0.7.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.7.0 <1.0.0"
   },
   "optionalDependencies": {
     "docx": "^9.6.0",
@@ -51,8 +51,8 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/core": ">=0.5.0 <1.0.0",
-    "@pyreon/reactivity": ">=0.5.0 <1.0.0",
+    "@pyreon/core": ">=0.7.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.7.0 <1.0.0",
     "@vitus-labs/tools-lint": "^1.11.0",
     "docx": "^9.6.0",
     "exceljs": "^4.4.0",

@@ -29,8 +29,9 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
-    "@pyreon/core": "0.6.0",
-    "@pyreon/reactivity": "0.6.0",
-    "@pyreon/runtime-dom": "0.6.0"
+    "@pyreon/core": "0.7.2",
+    "@pyreon/reactivity": "0.7.2",
+    "@pyreon/runtime-dom": "0.7.2",
+    "@pyreon/typescript": "0.7.2"
   }
 }
