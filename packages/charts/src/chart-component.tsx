@@ -33,8 +33,8 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
   props: ChartProps<TOption>,
 ): VNodeChild {
   const chart = useChart(props.options, {
-    theme: props.theme,
-    renderer: props.renderer,
+    ...(props.theme != null ? { theme: props.theme } : {}),
+    ...(props.renderer != null ? { renderer: props.renderer } : {}),
   })
 
   // Bind events when instance is ready
@@ -49,5 +49,11 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
     if (props.onMouseout) inst.on('mouseout', props.onMouseout as any)
   })
 
-  return () => <div ref={chart.ref} style={props.style} class={props.class} />
+  return () => (
+    <div
+      ref={chart.ref}
+      {...(props.style != null ? { style: props.style } : {})}
+      {...(props.class != null ? { class: props.class } : {})}
+    />
+  )
 }

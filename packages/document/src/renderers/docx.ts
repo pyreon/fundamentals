@@ -138,11 +138,11 @@ function renderTextNode(ctx: DocxCtx, n: DocNode): void {
       children: [
         new docx.TextRun({
           text: getTextContent(n.children),
-          bold: p.bold as boolean | undefined,
-          italics: p.italic as boolean | undefined,
-          underline: p.underline ? {} : undefined,
-          strike: p.strikethrough as boolean | undefined,
-          size: p.size ? (p.size as number) * 2 : undefined,
+          ...(p.bold != null ? { bold: p.bold as boolean } : {}),
+          ...(p.italic != null ? { italics: p.italic as boolean } : {}),
+          ...(p.underline ? { underline: {} } : {}),
+          ...(p.strikethrough != null ? { strike: p.strikethrough as boolean } : {}),
+          ...(p.size != null ? { size: (p.size as number) * 2 } : {}),
           color: (p.color as string)?.replace('#', '') ?? '333333',
         }),
       ],
@@ -267,13 +267,15 @@ function renderDocxTable(ctx: DocxCtx, n: DocNode): void {
               alignment: alignmentMap(col.align) as any,
             }),
           ],
-          shading: hs?.background
+          ...(hs?.background
             ? {
-                fill: hs.background.replace('#', ''),
-                type: docx.ShadingType.SOLID,
+                shading: {
+                  fill: hs.background.replace('#', ''),
+                  type: docx.ShadingType.SOLID,
+                },
               }
-            : undefined,
-          borders: cellBorders,
+            : {}),
+          ...(cellBorders != null ? { borders: cellBorders } : {}),
           width: getColumnWidth(col.width as string | undefined) as any,
         }),
     ),
@@ -293,11 +295,10 @@ function renderDocxTable(ctx: DocxCtx, n: DocNode): void {
                   alignment: alignmentMap(col.align) as any,
                 }),
               ],
-              shading:
-                p.striped && rowIdx % 2 === 1
-                  ? { fill: 'F9F9F9', type: docx.ShadingType.SOLID }
-                  : undefined,
-              borders: cellBorders,
+              ...(p.striped && rowIdx % 2 === 1
+                ? { shading: { fill: 'F9F9F9', type: docx.ShadingType.SOLID } }
+                : {}),
+              ...(cellBorders != null ? { borders: cellBorders } : {}),
               width: getColumnWidth(col.width as string | undefined) as any,
             }),
         ),
@@ -416,8 +417,7 @@ export const docxRenderer: DocumentRenderer = {
             children: [
               new docx.TextRun({ text: getTextContent(textChildren) }),
             ],
-            numbering: ordered ? { reference: listRef, level } : undefined,
-            bullet: ordered ? undefined : { level },
+            ...(ordered ? { numbering: { reference: listRef, level } } : { bullet: { level } }),
           }),
         )
         if (nestedList) {
@@ -595,12 +595,12 @@ export const docxRenderer: DocumentRenderer = {
       sections: [
         {
           properties: sectionProperties,
-          headers: headerContent
-            ? { default: new docx.Header({ children: headerContent as any }) }
-            : undefined,
-          footers: footerContent
-            ? { default: new docx.Footer({ children: footerContent as any }) }
-            : undefined,
+          ...(headerContent
+            ? { headers: { default: new docx.Header({ children: headerContent as any }) } }
+            : {}),
+          ...(footerContent
+            ? { footers: { default: new docx.Footer({ children: footerContent as any }) } }
+            : {}),
           children: children as any,
         },
       ],

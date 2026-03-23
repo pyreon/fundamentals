@@ -233,7 +233,11 @@ function detectFieldType(zodField: unknown): {
     }
   }
 
-  return { type, optional, enumValues }
+  return {
+    type,
+    optional,
+    ...(enumValues != null ? { enumValues } : {}),
+  }
 }
 
 /**

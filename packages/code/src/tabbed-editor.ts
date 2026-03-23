@@ -67,7 +67,7 @@ export function createTabbedEditor(
   const editor = createEditor({
     value: firstTab?.value ?? '',
     language: (firstTab?.language ?? 'plain') as EditorLanguage,
-    theme,
+    ...(theme != null ? { theme } : {}),
     ...filteredConfig,
     onChange: (value) => {
       // Save content to cache and mark as modified

@@ -7,5 +7,7 @@
     "jsxImportSource": "@pyreon/core",
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

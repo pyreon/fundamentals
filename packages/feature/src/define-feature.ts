@@ -217,8 +217,8 @@ export function defineFeature<TValues extends Record<string, unknown>>(
               api,
               Object.keys(params).length > 0 ? params : undefined,
             ),
-          staleTime: options?.staleTime,
-          enabled: options?.enabled,
+          ...(options?.staleTime != null ? { staleTime: options.staleTime } : {}),
+          ...(options?.enabled != null ? { enabled: options.enabled } : {}),
         }
       })
     },
@@ -237,7 +237,7 @@ export function defineFeature<TValues extends Record<string, unknown>>(
         queryFn: () =>
           http.list<TValues>(api, { ...options?.params, q: searchTerm() }),
         enabled: searchTerm().length > 0,
-        staleTime: options?.staleTime,
+        ...(options?.staleTime != null ? { staleTime: options.staleTime } : {}),
       }))
     },
 
@@ -311,7 +311,7 @@ export function defineFeature<TValues extends Record<string, unknown>>(
 
       const form = _useForm<TValues>({
         initialValues: mergedInitial,
-        schema: validate,
+        ...(validate != null ? { schema: validate } : {}),
         validateOn: options?.validateOn ?? 'blur',
         onSubmit: async (values) => {
           try {
