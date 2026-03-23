@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/hotkeys",
-  "version": "0.6.0",
+  "version": "1.0.0",
   "description": "Reactive keyboard shortcut management for Pyreon — scope-aware, conflict detection",
   "license": "MIT",
   "repository": {
