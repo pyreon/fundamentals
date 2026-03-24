@@ -5,18 +5,18 @@
 ### Patch Changes
 
 - Updated dependencies [[`075dd4f`](https://github.com/pyreon/fundamentals/commit/075dd4fe4a325fe5a5637a68e209dffe665bb84e)]:
-  - @pyreon/store@1.0.0
-  - @pyreon/state-tree@1.0.0
-  - @pyreon/form@1.0.0
-  - @pyreon/validation@1.0.0
-  - @pyreon/query@1.0.0
-  - @pyreon/table@1.0.0
-  - @pyreon/virtual@1.0.0
-  - @pyreon/i18n@1.0.0
-  - @pyreon/storage@1.0.0
-  - @pyreon/hotkeys@1.0.0
-  - @pyreon/permissions@1.0.0
-  - @pyreon/machine@1.0.0
+  - @pyreon/store@0.8.0
+  - @pyreon/state-tree@0.8.0
+  - @pyreon/form@0.8.0
+  - @pyreon/validation@0.8.0
+  - @pyreon/query@0.8.0
+  - @pyreon/table@0.8.0
+  - @pyreon/virtual@0.8.0
+  - @pyreon/i18n@0.8.0
+  - @pyreon/storage@0.8.0
+  - @pyreon/hotkeys@0.8.0
+  - @pyreon/permissions@0.8.0
+  - @pyreon/machine@0.8.0
 
 ## 0.0.6
 

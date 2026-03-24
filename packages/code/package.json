@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/code",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "description": "Reactive code editor for Pyreon — CodeMirror 6 with signals, minimap, diff editor, lazy-loaded languages",
   "license": "MIT",
   "repository": {

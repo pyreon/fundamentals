@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/virtual",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "description": "Pyreon adapter for TanStack Virtual",
   "license": "MIT",
   "repository": {
