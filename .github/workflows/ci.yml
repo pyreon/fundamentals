@@ -13,9 +13,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   lint:
     name: Lint & Format
@@ -55,7 +52,7 @@ jobs:
       - run: bun run build
       - name: Verify lib output exists
         run: |
-          for pkg in store state-tree form validation query table virtual i18n storybook feature charts storage hotkeys permissions machine flow code; do
+          for pkg in store state-tree form validation query table virtual i18n storybook feature charts storage hotkeys permissions machine flow code document; do
             test -f "packages/$pkg/lib/index.js" || (echo "MISSING: packages/$pkg/lib/index.js" && exit 1)
             test -f "packages/$pkg/lib/types/index.d.ts" || (echo "MISSING: packages/$pkg/lib/types/index.d.ts" && exit 1)
           done
