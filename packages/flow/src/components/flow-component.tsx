@@ -134,7 +134,7 @@ function EdgeLayer(props: {
         {edges.map((edge) => {
           const sourceNode = nodeMap.get(edge.source)
           const targetNode = nodeMap.get(edge.target)
-          if (!sourceNode || !targetNode) return <g key={edge.id ?? ''} />
+          if (!sourceNode || !targetNode) return <g key={edge.id} />
 
           const sourceW = sourceNode.width ?? 150
           const sourceH = sourceNode.height ?? 40
@@ -187,7 +187,7 @@ function EdgeLayer(props: {
           if (CustomEdge) {
             return (
               <g
-                key={edge.id ?? ''}
+                key={edge.id}
                 onClick={() => edge.id && instance.selectEdge(edge.id)}
               >
                 <CustomEdge
@@ -203,7 +203,7 @@ function EdgeLayer(props: {
           }
 
           return (
-            <g key={edge.id ?? ''}>
+            <g key={edge.id}>
               <path
                 d={path}
                 fill="none"

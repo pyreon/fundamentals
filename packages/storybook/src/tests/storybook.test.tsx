@@ -223,11 +223,7 @@ describe('Meta and StoryObj types', () => {
       label: string
       variant?: 'primary' | 'secondary'
     }) {
-      return (
-        <button {...(props.variant != null ? { class: props.variant } : {})}>
-          {props.label}
-        </button>
-      )
+      return <button type="button" class={props.variant}>{props.label}</button>
     }
 
     const meta = {
