@@ -1,6 +1,6 @@
-# Virtual
+# @pyreon/virtual
 
-`@pyreon/virtual` is a Pyreon adapter for [TanStack Virtual](https://tanstack.com/virtual). It provides reactive virtualizers for efficiently rendering large lists and grids.
+Pyreon adapter for [TanStack Virtual](https://tanstack.com/virtual). Reactive virtualizers for efficiently rendering large lists and grids.
 
 ## Installation
 

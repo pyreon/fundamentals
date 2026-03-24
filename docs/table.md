@@ -1,6 +1,6 @@
-# Table
+# @pyreon/table
 
-`@pyreon/table` is a Pyreon adapter for [TanStack Table](https://tanstack.com/table). It wraps TanStack Table's core with reactive signal-based state management.
+Pyreon adapter for [TanStack Table](https://tanstack.com/table). Wraps TanStack Table's core with reactive signal-based state management.
 
 ## Installation
 

@@ -1,6 +1,6 @@
-# Storybook
+# @pyreon/storybook
 
-`@pyreon/storybook` is a Storybook renderer for Pyreon components. It handles mounting, rendering, and cleanup of Pyreon VNode trees inside Storybook's canvas.
+Storybook renderer for Pyreon components. Handles mounting, rendering, and cleanup of Pyreon VNode trees inside Storybook's canvas.
 
 ## Installation
 

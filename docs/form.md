@@ -1,6 +1,6 @@
-# Form
+# @pyreon/form
 
-`@pyreon/form` provides reactive form state management with field-level validation, debouncing, schema integration, and dynamic field arrays.
+Reactive form state management with field-level validation, debouncing, schema integration, and dynamic field arrays.
 
 ## Installation
 

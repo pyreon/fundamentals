@@ -1,6 +1,6 @@
-# Validation
+# @pyreon/validation
 
-`@pyreon/validation` provides schema adapters that bridge Zod, Valibot, and ArkType with `@pyreon/form`. Each adapter is a separate entry point for tree-shaking — you only bundle the adapter you use.
+Schema adapters that bridge Zod, Valibot, and ArkType with `@pyreon/form`. Each adapter is available via subpath exports (`@pyreon/validation/zod`, etc.) for tree-shaking, or from the main entry point.
 
 ## Installation
 

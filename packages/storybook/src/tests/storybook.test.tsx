@@ -243,12 +243,7 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj inherits args from Meta', () => {
     function Input(props: { placeholder: string; disabled?: boolean }) {
-      return (
-        <input
-          placeholder={props.placeholder}
-          {...(props.disabled != null ? { disabled: props.disabled } : {})}
-        />
-      )
+      return <input placeholder={props.placeholder} disabled={props.disabled} />
     }
 
     const _meta = {

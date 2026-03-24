@@ -538,6 +538,43 @@ todo.toggle()
 getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
 ```
 
+## When generating documents, emails, or exports
+
+Use `@pyreon/document`. One template, 14+ output formats — no format-specific code needed.
+
+```tsx
+import { createDocument, render, Document, Page, Heading, Text, Table } from '@pyreon/document'
+
+// Builder pattern (simple)
+const doc = createDocument({ title: 'Report' })
+  .heading('Sales Report')
+  .table({ columns: ['Region', 'Revenue'], rows: [['US', '$1M'], ['EU', '$800K']] })
+  .text('Total: $1.8M', { bold: true })
+
+await doc.toPdf()       // PDF buffer
+await doc.toEmail()     // Outlook-safe HTML
+await doc.toSlack()     // Slack Block Kit JSON
+
+// JSX pattern (complex templates)
+const invoice = (
+  <Document title="Invoice">
+    <Page size="A4">
+      <Heading>Invoice #1234</Heading>
+      <Table columns={['Item', 'Price']} rows={items} striped />
+      <Text bold align="right">Total: ${total}</Text>
+    </Page>
+  </Document>
+)
+
+await render(invoice, 'pdf')
+await render(invoice, 'docx')
+await render(invoice, 'email')
+```
+
+All 14 formats: `html`, `pdf`, `docx`, `xlsx`, `pptx`, `email`, `md`, `text`, `csv`, `svg`, `slack`, `teams`, `discord`, `telegram`, `notion`, `confluence`, `whatsapp`, `google-chat`.
+
+Custom formats: `registerRenderer('thermal', { render(node) { ... } })`.
+
 ## NEVER do
 
 - **Never use useState/useEffect** — those are React. Use `signal()` and `effect()`.
@@ -556,6 +593,8 @@ getSnapshot(todo)  // { text: 'Learn Pyreon', done: true }
 - **Never use raw `WebSocket` for query invalidation** — use `useSubscription()` from `@pyreon/query`.
 - **Never use nested booleans for multi-step flows** — use `createMachine()` from `@pyreon/machine`.
 - **Never scatter `if (role === 'admin')` checks** — use `createPermissions()` from `@pyreon/permissions`.
+- **Never use separate PDF/DOCX/email libraries** — use `@pyreon/document` which renders one template to 14+ formats.
+- **Never build HTML emails manually** — use `@pyreon/document`'s email renderer which handles Outlook VML, table layout, inline styles.
 
 ## JSX patterns specific to Pyreon
 

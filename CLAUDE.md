@@ -25,6 +25,7 @@ All packages under `@pyreon/*` scope. Monorepo managed by Bun workspaces.
 | `@pyreon/machine` | Reactive state machines — constrained signals with type-safe transitions |
 | `@pyreon/flow` | Reactive flow diagrams — signal-native nodes, edges, pan/zoom, auto-layout via elkjs |
 | `@pyreon/code` | Reactive code editor — CodeMirror 6 with signals, minimap, diff editor, lazy-loaded languages |
+| `@pyreon/document` | Universal document rendering — 18 primitives, 14 output formats (HTML, PDF, DOCX, email, XLSX, PPTX, Slack, Teams, Discord, Telegram, Notion, Confluence, WhatsApp, Google Chat, SVG, Markdown, text, CSV) |
 | `@pyreon/storybook` | Storybook renderer — mount, render, and interact with Pyreon components |
 
 ## Ecosystem Context
@@ -266,9 +267,21 @@ packages/[name]/
 
 Stateful packages expose `./devtools` subpath exports (`@pyreon/[name]/devtools`) with WeakRef-based registries for introspection. Tree-shakeable — zero cost unless imported.
 
+### @pyreon/document
+
+- `render(node, format, options?)` — render a document node tree to any format
+- `createDocument(props?)` — builder pattern: `.heading()`, `.text()`, `.table()`, `.chart()`, `.toPdf()`, `.toEmail()`, etc.
+- JSX primitives: `Document`, `Page`, `Heading`, `Text`, `Table`, `Image`, `List`, `ListItem`, `Code`, `Divider`, `Spacer`, `Button`, `Link`, `Quote`, `Section`, `Row`, `Column`, `PageBreak`
+- 14 output formats: HTML, PDF (pdfmake), DOCX (docx), XLSX (exceljs), PPTX (pptxgenjs), email (Outlook VML), Markdown, plain text, CSV, SVG, Slack (Block Kit), Teams (Adaptive Cards), Discord (embeds), Telegram (HTML subset), Notion (blocks), Confluence/Jira (ADF), WhatsApp (formatted text), Google Chat (Card V2)
+- `registerRenderer(format, renderer)` — custom format support
+- `download(node, filename)` — browser download
+- `ChartImage` / `FlowImage` capture utilities for embedding visualizations
+- Heavy renderers lazy-loaded (PDF ~300KB, DOCX ~100KB, XLSX ~500KB, PPTX ~200KB)
+- Built-in XSS/injection sanitization via `sanitizeColor`, `sanitizeHref`, `sanitizeXmlColor`
+
 ## CI & Release
 
-- Changesets for fixed versioning (all 13 packages share one version)
+- Changesets for fixed versioning (all 18 packages share one version)
 - CI: lint, typecheck, test+coverage, security audit, dependency review, CodeQL
 - Release via `changesets/action` in GitHub Actions with OIDC publishing
 
