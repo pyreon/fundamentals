@@ -39,7 +39,7 @@ export interface UseSubscriptionResult {
   /** Current connection status */
   status: Signal<SubscriptionStatus>
   /** Send data through the WebSocket */
-  send: (data: string | ArrayBufferLike | Blob | ArrayBufferView) => void
+  send: (data: string | Blob | BufferSource) => void
   /** Manually close the connection */
   close: () => void
   /** Manually reconnect */
@@ -169,7 +169,7 @@ export function useSubscription(
     }, delay)
   }
 
-  function send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+  function send(data: string | Blob | BufferSource): void {
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(data)
     }

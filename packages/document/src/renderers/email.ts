@@ -1,3 +1,4 @@
+import { sanitizeColor, sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -60,7 +61,9 @@ function renderNode(node: DocNode): string {
       return renderChildren(node.children)
 
     case 'section': {
-      const bg = p.background ? `background-color:${p.background};` : ''
+      const bg = p.background
+        ? `background-color:${sanitizeColor(p.background as string)};`
+        : ''
       const pad = p.padding
         ? `padding:${typeof p.padding === 'number' ? `${p.padding}px` : Array.isArray(p.padding) ? (p.padding as number[]).map((v) => `${v}px`).join(' ') : '0'}`
         : 'padding:0'
@@ -100,14 +103,14 @@ function renderNode(node: DocNode): string {
         6: 14,
       }
       const size = sizes[level] ?? 24
-      const color = (p.color as string) ?? '#000000'
+      const color = sanitizeColor((p.color as string) ?? '#000000')
       const align = (p.align as string) ?? 'left'
       return `<h${level} style="margin:0 0 12px 0;font-size:${size}px;color:${color};text-align:${align};font-weight:bold;line-height:1.3">${renderChildren(node.children)}</h${level}>`
     }
 
     case 'text': {
       const size = (p.size as number) ?? 14
-      const color = (p.color as string) ?? '#333333'
+      const color = sanitizeColor((p.color as string) ?? '#333333')
       const weight = p.bold ? 'bold' : 'normal'
       const style = p.italic ? 'italic' : 'normal'
       const decoration = p.underline
@@ -121,11 +124,11 @@ function renderNode(node: DocNode): string {
     }
 
     case 'link':
-      return `<a href="${esc(p.href as string)}" style="color:${(p.color as string) ?? '#4f46e5'};text-decoration:underline" target="_blank">${renderChildren(node.children)}</a>`
+      return `<a href="${esc(sanitizeHref(p.href as string))}" style="color:${sanitizeColor((p.color as string) ?? '#4f46e5')};text-decoration:underline" target="_blank">${renderChildren(node.children)}</a>`
 
     case 'image': {
       const align = (p.align as string) ?? 'left'
-      const img = `<img src="${esc(p.src as string)}"${p.width ? ` width="${p.width}"` : ''}${p.height ? ` height="${p.height}"` : ''} alt="${esc((p.alt as string) ?? '')}" style="display:block;outline:none;border:none;text-decoration:none${p.width ? `;max-width:${p.width}px` : ''}" />`
+      const img = `<img src="${esc(sanitizeImageSrc(p.src as string))}"${p.width ? ` width="${p.width}"` : ''}${p.height ? ` height="${p.height}"` : ''} alt="${esc((p.alt as string) ?? '')}" style="display:block;outline:none;border:none;text-decoration:none${p.width ? `;max-width:${p.width}px` : ''}" />`
       if (p.caption) {
         return `<table cellpadding="0" cellspacing="0" border="0"${align === 'center' ? ' align="center"' : ''}><tr><td>${img}</td></tr><tr><td style="font-size:12px;color:#666;padding-top:4px;text-align:center">${esc(p.caption as string)}</td></tr></table>`
       }
@@ -153,9 +156,9 @@ function renderNode(node: DocNode): string {
       html += '<tr>'
       for (const col of columns) {
         const bg = hs?.background
-          ? `background-color:${hs.background};`
+          ? `background-color:${sanitizeColor(hs.background)};`
           : 'background-color:#f5f5f5;'
-        const color = hs?.color ? `color:${hs.color};` : ''
+        const color = hs?.color ? `color:${sanitizeColor(hs.color)};` : ''
         const align = col.align ? `text-align:${col.align};` : ''
         const width = col.width
           ? `width:${typeof col.width === 'number' ? `${col.width}px` : col.width};`
@@ -190,7 +193,7 @@ function renderNode(node: DocNode): string {
       return `<pre style="background-color:#f5f5f5;padding:12px;border-radius:4px;font-family:Courier New,monospace;font-size:13px;color:#333;overflow-x:auto;margin:0 0 12px 0"><code>${esc(renderChildren(node.children))}</code></pre>`
 
     case 'divider': {
-      const color = (p.color as string) ?? '#dddddd'
+      const color = sanitizeColor((p.color as string) ?? '#dddddd')
       const thickness = (p.thickness as number) ?? 1
       return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td style="border-top:${thickness}px solid ${color};font-size:0;line-height:0">&nbsp;</td></tr></table>`
     }
@@ -202,10 +205,10 @@ function renderNode(node: DocNode): string {
       return `<div style="height:${p.height}px;line-height:${p.height}px;font-size:0">&nbsp;</div>`
 
     case 'button': {
-      const bg = (p.background as string) ?? '#4f46e5'
-      const color = (p.color as string) ?? '#ffffff'
+      const bg = sanitizeColor((p.background as string) ?? '#4f46e5')
+      const color = sanitizeColor((p.color as string) ?? '#ffffff')
       const radius = (p.borderRadius as number) ?? 4
-      const href = esc(p.href as string)
+      const href = esc(sanitizeHref(p.href as string))
       const text = renderChildren(node.children)
       const align = (p.align as string) ?? 'left'
 
@@ -214,7 +217,7 @@ function renderNode(node: DocNode): string {
     }
 
     case 'quote': {
-      const borderColor = (p.borderColor as string) ?? '#dddddd'
+      const borderColor = sanitizeColor((p.borderColor as string) ?? '#dddddd')
       return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0"><tr><td style="border-left:4px solid ${borderColor};padding:12px 20px;color:#555555;font-style:italic">${renderChildren(node.children)}</td></tr></table>`
     }
 

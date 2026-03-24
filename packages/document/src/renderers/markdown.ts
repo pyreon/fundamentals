@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -55,11 +56,11 @@ function renderNode(node: DocNode): string {
     }
 
     case 'link':
-      return `[${renderInline(node.children)}](${p.href})`
+      return `[${renderInline(node.children)}](${sanitizeHref(p.href as string)})`
 
     case 'image': {
       const alt = (p.alt as string) ?? ''
-      let md = `![${alt}](${p.src})`
+      let md = `![${alt}](${sanitizeImageSrc(p.src as string)})`
       if (p.caption) md += `\n*${p.caption}*`
       return `${md}\n\n`
     }
@@ -127,7 +128,7 @@ function renderNode(node: DocNode): string {
       return '\n'
 
     case 'button':
-      return `[${renderInline(node.children)}](${p.href})\n\n`
+      return `[${renderInline(node.children)}](${sanitizeHref(p.href as string)})\n\n`
 
     case 'quote':
       return `> ${renderInline(node.children)}\n\n`

@@ -33,8 +33,8 @@ export function Chart<TOption extends EChartsOption = EChartsOption>(
   props: ChartProps<TOption>,
 ): VNodeChild {
   const chart = useChart(props.options, {
-    theme: props.theme,
-    renderer: props.renderer,
+    ...(props.theme != null ? { theme: props.theme } : {}),
+    ...(props.renderer != null ? { renderer: props.renderer } : {}),
   })
 
   // Bind events when instance is ready

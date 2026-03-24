@@ -18,6 +18,9 @@ export default mergeConfig(
     test: {
       coverage: {
         exclude: ['src/types.ts'],
+        thresholds: {
+          branches: 85,
+        },
       },
     },
   }),

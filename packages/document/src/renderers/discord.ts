@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -36,7 +37,7 @@ function extractMeta(node: DocNode): { title?: string; imageUrl?: string } {
     if (level === 1) return { title: getTextContent(node.children) }
   }
   if (node.type === 'image') {
-    const src = node.props.src as string
+    const src = sanitizeImageSrc(node.props.src as string)
     if (src.startsWith('http')) return { imageUrl: src }
   }
   for (const child of node.children) {
@@ -92,7 +93,7 @@ function nodeToMarkdown(
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       content += `[${text}](${href})\n\n`
       break
@@ -157,7 +158,7 @@ function nodeToMarkdown(
       break
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       content += `[**${text}**](${href})\n\n`
       break

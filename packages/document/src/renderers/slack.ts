@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -73,7 +74,7 @@ function nodeToBlocks(node: DocNode): SlackBlock[] {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       blocks.push({
         type: 'section',
@@ -83,7 +84,7 @@ function nodeToBlocks(node: DocNode): SlackBlock[] {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       // Slack only supports public URLs for images
       if (src.startsWith('http')) {
         blocks.push({
@@ -155,7 +156,7 @@ function nodeToBlocks(node: DocNode): SlackBlock[] {
       break
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       blocks.push({
         type: 'actions',

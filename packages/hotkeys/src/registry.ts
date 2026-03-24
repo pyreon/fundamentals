@@ -84,7 +84,9 @@ export function registerHotkey(
       stopPropagation: options?.stopPropagation === true,
       enableOnInputs: options?.enableOnInputs === true,
       enabled: options?.enabled ?? true,
-      description: options?.description,
+      ...(options?.description != null
+        ? { description: options.description }
+        : {}),
     },
   }
 
@@ -139,7 +141,9 @@ export function getRegisteredHotkeys(): ReadonlyArray<{
   return entries.map((e) => ({
     shortcut: e.shortcut,
     scope: e.options.scope,
-    description: e.options.description,
+    ...(e.options.description != null
+      ? { description: e.options.description }
+      : {}),
   }))
 }
 

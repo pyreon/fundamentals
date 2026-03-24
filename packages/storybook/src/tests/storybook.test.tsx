@@ -27,7 +27,9 @@ function makeRenderContext(overrides: {
   return {
     storyFn: overrides.storyFn ?? (() => <div>default</div>),
     storyContext: {
-      component: overrides.component,
+      ...(overrides.component != null
+        ? { component: overrides.component }
+        : {}),
       args: overrides.args ?? {},
     },
     showMain: () => {
@@ -221,7 +223,11 @@ describe('Meta and StoryObj types', () => {
       label: string
       variant?: 'primary' | 'secondary'
     }) {
-      return <button class={props.variant}>{props.label}</button>
+      return (
+        <button type="button" class={props.variant}>
+          {props.label}
+        </button>
+      )
     }
 
     const meta = {
@@ -237,7 +243,12 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj inherits args from Meta', () => {
     function Input(props: { placeholder: string; disabled?: boolean }) {
-      return <input placeholder={props.placeholder} disabled={props.disabled} />
+      return (
+        <input
+          placeholder={props.placeholder}
+          {...(props.disabled != null ? { disabled: props.disabled } : {})}
+        />
+      )
     }
 
     const _meta = {
@@ -407,7 +418,7 @@ describe('preview render', () => {
 
   it('throws when component is undefined', () => {
     expect(() =>
-      previewRender({ foo: 'bar' }, { component: undefined }),
+      previewRender({ foo: 'bar' }, { component: undefined } as any),
     ).toThrow('[@pyreon/storybook] No component provided')
   })
 })

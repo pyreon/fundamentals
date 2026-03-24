@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -68,7 +69,7 @@ function nodeToWidgets(node: DocNode): CardWidget[] {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       widgets.push({
         textParagraph: { text: `<a href="${href}">${text}</a>` },
@@ -77,7 +78,7 @@ function nodeToWidgets(node: DocNode): CardWidget[] {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       if (src.startsWith('http')) {
         widgets.push({
           image: {
@@ -142,7 +143,7 @@ function nodeToWidgets(node: DocNode): CardWidget[] {
       break
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       widgets.push({
         buttonList: {

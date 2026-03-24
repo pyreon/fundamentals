@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc, sanitizeXmlColor } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -90,7 +91,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         h: 0.6,
         fontSize,
         bold: true,
-        color: ((p.color as string) ?? '#000000').replace('#', ''),
+        color: sanitizeXmlColor((p.color as string) ?? '#000000'),
         align: (p.align as string) ?? 'left',
       })
       ctx.y += 0.7
@@ -109,7 +110,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         italic: p.italic ?? false,
         underline: p.underline ? { style: 'sng' } : undefined,
         strike: p.strikethrough ? 'sngStrike' : undefined,
-        color: ((p.color as string) ?? '#333333').replace('#', ''),
+        color: sanitizeXmlColor((p.color as string) ?? '#333333'),
         align: (p.align as string) ?? 'left',
       })
       ctx.y += 0.5
@@ -117,7 +118,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       const w = Math.min(((p.width as number) ?? 400) / 96, CONTENT_WIDTH)
       const h = ((p.height as number) ?? 300) / 96
 
@@ -148,8 +149,8 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         text: col.header,
         options: {
           bold: true,
-          fill: { color: (hs?.background ?? '#f5f5f5').replace('#', '') },
-          color: (hs?.color ?? '#000000').replace('#', ''),
+          fill: { color: sanitizeXmlColor(hs?.background ?? '#f5f5f5') },
+          color: sanitizeXmlColor(hs?.color ?? '#000000'),
           align: col.align ?? 'left',
           fontSize: 12,
         },
@@ -243,7 +244,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         fontSize: 13,
         color: '4F46E5',
         underline: { style: 'sng' },
-        hyperlink: { url: p.href as string },
+        hyperlink: { url: sanitizeHref(p.href as string) },
       })
       ctx.y += 0.5
       break
@@ -257,12 +258,12 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         h: 0.5,
         fontSize: 14,
         bold: true,
-        color: ((p.color as string) ?? '#ffffff').replace('#', ''),
+        color: sanitizeXmlColor((p.color as string) ?? '#ffffff'),
         fill: {
-          color: ((p.background as string) ?? '#4f46e5').replace('#', ''),
+          color: sanitizeXmlColor((p.background as string) ?? '#4f46e5'),
         },
         align: 'center',
-        hyperlink: { url: p.href as string },
+        hyperlink: { url: sanitizeHref(p.href as string) },
       })
       ctx.y += 0.6
       break
@@ -280,7 +281,7 @@ function processNode(node: DocNode, ctx: SlideContext): void {
         y: ctx.y,
         w: CONTENT_WIDTH,
         h: 0.02,
-        fill: { color: ((p.color as string) ?? '#DDDDDD').replace('#', '') },
+        fill: { color: sanitizeXmlColor((p.color as string) ?? '#DDDDDD') },
       })
       ctx.y += 0.2
       break

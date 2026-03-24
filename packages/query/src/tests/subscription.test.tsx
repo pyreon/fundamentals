@@ -51,7 +51,7 @@ class MockWebSocketClass {
 
   constructor(url: string, protocols?: string | string[]) {
     this.url = url
-    this.protocols = protocols
+    if (protocols != null) this.protocols = protocols
     this.readyState = MockWebSocketClass.CONNECTING
     mockInstances.push(this as unknown as MockWebSocket)
   }

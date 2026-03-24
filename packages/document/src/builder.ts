@@ -136,9 +136,9 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
         sections.push(
           Image({
             src: dataUrl,
-            width: p?.width,
-            height: p?.height,
-            caption: p?.caption,
+            ...(p?.width != null ? { width: p.width } : {}),
+            ...(p?.height != null ? { height: p.height } : {}),
+            ...(p?.caption != null ? { caption: p.caption } : {}),
           }),
         )
       } else {
@@ -164,9 +164,9 @@ export function createDocument(props: DocumentProps = {}): DocumentBuilder {
         sections.push(
           Image({
             src: `data:image/svg+xml,${encodeURIComponent(svg)}`,
-            width: p?.width,
-            height: p?.height,
-            caption: p?.caption,
+            ...(p?.width != null ? { width: p.width } : {}),
+            ...(p?.height != null ? { height: p.height } : {}),
+            ...(p?.caption != null ? { caption: p.caption } : {}),
           }),
         )
       } else {

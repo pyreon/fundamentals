@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -83,7 +84,7 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       elements.push({
         type: 'TextBlock',
@@ -94,7 +95,7 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       if (src.startsWith('http')) {
         elements.push({
           type: 'Image',
@@ -191,7 +192,7 @@ function nodeToElements(node: DocNode): AdaptiveElement[] {
           {
             type: 'Action.OpenUrl',
             title: getTextContent(node.children),
-            url: p.href as string,
+            url: sanitizeHref(p.href as string),
             style: 'positive',
           },
         ],

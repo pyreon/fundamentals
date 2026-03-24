@@ -171,8 +171,8 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     const connection: Connection = {
       source: edge.source,
       target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
+      ...(edge.sourceHandle != null ? { sourceHandle: edge.sourceHandle } : {}),
+      ...(edge.targetHandle != null ? { targetHandle: edge.targetHandle } : {}),
     }
     for (const cb of connectListeners) cb(connection)
   }
@@ -538,12 +538,14 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
       })
     }
 
-    const newEdges: FlowEdge[] = clipboard.edges.map((e) => ({
-      ...e,
-      id: undefined,
-      source: idMap.get(e.source) ?? e.source,
-      target: idMap.get(e.target) ?? e.target,
-    }))
+    const newEdges: FlowEdge[] = clipboard.edges.map((e) => {
+      const { id: _id, ...rest } = e
+      return {
+        ...rest,
+        source: idMap.get(e.source) ?? e.source,
+        target: idMap.get(e.target) ?? e.target,
+      }
+    })
 
     batch(() => {
       for (const node of newNodes) addNode(node)
@@ -720,13 +722,16 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
     edges.update((eds) =>
       eds.map((e) => {
         if (e.id !== targetEdgeId) return e
-        return {
+        const updated: typeof e = {
           ...e,
           source: newConnection.source ?? e.source,
           target: newConnection.target ?? e.target,
-          sourceHandle: newConnection.sourceHandle ?? e.sourceHandle,
-          targetHandle: newConnection.targetHandle ?? e.targetHandle,
         }
+        const sh = newConnection.sourceHandle ?? e.sourceHandle
+        const th = newConnection.targetHandle ?? e.targetHandle
+        if (sh != null) updated.sourceHandle = sh
+        if (th != null) updated.targetHandle = th
+        return updated
       }),
     )
   }
@@ -758,7 +763,8 @@ export function createFlow(config: FlowConfig = {}): FlowInstance {
         if (e.id !== edgeIdentifier) return e
         const waypoints = [...(e.waypoints ?? [])]
         waypoints.splice(index, 1)
-        return { ...e, waypoints: waypoints.length > 0 ? waypoints : undefined }
+        const { waypoints: _wp, ...rest } = e
+        return waypoints.length > 0 ? { ...rest, waypoints } : rest
       }),
     )
   }

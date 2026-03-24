@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeXmlColor } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -122,7 +123,7 @@ function renderHeading(ctx: DocxCtx, n: DocNode): void {
         new docx.TextRun({
           text: getTextContent(n.children),
           bold: true,
-          color: (p.color as string)?.replace('#', '') ?? '000000',
+          color: sanitizeXmlColor(p.color as string),
         }),
       ],
       alignment: alignmentMap(p.align as string) as any,
@@ -138,12 +139,14 @@ function renderTextNode(ctx: DocxCtx, n: DocNode): void {
       children: [
         new docx.TextRun({
           text: getTextContent(n.children),
-          bold: p.bold as boolean | undefined,
-          italics: p.italic as boolean | undefined,
-          underline: p.underline ? {} : undefined,
-          strike: p.strikethrough as boolean | undefined,
-          size: p.size ? (p.size as number) * 2 : undefined,
-          color: (p.color as string)?.replace('#', '') ?? '333333',
+          ...(p.bold != null ? { bold: p.bold as boolean } : {}),
+          ...(p.italic != null ? { italics: p.italic as boolean } : {}),
+          ...(p.underline ? { underline: {} } : {}),
+          ...(p.strikethrough != null
+            ? { strike: p.strikethrough as boolean }
+            : {}),
+          ...(p.size != null ? { size: (p.size as number) * 2 } : {}),
+          color: sanitizeXmlColor(p.color as string, '333333'),
         }),
       ],
       alignment: alignmentMap(p.align as string) as any,
@@ -159,11 +162,11 @@ function renderLink(ctx: DocxCtx, n: DocNode): void {
     new docx.Paragraph({
       children: [
         new docx.ExternalHyperlink({
-          link: p.href as string,
+          link: sanitizeHref(p.href as string),
           children: [
             new docx.TextRun({
               text: getTextContent(n.children),
-              color: (p.color as string)?.replace('#', '') ?? '4f46e5',
+              color: sanitizeXmlColor(p.color as string, '4f46e5'),
               underline: { type: docx.UnderlineType.SINGLE },
             }),
           ],
@@ -261,19 +264,21 @@ function renderDocxTable(ctx: DocxCtx, n: DocNode): void {
                 new docx.TextRun({
                   text: col.header,
                   bold: true,
-                  color: hs?.color?.replace('#', '') ?? '000000',
+                  color: sanitizeXmlColor(hs?.color),
                 }),
               ],
               alignment: alignmentMap(col.align) as any,
             }),
           ],
-          shading: hs?.background
+          ...(hs?.background
             ? {
-                fill: hs.background.replace('#', ''),
-                type: docx.ShadingType.SOLID,
+                shading: {
+                  fill: sanitizeXmlColor(hs.background),
+                  type: docx.ShadingType.SOLID,
+                },
               }
-            : undefined,
-          borders: cellBorders,
+            : {}),
+          ...(cellBorders != null ? { borders: cellBorders } : {}),
           width: getColumnWidth(col.width as string | undefined) as any,
         }),
     ),
@@ -293,11 +298,10 @@ function renderDocxTable(ctx: DocxCtx, n: DocNode): void {
                   alignment: alignmentMap(col.align) as any,
                 }),
               ],
-              shading:
-                p.striped && rowIdx % 2 === 1
-                  ? { fill: 'F9F9F9', type: docx.ShadingType.SOLID }
-                  : undefined,
-              borders: cellBorders,
+              ...(p.striped && rowIdx % 2 === 1
+                ? { shading: { fill: 'F9F9F9', type: docx.ShadingType.SOLID } }
+                : {}),
+              ...(cellBorders != null ? { borders: cellBorders } : {}),
               width: getColumnWidth(col.width as string | undefined) as any,
             }),
         ),
@@ -345,7 +349,7 @@ function renderButtonOrQuote(ctx: DocxCtx, n: DocNode): void {
       new docx.Paragraph({
         children: [
           new docx.ExternalHyperlink({
-            link: p.href as string,
+            link: sanitizeHref(p.href as string),
             children: [
               new docx.TextRun({
                 text,
@@ -368,7 +372,7 @@ function renderButtonOrQuote(ctx: DocxCtx, n: DocNode): void {
           left: {
             style: docx.BorderStyle.SINGLE,
             size: 6,
-            color: (p.borderColor as string)?.replace('#', '') ?? 'DDDDDD',
+            color: sanitizeXmlColor(p.borderColor as string, 'DDDDDD'),
           },
         },
         spacing: { after: 120 },
@@ -416,8 +420,9 @@ export const docxRenderer: DocumentRenderer = {
             children: [
               new docx.TextRun({ text: getTextContent(textChildren) }),
             ],
-            numbering: ordered ? { reference: listRef, level } : undefined,
-            bullet: ordered ? undefined : { level },
+            ...(ordered
+              ? { numbering: { reference: listRef, level } }
+              : { bullet: { level } }),
           }),
         )
         if (nestedList) {
@@ -494,8 +499,7 @@ export const docxRenderer: DocumentRenderer = {
                 bottom: {
                   style: docx.BorderStyle.SINGLE,
                   size: (n.props.thickness as number | undefined) ?? 1,
-                  color:
-                    (n.props.color as string)?.replace('#', '') ?? 'DDDDDD',
+                  color: sanitizeXmlColor(n.props.color as string, 'DDDDDD'),
                 },
               },
               spacing: { before: 120, after: 120 },
@@ -595,12 +599,20 @@ export const docxRenderer: DocumentRenderer = {
       sections: [
         {
           properties: sectionProperties,
-          headers: headerContent
-            ? { default: new docx.Header({ children: headerContent as any }) }
-            : undefined,
-          footers: footerContent
-            ? { default: new docx.Footer({ children: footerContent as any }) }
-            : undefined,
+          ...(headerContent
+            ? {
+                headers: {
+                  default: new docx.Header({ children: headerContent as any }),
+                },
+              }
+            : {}),
+          ...(footerContent
+            ? {
+                footers: {
+                  default: new docx.Footer({ children: footerContent as any }),
+                },
+              }
+            : {}),
           children: children as any,
         },
       ],

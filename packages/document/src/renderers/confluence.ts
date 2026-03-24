@@ -1,3 +1,4 @@
+import { sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -81,7 +82,7 @@ function nodeToAdf(node: DocNode): AdfNode[] {
     }
 
     case 'link': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       result.push({
         type: 'paragraph',
@@ -91,7 +92,7 @@ function nodeToAdf(node: DocNode): AdfNode[] {
     }
 
     case 'image': {
-      const src = p.src as string
+      const src = sanitizeImageSrc(p.src as string)
       if (src.startsWith('http')) {
         result.push({
           type: 'mediaSingle',
@@ -191,7 +192,7 @@ function nodeToAdf(node: DocNode): AdfNode[] {
       break
 
     case 'button': {
-      const href = p.href as string
+      const href = sanitizeHref(p.href as string)
       const text = getTextContent(node.children)
       result.push({
         type: 'paragraph',

@@ -697,8 +697,12 @@ export function Flow(props: FlowComponentProps): VNodeChild {
             instance.addEdge({
               source: connection.source,
               target: connection.target,
-              sourceHandle: connection.sourceHandle,
-              targetHandle: connection.targetHandle,
+              ...(connection.sourceHandle != null
+                ? { sourceHandle: connection.sourceHandle }
+                : {}),
+              ...(connection.targetHandle != null
+                ? { targetHandle: connection.targetHandle }
+                : {}),
             })
           }
         }
@@ -853,7 +857,7 @@ export function Flow(props: FlowComponentProps): VNodeChild {
             <EdgeLayer
               instance={instance}
               connectionState={() => connectionState()}
-              edgeTypes={edgeTypes}
+              {...(edgeTypes != null ? { edgeTypes } : {})}
             />
             {() => {
               const sel = selectionBox()

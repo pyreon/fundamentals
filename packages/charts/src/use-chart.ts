@@ -66,10 +66,12 @@ export function useChart<TOption extends EChartsOption = EChartsOption>(
         try {
           const chart = core.init(el, config?.theme as any, {
             renderer,
-            locale: config?.locale,
-            devicePixelRatio: config?.devicePixelRatio,
-            width: config?.width,
-            height: config?.height,
+            ...(config?.locale != null ? { locale: config.locale } : {}),
+            ...(config?.devicePixelRatio != null
+              ? { devicePixelRatio: config.devicePixelRatio }
+              : {}),
+            ...(config?.width != null ? { width: config.width } : {}),
+            ...(config?.height != null ? { height: config.height } : {}),
           })
 
           chart.setOption(opts)
