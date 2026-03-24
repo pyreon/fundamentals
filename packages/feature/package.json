@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/feature",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Schema-driven feature primitives — define once, get CRUD hooks, forms, tables, and stores",
   "license": "MIT",
   "repository": {

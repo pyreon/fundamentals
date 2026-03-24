@@ -1,5 +1,15 @@
 # @pyreon/store
 
+## 0.9.0
+
+### Minor Changes
+
+- ### Improvements
+  - Upgrade to pyreon 0.7.5 (jsx preset, all JSX types accept undefined)
+  - Use @pyreon/typescript preset (no local jsx override needed)
+  - Complete documentation: 18 package READMEs, 18 docs/ files, llms.txt
+  - Update AI building rules with document generation patterns
+
 ## 0.8.0
 
 ### Minor Changes
