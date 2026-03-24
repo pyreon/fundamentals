@@ -1,18 +1,23 @@
 import { signal } from '@pyreon/reactivity'
-import { StoreDemo } from './demos/StoreDemo'
-import { StateTreeDemo } from './demos/StateTreeDemo'
+import { ChartDemo } from './demos/ChartDemo'
+import { CodeDemo } from './demos/CodeDemo'
+import { DashboardDemo } from './demos/DashboardDemo'
+import { DocumentDemo } from './demos/DocumentDemo'
 import { FormDemo } from './demos/FormDemo'
-import { ValidationDemo } from './demos/ValidationDemo'
-import { I18nDemo } from './demos/I18nDemo'
-import { QueryDemo } from './demos/QueryDemo'
-import { TableDemo } from './demos/TableDemo'
-import { VirtualDemo } from './demos/VirtualDemo'
-import { StorageDemo } from './demos/StorageDemo'
 import { HotkeysDemo } from './demos/HotkeysDemo'
-import { PermissionsDemo } from './demos/PermissionsDemo'
+import { I18nDemo } from './demos/I18nDemo'
 import { MachineDemo } from './demos/MachineDemo'
+import { PermissionsDemo } from './demos/PermissionsDemo'
+import { QueryDemo } from './demos/QueryDemo'
+import { StateTreeDemo } from './demos/StateTreeDemo'
+import { StorageDemo } from './demos/StorageDemo'
+import { StoreDemo } from './demos/StoreDemo'
+import { TableDemo } from './demos/TableDemo'
+import { ValidationDemo } from './demos/ValidationDemo'
+import { VirtualDemo } from './demos/VirtualDemo'
 
 const tabs = [
+  { id: 'dashboard', label: '📊 Dashboard', component: DashboardDemo },
   { id: 'store', label: 'Store', component: StoreDemo },
   { id: 'state-tree', label: 'State Tree', component: StateTreeDemo },
   { id: 'form', label: 'Form', component: FormDemo },
@@ -21,6 +26,9 @@ const tabs = [
   { id: 'query', label: 'Query', component: QueryDemo },
   { id: 'table', label: 'Table', component: TableDemo },
   { id: 'virtual', label: 'Virtual', component: VirtualDemo },
+  { id: 'charts', label: 'Charts', component: ChartDemo },
+  { id: 'code', label: 'Code', component: CodeDemo },
+  { id: 'document', label: 'Document', component: DocumentDemo },
   { id: 'storage', label: 'Storage', component: StorageDemo },
   { id: 'hotkeys', label: 'Hotkeys', component: HotkeysDemo },
   { id: 'permissions', label: 'Permissions', component: PermissionsDemo },
