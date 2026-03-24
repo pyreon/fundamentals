@@ -1,7 +1,7 @@
 {
   "framework": "pyreon",
   "version": ">=0.7.0 <0.8.0",
-  "generatedAt": "2026-03-24T19:38:09.151Z",
+  "generatedAt": "2026-03-24T19:48:28.691Z",
   "routes": [],
   "components": [
     {
@@ -16,7 +16,9 @@
       "file": "src/App.tsx",
       "hasSignals": false,
       "signalNames": [],
-      "props": ["tab.component\n          return (\n            <div key"]
+      "props": [
+        "tab.component\n          return (\n            <div\n              key"
+      ]
     },
     {
       "name": "ChartDemo",
@@ -28,8 +30,7 @@
         "profit",
         "pieData",
         "gaugeValue",
-        "chartType",
-        "log"
+        "chartType"
       ],
       "props": []
     },
@@ -37,7 +38,11 @@
       "name": "CodeDemo",
       "file": "src/demos/CodeDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["activeFile", "isDark", "log"],
+      "signalNames": [
+        "activeFile",
+        "isDark",
+        "log"
+      ],
       "props": []
     },
     {
@@ -56,28 +61,43 @@
       "name": "DocumentDemo",
       "file": "src/demos/DocumentDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["activeFormat", "output", "rendering", "teamData"],
+      "signalNames": [
+        "activeFormat",
+        "output",
+        "rendering",
+        "teamData"
+      ],
       "props": []
     },
     {
       "name": "FormDemo",
       "file": "src/demos/FormDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["submitted"],
+      "signalNames": [
+        "submitted"
+      ],
       "props": []
     },
     {
       "name": "HotkeysDemo",
       "file": "src/demos/HotkeysDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["log", "editorScope", "parsedResult"],
+      "signalNames": [
+        "log",
+        "editorScope",
+        "parsedResult"
+      ],
       "props": []
     },
     {
       "name": "I18nContent",
       "file": "src/demos/I18nDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["name", "count", "seconds"],
+      "signalNames": [
+        "name",
+        "count",
+        "seconds"
+      ],
       "props": []
     },
     {
@@ -91,21 +111,28 @@
       "name": "MachineDemo",
       "file": "src/demos/MachineDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["transitionLog"],
+      "signalNames": [
+        "transitionLog"
+      ],
       "props": []
     },
     {
       "name": "PermissionsDemo",
       "file": "src/demos/PermissionsDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["log"],
+      "signalNames": [
+        "log"
+      ],
       "props": []
     },
     {
       "name": "QueryContent",
       "file": "src/demos/QueryDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["nameInput", "emailInput"],
+      "signalNames": [
+        "nameInput",
+        "emailInput"
+      ],
       "props": []
     },
     {
@@ -119,49 +146,68 @@
       "name": "TodoList",
       "file": "src/demos/StateTreeDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["patches", "savedSnapshot"],
-      "props": ["model("]
+      "signalNames": [
+        "patches",
+        "savedSnapshot"
+      ],
+      "props": [
+        "model("
+      ]
     },
     {
       "name": "StateTreeDemo",
       "file": "src/demos/StateTreeDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["patches", "savedSnapshot"],
+      "signalNames": [
+        "patches",
+        "savedSnapshot"
+      ],
       "props": []
     },
     {
       "name": "StorageDemo",
       "file": "src/demos/StorageDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["log"],
+      "signalNames": [
+        "log"
+      ],
       "props": []
     },
     {
       "name": "StoreDemo",
       "file": "src/demos/StoreDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["log"],
+      "signalNames": [
+        "log"
+      ],
       "props": []
     },
     {
       "name": "TableDemo",
       "file": "src/demos/TableDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["sorting", "globalFilter"],
+      "signalNames": [
+        "sorting",
+        "globalFilter"
+      ],
       "props": []
     },
     {
       "name": "ValidationDemo",
       "file": "src/demos/ValidationDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["submitted"],
+      "signalNames": [
+        "submitted"
+      ],
       "props": []
     },
     {
       "name": "VirtualDemo",
       "file": "src/demos/VirtualDemo.tsx",
       "hasSignals": true,
-      "signalNames": ["parentRef"],
+      "signalNames": [
+        "parentRef"
+      ],
       "props": []
     }
   ],
