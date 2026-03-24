@@ -59,7 +59,10 @@ export function App() {
         {tabs.map((tab) => {
           const Component = tab.component
           return (
-            <div key={tab.id} style={() => activeTab() === tab.id ? '' : 'display:none'}>
+            <div
+              key={tab.id}
+              style={() => (activeTab() === tab.id ? '' : 'display:none')}
+            >
               <Component />
             </div>
           )

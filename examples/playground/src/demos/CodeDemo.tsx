@@ -2,10 +2,11 @@ import { signal, computed } from '@pyreon/reactivity'
 import { createEditor, getAvailableLanguages } from '@pyreon/code'
 import type { EditorLanguage } from '@pyreon/code'
 
-const sampleFiles: Record<string, { language: EditorLanguage; value: string }> = {
-  'main.ts': {
-    language: 'typescript',
-    value: `import { signal, computed, effect } from '@pyreon/reactivity'
+const sampleFiles: Record<string, { language: EditorLanguage; value: string }> =
+  {
+    'main.ts': {
+      language: 'typescript',
+      value: `import { signal, computed, effect } from '@pyreon/reactivity'
 
 const count = signal(0)
 const doubled = computed(() => count() * 2)
@@ -16,10 +17,10 @@ effect(() => {
 
 count.set(5)
 count.update(n => n + 1)`,
-  },
-  'styles.css': {
-    language: 'css',
-    value: `.container {
+    },
+    'styles.css': {
+      language: 'css',
+      value: `.container {
   display: flex;
   gap: 16px;
   padding: 24px;
@@ -38,10 +39,10 @@ count.update(n => n + 1)`,
 .button:hover {
   opacity: 0.8;
 }`,
-  },
-  'config.json': {
-    language: 'json',
-    value: `{
+    },
+    'config.json': {
+      language: 'json',
+      value: `{
   "name": "@pyreon/playground",
   "version": "0.1.0",
   "dependencies": {
@@ -54,10 +55,10 @@ count.update(n => n + 1)`,
     "build": "bun run build"
   }
 }`,
-  },
-  'app.py': {
-    language: 'python',
-    value: `from dataclasses import dataclass
+    },
+    'app.py': {
+      language: 'python',
+      value: `from dataclasses import dataclass
 from typing import Optional
 
 @dataclass
@@ -77,8 +78,8 @@ users = [
 
 for user in users:
     print(greet(user))`,
-  },
-}
+    },
+  }
 
 export function CodeDemo() {
   // Create a single editor instance
@@ -122,8 +123,9 @@ export function CodeDemo() {
       <h2>Code</h2>
       <p class="desc">
         Reactive code editor built on CodeMirror 6. Signal-backed value,
-        language, and theme — change any signal and the editor updates. Lazy-loaded
-        language grammars, minimap, diff editor, and full editing API.
+        language, and theme — change any signal and the editor updates.
+        Lazy-loaded language grammars, minimap, diff editor, and full editing
+        API.
       </p>
 
       {/* File tabs */}
@@ -159,9 +161,7 @@ export function CodeDemo() {
         />
 
         {/* Status bar */}
-        <div
-          style="display: flex; gap: 16px; padding: 6px 12px; background: #1e1e1e; color: #888; font-size: 12px; font-family: monospace; border-radius: 0 0 8px 8px; border: 1px solid #333; border-top: none"
-        >
+        <div style="display: flex; gap: 16px; padding: 6px 12px; background: #1e1e1e; color: #888; font-size: 12px; font-family: monospace; border-radius: 0 0 8px 8px; border: 1px solid #333; border-top: none">
           <span>{() => cursorInfo()}</span>
           <span>{() => selectionInfo()}</span>
           <span>{() => `${editor.lineCount()} lines`}</span>
@@ -286,8 +286,7 @@ export function CodeDemo() {
           </button>
         </div>
         <p style="font-size: 13px; opacity: 0.7">
-          Available languages:{' '}
-          <code>{languages.join(', ')}</code>
+          Available languages: <code>{languages.join(', ')}</code>
         </p>
       </div>
 
@@ -295,20 +294,22 @@ export function CodeDemo() {
       <div class="section">
         <h3>Reactive Editor State</h3>
         <pre style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto">
-          {() => JSON.stringify(
-            {
-              file: activeFile(),
-              language: editor.language(),
-              theme: editor.theme(),
-              readOnly: editor.readOnly(),
-              cursor: editor.cursor(),
-              lineCount: editor.lineCount(),
-              focused: editor.focused(),
-              valueLength: editor.value().length,
-            },
-            null,
-            2,
-          )}
+          {() =>
+            JSON.stringify(
+              {
+                file: activeFile(),
+                language: editor.language(),
+                theme: editor.theme(),
+                readOnly: editor.readOnly(),
+                cursor: editor.cursor(),
+                lineCount: editor.lineCount(),
+                focused: editor.focused(),
+                valueLength: editor.value().length,
+              },
+              null,
+              2,
+            )
+          }
         </pre>
       </div>
 

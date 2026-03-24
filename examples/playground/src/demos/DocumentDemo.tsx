@@ -1,5 +1,13 @@
 import { signal } from '@pyreon/reactivity'
-import { createDocument, render, Document, Page, Heading, Text, Table } from '@pyreon/document'
+import {
+  createDocument,
+  render,
+  Document,
+  Page,
+  Heading,
+  Text,
+  Table,
+} from '@pyreon/document'
 import type { OutputFormat } from '@pyreon/document'
 
 const formats: { id: OutputFormat; label: string }[] = [
@@ -57,7 +65,9 @@ export function DocumentDemo() {
       ])
       .quote('Great teams build great products.')
       .divider()
-      .code('const avgRating = ratings.reduce((a, b) => a + b) / ratings.length')
+      .code(
+        'const avgRating = ratings.reduce((a, b) => a + b) / ratings.length',
+      )
       .text('Report generated automatically by @pyreon/document.')
   }
 
@@ -66,14 +76,14 @@ export function DocumentDemo() {
     rendering.set(true)
     try {
       const doc = buildReport()
-      const result = await doc.toHtml() // build() returns DocNode
-      // Actually render to the selected format
       const docNode = doc.build()
       const rendered = await render(docNode, activeFormat())
       if (typeof rendered === 'string') {
         output.set(rendered)
       } else {
-        output.set(`[Binary output: ${(rendered as Uint8Array).byteLength} bytes]`)
+        output.set(
+          `[Binary output: ${(rendered as Uint8Array).byteLength} bytes]`,
+        )
       }
     } catch (err) {
       output.set(`Error: ${(err as Error).message}`)
@@ -115,7 +125,9 @@ export function DocumentDemo() {
       if (typeof rendered === 'string') {
         jsxOutput.set(rendered)
       } else {
-        jsxOutput.set(`[Binary output: ${(rendered as Uint8Array).byteLength} bytes]`)
+        jsxOutput.set(
+          `[Binary output: ${(rendered as Uint8Array).byteLength} bytes]`,
+        )
       }
     } catch (err) {
       jsxOutput.set(`Error: ${(err as Error).message}`)
@@ -131,17 +143,17 @@ export function DocumentDemo() {
     <div>
       <h2>Document</h2>
       <p class="desc">
-        Universal document rendering — one template, every output format. Builder
-        pattern or node functions. Renderers are lazy-loaded on first use.
-        Supports HTML, Markdown, plain text, CSV, email, Slack, and more.
+        Universal document rendering — one template, every output format.
+        Builder pattern or node functions. Renderers are lazy-loaded on first
+        use. Supports HTML, Markdown, plain text, CSV, email, Slack, and more.
       </p>
 
       {/* Builder pattern */}
       <div class="section">
         <h3>Builder Pattern — Team Report</h3>
         <p style="margin-bottom: 8px; font-size: 13px; opacity: 0.7">
-          <code>createDocument().heading().table().text()</code> — chainable API,
-          no JSX needed.
+          <code>createDocument().heading().table().text()</code> — chainable
+          API, no JSX needed.
         </p>
         <div class="row" style="margin-bottom: 8px; flex-wrap: wrap">
           {formats.map((fmt) => (
@@ -175,8 +187,12 @@ export function DocumentDemo() {
               teamData.update((d) => [
                 ...d,
                 [
-                  ['Frank', 'Grace', 'Hank', 'Ivy'][Math.floor(Math.random() * 4)]!,
-                  ['Engineering', 'Design', 'Marketing', 'Product'][Math.floor(Math.random() * 4)]!,
+                  ['Frank', 'Grace', 'Hank', 'Ivy'][
+                    Math.floor(Math.random() * 4)
+                  ]!,
+                  ['Engineering', 'Design', 'Marketing', 'Product'][
+                    Math.floor(Math.random() * 4)
+                  ]!,
                   `$${100 + Math.floor(Math.random() * 80)}K`,
                   (3.5 + Math.random() * 1.5).toFixed(1),
                 ],
@@ -198,9 +214,7 @@ export function DocumentDemo() {
             Remove Last
           </button>
         </div>
-        <pre
-          style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word"
-        >
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word">
           {() => output()}
         </pre>
       </div>
@@ -209,8 +223,10 @@ export function DocumentDemo() {
       <div class="section">
         <h3>Node Functions — Invoice</h3>
         <p style="margin-bottom: 8px; font-size: 13px; opacity: 0.7">
-          <code>Document({'{}'},  Page({'{}'},  Heading({'{}'},  ...)))</code> — direct
-          node construction for full control.
+          <code>
+            Document({'{}'}, Page({'{}'}, Heading({'{}'}, ...)))
+          </code>{' '}
+          — direct node construction for full control.
         </p>
         <div class="row" style="margin-bottom: 8px; flex-wrap: wrap">
           {formats.map((fmt) => (
@@ -238,9 +254,7 @@ export function DocumentDemo() {
         >
           {() => (rendering() ? 'Rendering...' : 'Render Invoice')}
         </button>
-        <pre
-          style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word"
-        >
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word">
           {() => jsxOutput() || 'Click "Render Invoice" to see output.'}
         </pre>
       </div>
@@ -250,14 +264,19 @@ export function DocumentDemo() {
         <h3>Supported Formats</h3>
         <p style="font-size: 13px; opacity: 0.7; line-height: 1.6">
           Text-based: <code>html</code>, <code>md</code>, <code>text</code>,{' '}
-          <code>csv</code>, <code>email</code>, <code>svg</code><br />
+          <code>csv</code>, <code>email</code>, <code>svg</code>
+          <br />
           Binary: <code>pdf</code>, <code>docx</code>, <code>xlsx</code>,{' '}
-          <code>pptx</code><br />
+          <code>pptx</code>
+          <br />
           Messaging: <code>slack</code>, <code>teams</code>,{' '}
           <code>discord</code>, <code>telegram</code>, <code>whatsapp</code>,{' '}
-          <code>google-chat</code><br />
-          Wikis: <code>notion</code>, <code>confluence</code><br />
-          Custom: <code>registerRenderer('thermal', {'{ render(node) { ... } }'})</code>
+          <code>google-chat</code>
+          <br />
+          Wikis: <code>notion</code>, <code>confluence</code>
+          <br />
+          Custom:{' '}
+          <code>registerRenderer('thermal', {'{ render(node) { ... } }'})</code>
         </p>
       </div>
 

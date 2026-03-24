@@ -29,8 +29,18 @@ export function ChartDemo() {
     xAxis: { type: 'category', data: months() },
     yAxis: { type: 'value', name: '$K' },
     series: [
-      { name: 'Revenue', type: chartType(), data: revenue(), itemStyle: { color: '#5470c6' } },
-      { name: 'Profit', type: chartType(), data: profit(), itemStyle: { color: '#91cc75' } },
+      {
+        name: 'Revenue',
+        type: chartType(),
+        data: revenue(),
+        itemStyle: { color: '#5470c6' },
+      },
+      {
+        name: 'Profit',
+        type: chartType(),
+        data: profit(),
+        itemStyle: { color: '#91cc75' },
+      },
     ],
   }))
 
@@ -42,7 +52,9 @@ export function ChartDemo() {
         type: 'pie',
         radius: ['40%', '70%'],
         data: pieData(),
-        emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } },
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' },
+        },
       },
     ],
   }))
@@ -88,12 +100,17 @@ export function ChartDemo() {
             </button>
           ))}
         </div>
-        <Chart options={() => barOptions()} style="height: 300px; width: 100%" />
+        <Chart
+          options={() => barOptions()}
+          style="height: 300px; width: 100%"
+        />
         <div class="row" style="margin-top: 8px">
           <button
             type="button"
             onClick={() => {
-              revenue.update((r) => r.map((v) => v + Math.round(Math.random() * 40 - 20)))
+              revenue.update((r) =>
+                r.map((v) => v + Math.round(Math.random() * 40 - 20)),
+              )
               addLog('Revenue data randomized')
             }}
           >
@@ -116,7 +133,10 @@ export function ChartDemo() {
       {/* Pie chart */}
       <div class="section">
         <h3>Donut Chart — Device Share</h3>
-        <Chart options={() => pieOptions()} style="height: 300px; width: 100%" />
+        <Chart
+          options={() => pieOptions()}
+          style="height: 300px; width: 100%"
+        />
         <div class="row" style="margin-top: 8px">
           <button
             type="button"
@@ -138,7 +158,10 @@ export function ChartDemo() {
       {/* Gauge */}
       <div class="section">
         <h3>Gauge — Performance Score</h3>
-        <Chart options={() => gaugeOptions()} style="height: 250px; width: 100%" />
+        <Chart
+          options={() => gaugeOptions()}
+          style="height: 250px; width: 100%"
+        />
         <div class="row" style="margin-top: 8px">
           <button
             type="button"
@@ -168,11 +191,11 @@ export function ChartDemo() {
       <div class="section">
         <h3>How It Works</h3>
         <p style="font-size: 13px; opacity: 0.7; line-height: 1.6">
-          <code>{'<Chart options={() => ({ ... })} />'}</code> auto-detects chart
-          types (bar, pie, gauge, etc.) from your config and dynamically imports
-          only the needed ECharts modules. Signal reads inside the options
-          function trigger reactive updates — change data, change the chart.
-          Canvas renderer by default, SVG optional via{' '}
+          <code>{'<Chart options={() => ({ ... })} />'}</code> auto-detects
+          chart types (bar, pie, gauge, etc.) from your config and dynamically
+          imports only the needed ECharts modules. Signal reads inside the
+          options function trigger reactive updates — change data, change the
+          chart. Canvas renderer by default, SVG optional via{' '}
           <code>renderer="svg"</code>.
         </p>
       </div>

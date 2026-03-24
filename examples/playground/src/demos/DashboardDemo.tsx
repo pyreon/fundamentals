@@ -1,4 +1,4 @@
-import { signal, computed, batch } from '@pyreon/reactivity'
+import { signal, computed } from '@pyreon/reactivity'
 import { defineStore } from '@pyreon/store'
 import { createPermissions } from '@pyreon/permissions'
 import { useStorage } from '@pyreon/storage'
@@ -93,18 +93,24 @@ export function DashboardDemo() {
             { header: 'Revenue', align: 'right' as const },
             { header: 'Growth', align: 'right' as const },
           ],
-          rows: store.salesData().map((r) => [
-            r.region,
-            `$${r.revenue.toLocaleString()}`,
-            `${r.growth}%`,
-          ]),
+          rows: store
+            .salesData()
+            .map((r) => [
+              r.region,
+              `$${r.revenue.toLocaleString()}`,
+              `${r.growth}%`,
+            ]),
           striped: true,
           headerStyle: { background: '#1a1a2e', color: '#fff' },
         })
 
       const format = exportFormat()
       const result = await render(doc.build(), format)
-      exportResult.set(typeof result === 'string' ? result : `[Binary ${format.toUpperCase()} — ${result.length} bytes]`)
+      exportResult.set(
+        typeof result === 'string'
+          ? result
+          : `[Binary ${format.toUpperCase()} — ${result.length} bytes]`,
+      )
       exportMachine.send('DONE')
     } catch {
       exportMachine.send('ERROR')
@@ -128,8 +134,11 @@ export function DashboardDemo() {
       {/* Theme toggle — persisted via @pyreon/storage */}
       <div style="margin-bottom: 16px">
         <strong>Theme (persisted): </strong>
-        <button type="button" onClick={() => theme.set(theme() === 'light' ? 'dark' : 'light')}>
-          {() => theme() === 'light' ? '☀️ Light' : '🌙 Dark'}
+        <button
+          type="button"
+          onClick={() => theme.set(theme() === 'light' ? 'dark' : 'light')}
+        >
+          {() => (theme() === 'light' ? '☀️ Light' : '🌙 Dark')}
         </button>
       </div>
 
@@ -173,22 +182,26 @@ export function DashboardDemo() {
             <h4>Add Sale</h4>
             <select
               value={saleRegion()}
-              onChange={(e: Event) => saleRegion.set((e.target as HTMLSelectElement).value)}
+              onChange={(e: Event) =>
+                saleRegion.set((e.target as HTMLSelectElement).value)
+              }
             >
               <option value="US">US</option>
               <option value="EU">EU</option>
               <option value="APAC">APAC</option>
               <option value="LATAM">LATAM</option>
-            </select>
-            {' '}
+            </select>{' '}
             <input
               type="number"
               value={saleAmount()}
-              onInput={(e: InputEvent) => saleAmount.set(Number((e.target as HTMLInputElement).value))}
+              onInput={(e: InputEvent) =>
+                saleAmount.set(Number((e.target as HTMLInputElement).value))
+              }
               style="width: 100px"
-            />
-            {' '}
-            <button type="button" onClick={handleAddSale}>Add</button>
+            />{' '}
+            <button type="button" onClick={handleAddSale}>
+              Add
+            </button>
           </div>
         ) : (
           <p style="color: #999">No permission to add sales</p>
@@ -220,23 +233,29 @@ export function DashboardDemo() {
                 <div>
                   <select
                     value={exportFormat()}
-                    onChange={(e: Event) => exportFormat.set((e.target as HTMLSelectElement).value)}
+                    onChange={(e: Event) =>
+                      exportFormat.set((e.target as HTMLSelectElement).value)
+                    }
                   >
                     <option value="html">HTML</option>
                     <option value="md">Markdown</option>
                     <option value="text">Plain Text</option>
                     <option value="csv">CSV</option>
                     <option value="email">Email HTML</option>
-                  </select>
-                  {' '}
-                  <button type="button" onClick={handleExport}>Export</button>
+                  </select>{' '}
+                  <button type="button" onClick={handleExport}>
+                    Export
+                  </button>
                 </div>
               ) : exportMachine.matches('choosing', 'exporting') ? (
                 <p>Generating...</p>
               ) : exportMachine.matches('complete') ? (
                 <div>
                   <p style="color: green">Export complete!</p>
-                  <button type="button" onClick={() => exportMachine.send('RESET')}>
+                  <button
+                    type="button"
+                    onClick={() => exportMachine.send('RESET')}
+                  >
                     New Export
                   </button>
                 </div>
