@@ -1,7 +1,6 @@
 {
   "extends": "@pyreon/typescript/lib",
   "compilerOptions": {
-    "jsx": "react-jsx",
     "customConditions": ["bun"]
   }
 }

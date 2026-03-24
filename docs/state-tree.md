@@ -1,6 +1,6 @@
-# State Tree
+# @pyreon/state-tree
 
-`@pyreon/state-tree` provides structured reactive models with signal-backed state, computed views, actions, JSON patch tracking, snapshots, and middleware. Think MobX-State-Tree's power with Pyreon's signal simplicity.
+Structured reactive models with signal-backed state, computed views, actions, JSON patch tracking, snapshots, and middleware.
 
 ## Installation
 

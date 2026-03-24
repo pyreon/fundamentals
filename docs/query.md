@@ -1,6 +1,6 @@
-# Query
+# @pyreon/query
 
-`@pyreon/query` is a Pyreon adapter for [TanStack Query](https://tanstack.com/query). It wraps TanStack Query's core with reactive signal-based hooks, Suspense integration, and SSR dehydration/hydration.
+Pyreon adapter for [TanStack Query](https://tanstack.com/query). Wraps TanStack Query's core with reactive signal-based hooks, Suspense integration, WebSocket subscriptions, and SSR dehydration/hydration.
 
 ## Installation
 
@@ -195,6 +195,46 @@ hydrate(queryClient, dehydratedState)
 | `useQueryErrorResetBoundary()` | Reset error state for retry |
 | `QueryErrorResetBoundary` | Component — scopes error reset to a subtree |
 | `useSuspenseInfiniteQuery(options)` | Infinite query with Suspense |
+
+## useSubscription
+
+Reactive WebSocket subscription that integrates with the query cache. Auto-reconnects with exponential backoff. Cleans up on unmount.
+
+```tsx
+import { useSubscription } from "@pyreon/query"
+
+const sub = useSubscription({
+  url: "wss://api.example.com/ws",
+  onMessage: (event, queryClient) => {
+    const data = JSON.parse(event.data)
+    if (data.type === "order-updated") {
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+    }
+  },
+})
+
+sub.status()  // "connecting" | "connected" | "disconnected" | "error"
+sub.send(JSON.stringify({ subscribe: "orders" }))
+sub.close()
+sub.reconnect()
+```
+
+**Options:**
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `url` | `string \| () => string` | required | WebSocket URL (reactive when function) |
+| `protocols` | `string \| string[]` | — | WebSocket sub-protocols |
+| `onMessage` | `(event, queryClient) => void` | required | Message handler with QueryClient access |
+| `onOpen` | `(event) => void` | — | Connection opened callback |
+| `onClose` | `(event) => void` | — | Connection closed callback |
+| `onError` | `(event) => void` | — | Connection error callback |
+| `reconnect` | `boolean` | `true` | Auto-reconnect on disconnect |
+| `reconnectDelay` | `number` | `1000` | Initial reconnect delay (doubles per retry) |
+| `maxReconnectAttempts` | `number` | `10` | Max retries (0 = unlimited) |
+| `enabled` | `boolean \| () => boolean` | `true` | Enable/disable the subscription reactively |
+
+**Returns:** `UseSubscriptionResult` with `status`, `send()`, `close()`, `reconnect()`.
 
 ## Gotchas
 

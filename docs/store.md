@@ -1,6 +1,6 @@
-# Store
+# @pyreon/store
 
-`@pyreon/store` is a composition-style global state management library built on `@pyreon/reactivity` signals.
+Composition-style global state management built on `@pyreon/reactivity` signals.
 
 ## Installation
 
