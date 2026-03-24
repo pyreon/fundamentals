@@ -4,8 +4,7 @@
     "rootDir": "src",
     "outDir": "lib",
     "jsx": "react-jsx",
-    "jsxImportSource": "@pyreon/core",
-    "skipLibCheck": true
+    "jsxImportSource": "@pyreon/core"
   },
   "include": ["src"]
 }
