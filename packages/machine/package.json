@@ -40,11 +40,11 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/reactivity": ">=0.7.0 <1.0.0"
+    "@pyreon/reactivity": ">=0.7.0 <0.8.0"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.8.3",
-    "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+    "@pyreon/reactivity": ">=0.7.0 <0.8.0",
     "@vitus-labs/tools-lint": "^1.11.0"
   }
 }

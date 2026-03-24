@@ -45,14 +45,14 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@pyreon/core": ">=0.7.0 <1.0.0",
-    "@pyreon/reactivity": ">=0.7.0 <1.0.0",
+    "@pyreon/core": ">=0.7.0 <0.8.0",
+    "@pyreon/reactivity": ">=0.7.0 <0.8.0",
     "echarts": ">=5.6.0"
   },
   "devDependencies": {
-    "@pyreon/core": ">=0.7.0 <1.0.0",
-    "@pyreon/reactivity": ">=0.7.0 <1.0.0",
-    "@pyreon/runtime-dom": ">=0.7.0 <1.0.0",
+    "@pyreon/core": ">=0.7.0 <0.8.0",
+    "@pyreon/reactivity": ">=0.7.0 <0.8.0",
+    "@pyreon/runtime-dom": ">=0.7.0 <0.8.0",
     "echarts": "^6.0.0"
   }
 }

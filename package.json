@@ -25,13 +25,13 @@
     "@vitus-labs/tools-rolldown": "1.15.4",
     "@vitus-labs/tools-typescript": "1.15.4",
     "@vitus-labs/tools-vitest": "1.15.4",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
   "dependencies": {
-    "@pyreon/core": "0.7.2",
-    "@pyreon/reactivity": "0.7.2",
-    "@pyreon/runtime-dom": "0.7.2",
-    "@pyreon/typescript": "0.7.2"
+    "@pyreon/core": ">=0.7.0 <0.8.0",
+    "@pyreon/reactivity": ">=0.7.0 <0.8.0",
+    "@pyreon/runtime-dom": ">=0.7.0 <0.8.0",
+    "@pyreon/typescript": ">=0.7.0 <0.8.0"
   }
 }
