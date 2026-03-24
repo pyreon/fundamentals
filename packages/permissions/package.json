@@ -1,6 +1,6 @@
 {
   "name": "@pyreon/permissions",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Reactive permissions for Pyreon — type-safe, signal-driven, universal",
   "license": "MIT",
   "repository": {
