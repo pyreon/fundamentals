@@ -158,9 +158,9 @@ export function NodeResizer(props: NodeResizerProps): VNodeChild {
             key={dir}
             class={`pyreon-flow-resizer pyreon-flow-resizer-${dir}`}
             style={`${baseStyle} ${directionPositions[dir]} cursor: ${directionCursors[dir]};`}
-            onPointerdown={handler.onPointerDown}
-            onPointermove={handler.onPointerMove}
-            onPointerup={handler.onPointerUp}
+            onPointerDown={handler.onPointerDown}
+            onPointerMove={handler.onPointerMove}
+            onPointerUp={handler.onPointerUp}
           />
         )
       })}

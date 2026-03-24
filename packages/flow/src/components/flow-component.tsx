@@ -122,11 +122,7 @@ function EdgeLayer(props: {
         <defs>
           <marker
             id="flow-arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="10"
-            refY="3.5"
-            orient="auto"
+            {...{ markerWidth: '10', markerHeight: '7', refX: '10', refY: '3.5', orient: 'auto' }}
           >
             <polygon points="0 0, 10 3.5, 0 7" fill="#999" />
           </marker>
@@ -302,11 +298,11 @@ function NodeLayer(props: {
                 instance.selectNode(node.id, e.shiftKey)
                 instance._emit.nodeClick(node)
               }}
-              onDblclick={(e: MouseEvent) => {
+              onDblClick={(e: MouseEvent) => {
                 e.stopPropagation()
                 instance._emit.nodeDoubleClick(node)
               }}
-              onPointerdown={(e: PointerEvent) => {
+              onPointerDown={(e: PointerEvent) => {
                 // Check if clicking a handle
                 const target = e.target as HTMLElement
                 const handle = target.closest('.pyreon-flow-handle')
@@ -839,12 +835,12 @@ export function Flow(props: FlowComponentProps): VNodeChild {
       style={containerStyle}
       tabIndex={0}
       onWheel={handleWheel}
-      onPointerdown={handlePointerDown}
-      onPointermove={handlePointerMove}
-      onPointerup={handlePointerUp}
-      onTouchstart={handleTouchStart}
-      onTouchmove={handleTouchMove}
-      onKeydown={handleKeyDown}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onKeyDown={handleKeyDown}
     >
       {children}
       {() => {

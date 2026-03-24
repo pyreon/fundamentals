@@ -32,7 +32,7 @@ export function Background(props: BackgroundProps): VNodeChild {
             y="0"
             width={String(gap)}
             height={String(gap)}
-            patternUnits="userSpaceOnUse"
+            {...{ patternUnits: 'userSpaceOnUse' }}
           >
             <circle
               cx={String(size)}
@@ -62,7 +62,7 @@ export function Background(props: BackgroundProps): VNodeChild {
             y="0"
             width={String(gap)}
             height={String(gap)}
-            patternUnits="userSpaceOnUse"
+            {...{ patternUnits: 'userSpaceOnUse' }}
           >
             <line
               x1="0"
@@ -102,7 +102,7 @@ export function Background(props: BackgroundProps): VNodeChild {
           y="0"
           width={String(gap)}
           height={String(gap)}
-          patternUnits="userSpaceOnUse"
+          {...{ patternUnits: 'userSpaceOnUse' }}
         >
           <line
             x1={String(gap / 2 - size * 2)}
