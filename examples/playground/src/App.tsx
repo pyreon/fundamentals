@@ -56,12 +56,14 @@ export function App() {
         </ul>
       </nav>
       <main class="content">
-        {() => {
-          const tab = tabs.find((t) => t.id === activeTab())
-          if (!tab) return null
+        {tabs.map((tab) => {
           const Component = tab.component
-          return <Component />
-        }}
+          return (
+            <div key={tab.id} style={() => activeTab() === tab.id ? '' : 'display:none'}>
+              <Component />
+            </div>
+          )
+        })}
       </main>
     </div>
   )
