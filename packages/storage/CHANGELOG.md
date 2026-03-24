@@ -1,5 +1,17 @@
 # @pyreon/storage
 
+## 1.0.0
+
+### Minor Changes
+
+- [`075dd4f`](https://github.com/pyreon/fundamentals/commit/075dd4fe4a325fe5a5637a68e209dffe665bb84e) Thanks [@vitbokisch](https://github.com/vitbokisch)! - ### Improvements
+  - Upgrade to TypeScript 6.0 and pyreon 0.7.3
+  - Switch to @pyreon/typescript for tsconfig presets
+  - Full exactOptionalPropertyTypes compliance
+  - Security: add sanitization across all document renderers (XSS, XML injection, protocol validation)
+  - Fix WebSocket.send() type for TS 6.0
+  - Clean up conditional spreading now that core 0.7.3 accepts undefined on JSX attrs
+
 ## 0.7.0
 
 ### Minor Changes
