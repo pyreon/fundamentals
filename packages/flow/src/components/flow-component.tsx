@@ -697,8 +697,12 @@ export function Flow(props: FlowComponentProps): VNodeChild {
             instance.addEdge({
               source: connection.source,
               target: connection.target,
-              ...(connection.sourceHandle != null ? { sourceHandle: connection.sourceHandle } : {}),
-              ...(connection.targetHandle != null ? { targetHandle: connection.targetHandle } : {}),
+              ...(connection.sourceHandle != null
+                ? { sourceHandle: connection.sourceHandle }
+                : {}),
+              ...(connection.targetHandle != null
+                ? { targetHandle: connection.targetHandle }
+                : {}),
             })
           }
         }

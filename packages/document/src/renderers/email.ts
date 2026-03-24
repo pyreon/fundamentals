@@ -1,8 +1,4 @@
-import {
-  sanitizeColor,
-  sanitizeHref,
-  sanitizeImageSrc,
-} from '../sanitize'
+import { sanitizeColor, sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -65,7 +61,9 @@ function renderNode(node: DocNode): string {
       return renderChildren(node.children)
 
     case 'section': {
-      const bg = p.background ? `background-color:${sanitizeColor(p.background as string)};` : ''
+      const bg = p.background
+        ? `background-color:${sanitizeColor(p.background as string)};`
+        : ''
       const pad = p.padding
         ? `padding:${typeof p.padding === 'number' ? `${p.padding}px` : Array.isArray(p.padding) ? (p.padding as number[]).map((v) => `${v}px`).join(' ') : '0'}`
         : 'padding:0'

@@ -217,7 +217,9 @@ export function defineFeature<TValues extends Record<string, unknown>>(
               api,
               Object.keys(params).length > 0 ? params : undefined,
             ),
-          ...(options?.staleTime != null ? { staleTime: options.staleTime } : {}),
+          ...(options?.staleTime != null
+            ? { staleTime: options.staleTime }
+            : {}),
           ...(options?.enabled != null ? { enabled: options.enabled } : {}),
         }
       })

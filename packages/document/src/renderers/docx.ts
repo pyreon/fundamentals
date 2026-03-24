@@ -1,7 +1,4 @@
-import {
-  sanitizeHref,
-  sanitizeXmlColor,
-} from '../sanitize'
+import { sanitizeHref, sanitizeXmlColor } from '../sanitize'
 import type {
   DocChild,
   DocNode,
@@ -145,7 +142,9 @@ function renderTextNode(ctx: DocxCtx, n: DocNode): void {
           ...(p.bold != null ? { bold: p.bold as boolean } : {}),
           ...(p.italic != null ? { italics: p.italic as boolean } : {}),
           ...(p.underline ? { underline: {} } : {}),
-          ...(p.strikethrough != null ? { strike: p.strikethrough as boolean } : {}),
+          ...(p.strikethrough != null
+            ? { strike: p.strikethrough as boolean }
+            : {}),
           ...(p.size != null ? { size: (p.size as number) * 2 } : {}),
           color: sanitizeXmlColor(p.color as string, '333333'),
         }),
@@ -421,7 +420,9 @@ export const docxRenderer: DocumentRenderer = {
             children: [
               new docx.TextRun({ text: getTextContent(textChildren) }),
             ],
-            ...(ordered ? { numbering: { reference: listRef, level } } : { bullet: { level } }),
+            ...(ordered
+              ? { numbering: { reference: listRef, level } }
+              : { bullet: { level } }),
           }),
         )
         if (nestedList) {
@@ -498,8 +499,7 @@ export const docxRenderer: DocumentRenderer = {
                 bottom: {
                   style: docx.BorderStyle.SINGLE,
                   size: (n.props.thickness as number | undefined) ?? 1,
-                  color:
-                    sanitizeXmlColor(n.props.color as string, 'DDDDDD'),
+                  color: sanitizeXmlColor(n.props.color as string, 'DDDDDD'),
                 },
               },
               spacing: { before: 120, after: 120 },
@@ -600,10 +600,18 @@ export const docxRenderer: DocumentRenderer = {
         {
           properties: sectionProperties,
           ...(headerContent
-            ? { headers: { default: new docx.Header({ children: headerContent as any }) } }
+            ? {
+                headers: {
+                  default: new docx.Header({ children: headerContent as any }),
+                },
+              }
             : {}),
           ...(footerContent
-            ? { footers: { default: new docx.Footer({ children: footerContent as any }) } }
+            ? {
+                footers: {
+                  default: new docx.Footer({ children: footerContent as any }),
+                },
+              }
             : {}),
           children: children as any,
         },

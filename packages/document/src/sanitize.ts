@@ -31,7 +31,8 @@ export function sanitizeColor(value: string | undefined): string {
   // rgb/rgba/hsl/hsla
   if (/^(rgb|hsl)a?\(\s*[\d.,\s%]+\)$/.test(trimmed)) return trimmed
   // transparent, inherit, currentColor
-  if (/^(transparent|inherit|currentColor|initial|unset)$/i.test(trimmed)) return trimmed
+  if (/^(transparent|inherit|currentColor|initial|unset)$/i.test(trimmed))
+    return trimmed
   return ''
 }
 
@@ -39,7 +40,10 @@ export function sanitizeColor(value: string | undefined): string {
  * Sanitize a color for XML attributes (DOCX/PPTX) — only hex without #.
  * Returns 6-char hex string or default.
  */
-export function sanitizeXmlColor(value: string | undefined, fallback = '000000'): string {
+export function sanitizeXmlColor(
+  value: string | undefined,
+  fallback = '000000',
+): string {
   if (value == null) return fallback
   const hex = value.replace('#', '')
   if (/^[0-9a-fA-F]{3,8}$/.test(hex)) return hex

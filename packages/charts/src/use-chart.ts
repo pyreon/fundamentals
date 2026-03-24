@@ -67,7 +67,9 @@ export function useChart<TOption extends EChartsOption = EChartsOption>(
           const chart = core.init(el, config?.theme as any, {
             renderer,
             ...(config?.locale != null ? { locale: config.locale } : {}),
-            ...(config?.devicePixelRatio != null ? { devicePixelRatio: config.devicePixelRatio } : {}),
+            ...(config?.devicePixelRatio != null
+              ? { devicePixelRatio: config.devicePixelRatio }
+              : {}),
             ...(config?.width != null ? { width: config.width } : {}),
             ...(config?.height != null ? { height: config.height } : {}),
           })

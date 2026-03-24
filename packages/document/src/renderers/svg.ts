@@ -1,8 +1,4 @@
-import {
-  sanitizeColor,
-  sanitizeHref,
-  sanitizeImageSrc,
-} from '../sanitize'
+import { sanitizeColor, sanitizeHref, sanitizeImageSrc } from '../sanitize'
 import type {
   DocChild,
   DocNode,

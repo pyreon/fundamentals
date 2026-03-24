@@ -148,7 +148,9 @@ function renderNode(node: DocNode): string {
       html += '<thead><tr>'
       for (const col of columns) {
         const cellBorder = bordered ? 'border:1px solid #ddd;' : ''
-        const bgStyle = hs?.background ? `background:${sanitizeColor(hs.background)};` : ''
+        const bgStyle = hs?.background
+          ? `background:${sanitizeColor(hs.background)};`
+          : ''
         const colorStyle = hs?.color ? `color:${sanitizeColor(hs.color)};` : ''
         const fontStyle = hs?.bold !== false ? 'font-weight:bold;' : ''
         const alignStyle = col.align ? `text-align:${col.align};` : ''

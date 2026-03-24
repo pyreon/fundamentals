@@ -223,7 +223,11 @@ describe('Meta and StoryObj types', () => {
       label: string
       variant?: 'primary' | 'secondary'
     }) {
-      return <button {...(props.variant != null ? { class: props.variant } : {})}>{props.label}</button>
+      return (
+        <button {...(props.variant != null ? { class: props.variant } : {})}>
+          {props.label}
+        </button>
+      )
     }
 
     const meta = {
@@ -239,7 +243,12 @@ describe('Meta and StoryObj types', () => {
 
   it('StoryObj inherits args from Meta', () => {
     function Input(props: { placeholder: string; disabled?: boolean }) {
-      return <input placeholder={props.placeholder} {...(props.disabled != null ? { disabled: props.disabled } : {})} />
+      return (
+        <input
+          placeholder={props.placeholder}
+          {...(props.disabled != null ? { disabled: props.disabled } : {})}
+        />
+      )
     }
 
     const _meta = {
