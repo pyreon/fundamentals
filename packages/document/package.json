@@ -53,6 +53,7 @@
     "@happy-dom/global-registrator": "^20.8.3",
     "@pyreon/core": ">=0.7.0 <0.8.0",
     "@pyreon/reactivity": ">=0.7.0 <0.8.0",
+    "@types/pdfmake": "^0.3.2",
     "@vitus-labs/tools-lint": "^1.11.0",
     "docx": "^9.6.0",
     "exceljs": "^4.4.0",
