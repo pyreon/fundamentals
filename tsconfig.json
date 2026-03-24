@@ -1,6 +1,7 @@
 {
   "extends": "@pyreon/typescript/lib",
   "compilerOptions": {
+    "jsxImportSource": "@pyreon/core",
     "customConditions": ["bun"]
   }
 }
