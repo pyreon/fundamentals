@@ -1,8 +1,4 @@
 import { signal, computed } from '@pyreon/reactivity'
-
-function fmt(n: number): string {
-  return new Intl.NumberFormat().format(n)
-}
 import { defineStore } from '@pyreon/store'
 import { createPermissions } from '@pyreon/permissions'
 import { useStorage } from '@pyreon/storage'
@@ -89,7 +85,7 @@ export function DashboardDemo() {
     try {
       const doc = createDocument({ title: 'Sales Dashboard Report' })
         .heading('Sales Dashboard Report')
-        .text(`Total Revenue: $${fmt(store.totalRevenue())}`)
+        .text(`Total Revenue: $${store.totalRevenue().toLocaleString()}`)
         .text(`Top Region: ${store.topRegion()}`)
         .table({
           columns: [
@@ -101,7 +97,7 @@ export function DashboardDemo() {
             .salesData()
             .map((r) => [
               r.region,
-              `$${fmt(r.revenue)}`,
+              `$${r.revenue.toLocaleString()}`,
               `${r.growth}%`,
             ]),
           striped: true,
@@ -162,7 +158,7 @@ export function DashboardDemo() {
               <tr key={r.region}>
                 <td style="padding: 8px">{r.region}</td>
                 <td style="padding: 8px; text-align: right">
-                  ${fmt(r.revenue)}
+                  ${r.revenue.toLocaleString()}
                 </td>
                 <td style="padding: 8px; text-align: right">{r.growth}%</td>
               </tr>
@@ -173,7 +169,7 @@ export function DashboardDemo() {
 
       <p>
         <strong>Total Revenue: </strong>
-        {() => { const rev = store.totalRevenue(); return `$${fmt(rev)}` }}
+        {() => { const rev = store.totalRevenue(); return `$${rev.toLocaleString()}` }}
         {' | '}
         <strong>Top Region: </strong>
         {() => store.topRegion()}

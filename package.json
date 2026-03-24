@@ -32,15 +32,15 @@
     "vitest": "^4.1.0"
   },
   "overrides": {
-    "@pyreon/core": "0.7.10",
-    "@pyreon/reactivity": "0.7.10",
-    "@pyreon/runtime-dom": "0.7.10"
+    "@pyreon/core": "0.7.11",
+    "@pyreon/reactivity": "0.7.11",
+    "@pyreon/runtime-dom": "0.7.11"
   },
   "dependencies": {
-    "@pyreon/core": "0.7.10",
-    "@pyreon/reactivity": "0.7.10",
-    "@pyreon/runtime-dom": "0.7.10",
-    "@pyreon/typescript": "0.7.10",
-    "@pyreon/vite-plugin": "0.7.10"
+    "@pyreon/core": "0.7.11",
+    "@pyreon/reactivity": "0.7.11",
+    "@pyreon/runtime-dom": "0.7.11",
+    "@pyreon/typescript": "0.7.11",
+    "@pyreon/vite-plugin": "0.7.11"
   }
 }

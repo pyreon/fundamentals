@@ -11,7 +11,7 @@
   "dependencies": {
     "@pyreon/charts": "workspace:*",
     "@pyreon/code": "workspace:*",
-    "@pyreon/core": "0.7.10",
+    "@pyreon/core": "0.7.11",
     "@pyreon/document": "workspace:*",
     "@pyreon/form": "workspace:*",
     "@pyreon/hotkeys": "workspace:*",
@@ -19,8 +19,8 @@
     "@pyreon/machine": "workspace:*",
     "@pyreon/permissions": "workspace:*",
     "@pyreon/query": "workspace:*",
-    "@pyreon/reactivity": "0.7.10",
-    "@pyreon/runtime-dom": "0.7.10",
+    "@pyreon/reactivity": "0.7.11",
+    "@pyreon/runtime-dom": "0.7.11",
     "@pyreon/state-tree": "workspace:*",
     "@pyreon/storage": "workspace:*",
     "@pyreon/store": "workspace:*",
@@ -33,7 +33,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@pyreon/vite-plugin": "0.7.10",
+    "@pyreon/vite-plugin": "0.7.11",
     "typescript": "^6.0.2",
     "vite": "^8.0.0"
   }
