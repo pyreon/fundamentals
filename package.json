@@ -31,10 +31,16 @@
     "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },
+  "overrides": {
+    "@pyreon/core": ">=0.7.9 <0.8.0",
+    "@pyreon/reactivity": ">=0.7.9 <0.8.0",
+    "@pyreon/runtime-dom": ">=0.7.9 <0.8.0"
+  },
   "dependencies": {
-    "@pyreon/core": "^0.7.5",
-    "@pyreon/reactivity": "^0.7.5",
-    "@pyreon/runtime-dom": "^0.7.5",
-    "@pyreon/typescript": "^0.7.5"
+    "@pyreon/core": ">=0.7.9 <0.8.0",
+    "@pyreon/reactivity": ">=0.7.9 <0.8.0",
+    "@pyreon/runtime-dom": ">=0.7.9 <0.8.0",
+    "@pyreon/typescript": ">=0.7.0 <0.8.0",
+    "@pyreon/vite-plugin": ">=0.7.9 <0.8.0"
   }
 }

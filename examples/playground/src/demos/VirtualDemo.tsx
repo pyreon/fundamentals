@@ -27,7 +27,7 @@ export function VirtualDemo() {
 
       <div class="section">
         <h3>
-          Virtual List ({items.length.toLocaleString()} items)
+          Virtual List ({String(items.length)} items)
           {() =>
             isScrolling() ? (
               <span class="badge blue" style="margin-left: 8px">
@@ -38,7 +38,7 @@ export function VirtualDemo() {
         </h3>
         <p style="font-size: 13px; color: #666; margin-bottom: 8px">
           Rendered: {() => virtualItems().length} /{' '}
-          {items.length.toLocaleString()}
+          {String(items.length)}
         </p>
 
         <div
