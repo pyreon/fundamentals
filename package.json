@@ -9,9 +9,10 @@
     "lint": "biome lint ./packages/",
     "format": "biome format --write ./packages/",
     "check": "biome check --write ./packages/",
+    "verify": "bun run lint && bunx biome format ./packages/ && bun run typecheck && bun run test",
     "typecheck": "bun run --filter='@pyreon/*' typecheck",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "bun run scripts/version.ts",
     "release": "bun run build && bun run scripts/publish.ts"
   },
   "devDependencies": {
