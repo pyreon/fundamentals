@@ -2918,3 +2918,250 @@ describe('builder toSlack', () => {
     expect(parsed.blocks[1].type).toBe('section')
   })
 })
+
+// ─── Builder toPptx / toXlsx ────────────────────────────────────────────────
+
+describe('builder toPptx', () => {
+  it('returns a Uint8Array', async () => {
+    const result = await createDocument()
+      .heading('Slides')
+      .text('Content')
+      .toPptx()
+    expect(result).toBeInstanceOf(Uint8Array)
+  })
+})
+
+describe('builder toXlsx', () => {
+  it('returns a Uint8Array', async () => {
+    const result = await createDocument()
+      .table({ columns: ['A', 'B'], rows: [['1', '2']] })
+      .toXlsx()
+    expect(result).toBeInstanceOf(Uint8Array)
+  })
+})
+
+// ─── Sanitization ───────────────────────────────────────────────────────────
+
+import {
+  sanitizeColor,
+  sanitizeCss,
+  sanitizeHref,
+  sanitizeImageSrc,
+  sanitizeStyle,
+  sanitizeXmlColor,
+} from '../sanitize'
+
+describe('sanitizeColor', () => {
+  it('returns empty string for undefined/null', () => {
+    expect(sanitizeColor(undefined)).toBe('')
+  })
+
+  it('accepts 3-digit hex', () => {
+    expect(sanitizeColor('#fff')).toBe('#fff')
+    expect(sanitizeColor('#ABC')).toBe('#ABC')
+  })
+
+  it('accepts 6-digit hex', () => {
+    expect(sanitizeColor('#ffffff')).toBe('#ffffff')
+    expect(sanitizeColor('#1a2B3c')).toBe('#1a2B3c')
+  })
+
+  it('accepts 8-digit hex (with alpha)', () => {
+    expect(sanitizeColor('#ffffffff')).toBe('#ffffffff')
+  })
+
+  it('accepts named colors', () => {
+    expect(sanitizeColor('red')).toBe('red')
+    expect(sanitizeColor('blue')).toBe('blue')
+    expect(sanitizeColor('transparent')).toBe('transparent')
+    expect(sanitizeColor('inherit')).toBe('inherit')
+    expect(sanitizeColor('currentColor')).toBe('currentColor')
+    expect(sanitizeColor('initial')).toBe('initial')
+    expect(sanitizeColor('unset')).toBe('unset')
+  })
+
+  it('accepts rgb/rgba/hsl/hsla', () => {
+    expect(sanitizeColor('rgb(255, 0, 0)')).toBe('rgb(255, 0, 0)')
+    expect(sanitizeColor('rgba(255, 0, 0, 0.5)')).toBe('rgba(255, 0, 0, 0.5)')
+    expect(sanitizeColor('hsl(120, 50%, 50%)')).toBe('hsl(120, 50%, 50%)')
+    expect(sanitizeColor('hsla(120, 50%, 50%, 0.5)')).toBe(
+      'hsla(120, 50%, 50%, 0.5)',
+    )
+  })
+
+  it('rejects values with semicolons', () => {
+    expect(sanitizeColor('red; background: url(evil)')).toBe('')
+  })
+
+  it('rejects expressions', () => {
+    expect(sanitizeColor('expression(alert(1))')).toBe('')
+  })
+
+  it('rejects urls', () => {
+    expect(sanitizeColor('url(http://evil.com)')).toBe('')
+  })
+
+  it('trims whitespace', () => {
+    expect(sanitizeColor('  #fff  ')).toBe('#fff')
+  })
+})
+
+describe('sanitizeXmlColor', () => {
+  it('strips # and returns hex', () => {
+    expect(sanitizeXmlColor('#ff0000')).toBe('ff0000')
+  })
+
+  it('accepts hex without #', () => {
+    expect(sanitizeXmlColor('aabbcc')).toBe('aabbcc')
+  })
+
+  it('accepts short hex', () => {
+    expect(sanitizeXmlColor('fff')).toBe('fff')
+  })
+
+  it('returns fallback for undefined', () => {
+    expect(sanitizeXmlColor(undefined)).toBe('000000')
+  })
+
+  it('returns fallback for invalid input', () => {
+    expect(sanitizeXmlColor('not-a-color')).toBe('000000')
+  })
+
+  it('uses custom fallback', () => {
+    expect(sanitizeXmlColor('invalid', 'FFFFFF')).toBe('FFFFFF')
+  })
+})
+
+describe('sanitizeHref', () => {
+  it('allows http urls', () => {
+    expect(sanitizeHref('http://example.com')).toBe('http://example.com')
+  })
+
+  it('allows https urls', () => {
+    expect(sanitizeHref('https://example.com')).toBe('https://example.com')
+  })
+
+  it('blocks javascript: protocol', () => {
+    expect(sanitizeHref('javascript:alert(1)')).toBe('')
+  })
+
+  it('blocks javascript: with spaces', () => {
+    expect(sanitizeHref('  java script:alert(1)')).toBe('')
+  })
+
+  it('blocks vbscript: protocol', () => {
+    expect(sanitizeHref('vbscript:MsgBox("XSS")')).toBe('')
+  })
+
+  it('allows data:image URIs', () => {
+    expect(sanitizeHref('data:image/png;base64,abc')).toBe(
+      'data:image/png;base64,abc',
+    )
+  })
+
+  it('blocks non-image data: URIs', () => {
+    expect(sanitizeHref('data:text/html,<script>alert(1)</script>')).toBe('')
+  })
+
+  it('returns empty string for undefined', () => {
+    expect(sanitizeHref(undefined)).toBe('')
+  })
+
+  it('allows relative paths', () => {
+    expect(sanitizeHref('/images/photo.jpg')).toBe('/images/photo.jpg')
+  })
+})
+
+describe('sanitizeImageSrc', () => {
+  it('allows http urls', () => {
+    expect(sanitizeImageSrc('https://img.example.com/a.png')).toBe(
+      'https://img.example.com/a.png',
+    )
+  })
+
+  it('blocks javascript: protocol', () => {
+    expect(sanitizeImageSrc('javascript:alert(1)')).toBe('')
+  })
+
+  it('blocks vbscript: protocol', () => {
+    expect(sanitizeImageSrc('vbscript:foo')).toBe('')
+  })
+
+  it('allows data:image URIs', () => {
+    expect(sanitizeImageSrc('data:image/svg+xml,<svg/>')).toBe(
+      'data:image/svg+xml,<svg/>',
+    )
+  })
+
+  it('blocks non-image data: URIs', () => {
+    expect(sanitizeImageSrc('data:text/plain,evil')).toBe('')
+  })
+
+  it('returns empty string for undefined', () => {
+    expect(sanitizeImageSrc(undefined)).toBe('')
+  })
+})
+
+describe('sanitizeCss', () => {
+  it('returns empty string for undefined', () => {
+    expect(sanitizeCss(undefined)).toBe('')
+  })
+
+  it('strips semicolons', () => {
+    expect(sanitizeCss('color: red; background: blue')).toBe(
+      'color: red background: blue',
+    )
+  })
+
+  it('strips braces', () => {
+    expect(sanitizeCss('a{b}')).toBe('ab')
+  })
+
+  it('strips angle brackets', () => {
+    expect(sanitizeCss('font-size: 14px <script>')).toBe(
+      'font-size: 14px script',
+    )
+  })
+
+  it('strips expression()', () => {
+    // expression\s*( is replaced first, then parens are stripped by character class
+    expect(sanitizeCss('width: expression(alert(1))')).toBe(
+      'width: expressionalert1',
+    )
+  })
+
+  it('strips url()', () => {
+    // url\s*( is replaced first, then parens stripped by character class
+    expect(sanitizeCss('background: url(http://evil.com)')).toBe(
+      'background: urlhttp://evil.com',
+    )
+  })
+
+  it('strips javascript: in CSS', () => {
+    expect(sanitizeCss('background: javascript:alert(1)')).toBe(
+      'background: alert1',
+    )
+  })
+
+  it('passes through safe CSS values', () => {
+    expect(sanitizeCss('font-size: 14px')).toBe('font-size: 14px')
+    expect(sanitizeCss('color: #333')).toBe('color: #333')
+  })
+})
+
+describe('sanitizeStyle', () => {
+  it('returns empty string for undefined', () => {
+    expect(sanitizeStyle(undefined)).toBe('')
+  })
+
+  it('delegates to sanitizeCss', () => {
+    expect(sanitizeStyle('color: red; font-size: 12px')).toBe(
+      sanitizeCss('color: red; font-size: 12px'),
+    )
+  })
+
+  it('strips dangerous content', () => {
+    // Parens stripped by character class, url keyword remains
+    expect(sanitizeStyle('background: url(evil)')).toBe('background: urlevil')
+  })
+})

@@ -799,4 +799,392 @@ describe('createFlow — advanced', () => {
       expect(flow.edges()[0]!.type).toBe('straight')
     })
   })
+
+  describe('resolveCollisions — additional branches', () => {
+    it('returns early for nonexistent node', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 0, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      // Should not throw for missing node
+      flow.resolveCollisions('nonexistent')
+      expect(flow.getNode('1')!.position).toEqual({ x: 0, y: 0 })
+    })
+
+    it('resolves horizontal overlap when node is to the right', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 80, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '2',
+            position: { x: 0, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      flow.resolveCollisions('1')
+      const node2 = flow.getNode('2')!
+      // Node 1 is to the right of node 2, so push should be in X direction
+      expect(node2.position.x !== 0 || node2.position.y !== 0).toBe(true)
+    })
+
+    it('resolves vertical overlap when node is below', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 0, y: 20 },
+            width: 200,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '2',
+            position: { x: 0, y: 0 },
+            width: 200,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      flow.resolveCollisions('1')
+      const node2 = flow.getNode('2')!
+      // Should push vertically since horizontal overlap is larger
+      expect(node2.position.y !== 0).toBe(true)
+    })
+
+    it('uses default dimensions when width/height not set', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 50, y: 10 }, data: {} },
+        ],
+      })
+
+      flow.resolveCollisions('1')
+      const node2 = flow.getNode('2')!
+      expect(node2.position.x !== 50 || node2.position.y !== 10).toBe(true)
+    })
+
+    it('handles custom spacing parameter', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 0, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '2',
+            position: { x: 50, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      flow.resolveCollisions('1', 50)
+      const node2 = flow.getNode('2')!
+      // Larger spacing should push further
+      expect(node2.position.x !== 50 || node2.position.y !== 0).toBe(true)
+    })
+  })
+
+  describe('getOverlappingNodes', () => {
+    it('returns overlapping nodes', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 0, y: 0 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '2',
+            position: { x: 50, y: 20 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+          {
+            id: '3',
+            position: { x: 500, y: 500 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      const overlapping = flow.getOverlappingNodes('1')
+      expect(overlapping).toHaveLength(1)
+      expect(overlapping[0]!.id).toBe('2')
+    })
+
+    it('returns empty for nonexistent node', () => {
+      const flow = createFlow()
+      expect(flow.getOverlappingNodes('missing')).toEqual([])
+    })
+  })
+
+  describe('focusNode', () => {
+    it('centers viewport on node and selects it', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          {
+            id: '2',
+            position: { x: 500, y: 500 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      flow.focusNode('2')
+      // Node 2 should be selected (selectedNodes returns string IDs)
+      expect(flow.selectedNodes()).toContain('2')
+    })
+
+    it('does nothing for nonexistent node', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      const vpBefore = { ...flow.viewport() }
+      flow.focusNode('nonexistent')
+      // Viewport shouldn't change immediately (animateViewport uses rAF)
+      // But more importantly, no error thrown
+      expect(flow.viewport().zoom).toBe(vpBefore.zoom)
+    })
+
+    it('uses provided focusZoom', () => {
+      const flow = createFlow({
+        nodes: [
+          {
+            id: '1',
+            position: { x: 200, y: 200 },
+            width: 100,
+            height: 50,
+            data: {},
+          },
+        ],
+      })
+
+      flow.focusNode('1', 2)
+      // Should select the node (selectedNodes returns string IDs)
+      expect(flow.selectedNodes()).toContain('1')
+    })
+  })
+
+  describe('searchNodes', () => {
+    it('finds nodes by label', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: { label: 'Hello World' } },
+          { id: '2', position: { x: 100, y: 0 }, data: { label: 'Goodbye' } },
+        ],
+      })
+
+      const results = flow.searchNodes('hello')
+      expect(results).toHaveLength(1)
+      expect(results[0]!.id).toBe('1')
+    })
+
+    it('falls back to node id when no label', () => {
+      const flow = createFlow({
+        nodes: [{ id: 'my-node', position: { x: 0, y: 0 }, data: {} }],
+      })
+
+      const results = flow.searchNodes('my-node')
+      expect(results).toHaveLength(1)
+    })
+  })
+
+  describe('findNodes', () => {
+    it('filters nodes by predicate', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, type: 'input', data: {} },
+          { id: '2', position: { x: 100, y: 0 }, type: 'output', data: {} },
+          { id: '3', position: { x: 200, y: 0 }, type: 'input', data: {} },
+        ],
+      })
+
+      const inputs = flow.findNodes((n) => n.type === 'input')
+      expect(inputs).toHaveLength(2)
+    })
+  })
+
+  describe('fromJSON edge cases', () => {
+    it('restores nodes, edges, and viewport', () => {
+      const flow = createFlow()
+      flow.addNode({ id: 'x', position: { x: 0, y: 0 }, data: {} })
+
+      flow.fromJSON({
+        nodes: [
+          { id: '1', position: { x: 10, y: 20 }, data: {} },
+          { id: '2', position: { x: 30, y: 40 }, data: {} },
+        ],
+        edges: [{ source: '1', target: '2' }],
+        viewport: { x: 100, y: 200, zoom: 1.5 },
+      })
+
+      expect(flow.nodes()).toHaveLength(2)
+      expect(flow.edges()).toHaveLength(1)
+      expect(flow.viewport()).toEqual({ x: 100, y: 200, zoom: 1.5 })
+    })
+
+    it('works without viewport in data', () => {
+      const flow = createFlow()
+      const vpBefore = { ...flow.viewport() }
+
+      flow.fromJSON({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+        edges: [],
+      })
+
+      expect(flow.nodes()).toHaveLength(1)
+      expect(flow.viewport()).toEqual(vpBefore)
+    })
+
+    it('assigns default edge type and generates ids', () => {
+      const flow = createFlow({ defaultEdgeType: 'smoothstep' })
+
+      flow.fromJSON({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: {} },
+          { id: '2', position: { x: 100, y: 0 }, data: {} },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      })
+
+      expect(flow.edges()[0]!.type).toBe('smoothstep')
+      expect(flow.edges()[0]!.id).toBeDefined()
+    })
+
+    it('clears selection after import', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+      })
+      flow.selectNode('1')
+
+      flow.fromJSON({
+        nodes: [{ id: '2', position: { x: 0, y: 0 }, data: {} }],
+        edges: [],
+      })
+
+      expect(flow.selectedNodes()).toHaveLength(0)
+    })
+  })
+
+  describe('toJSON', () => {
+    it('returns deep clone of state', () => {
+      const flow = createFlow({
+        nodes: [
+          { id: '1', position: { x: 0, y: 0 }, data: { label: 'test' } },
+          { id: '2', position: { x: 100, y: 0 }, data: {} },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      })
+
+      const json = flow.toJSON()
+      expect(json.nodes).toHaveLength(2)
+      expect(json.edges).toHaveLength(1)
+      expect(json.viewport).toEqual(flow.viewport())
+
+      // Verify it's a deep clone — mutations don't affect flow
+      json.nodes[0]!.position.x = 999
+      expect(flow.getNode('1')!.position.x).toBe(0)
+    })
+  })
+
+  describe('animateViewport', () => {
+    it('starts animation and updates viewport', async () => {
+      const flow = createFlow()
+      expect(flow.viewport()).toEqual({ x: 0, y: 0, zoom: 1 })
+
+      flow.animateViewport({ x: 100, y: 200, zoom: 2 }, 50)
+
+      // requestAnimationFrame is async — wait for animation to complete
+      await new Promise((r) => setTimeout(r, 200))
+
+      // After animation, viewport should be at target
+      const vp = flow.viewport()
+      expect(vp.x).toBeCloseTo(100, 0)
+      expect(vp.y).toBeCloseTo(200, 0)
+      expect(vp.zoom).toBeCloseTo(2, 0)
+    })
+
+    it('animates with partial target', async () => {
+      const flow = createFlow()
+      flow.animateViewport({ x: 50 }, 50)
+
+      await new Promise((r) => setTimeout(r, 200))
+
+      const vp = flow.viewport()
+      expect(vp.x).toBeCloseTo(50, 0)
+      expect(vp.y).toBe(0) // unchanged
+      expect(vp.zoom).toBe(1) // unchanged
+    })
+  })
+
+  describe('moveSelectedNodes — with extent', () => {
+    it('respects node extent when moving', () => {
+      const flow = createFlow({
+        nodes: [{ id: '1', position: { x: 0, y: 0 }, data: {} }],
+        nodeExtent: [
+          [0, 0],
+          [500, 500],
+        ],
+      })
+
+      flow.selectNode('1')
+      flow.moveSelectedNodes(50, 25)
+
+      expect(flow.getNode('1')!.position).toEqual({ x: 50, y: 25 })
+    })
+  })
+
+  describe('setNodeExtent', () => {
+    it('sets and clears node extent', () => {
+      const flow = createFlow()
+
+      flow.setNodeExtent([
+        [0, 0],
+        [100, 100],
+      ])
+      expect(flow.clampToExtent({ x: 200, y: 200 }, 50, 50)).toEqual({
+        x: 50,
+        y: 50,
+      })
+
+      flow.setNodeExtent(null)
+      expect(flow.clampToExtent({ x: 200, y: 200 })).toEqual({ x: 200, y: 200 })
+    })
+  })
 })

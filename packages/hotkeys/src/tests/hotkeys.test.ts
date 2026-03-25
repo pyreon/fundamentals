@@ -94,6 +94,64 @@ describe('parseShortcut', () => {
     expect(combo.shift).toBe(true)
     expect(combo.key).toBe('s')
   })
+
+  it('handles empty shortcut string', () => {
+    const combo = parseShortcut('')
+    expect(combo.key).toBe('')
+    expect(combo.ctrl).toBe(false)
+    expect(combo.shift).toBe(false)
+    expect(combo.alt).toBe(false)
+    expect(combo.meta).toBe(false)
+  })
+
+  it('handles additional aliases', () => {
+    expect(parseShortcut('ins').key).toBe('insert')
+    expect(parseShortcut('spacebar').key).toBe(' ')
+    expect(parseShortcut('up').key).toBe('arrowup')
+    expect(parseShortcut('down').key).toBe('arrowdown')
+    expect(parseShortcut('left').key).toBe('arrowleft')
+    expect(parseShortcut('right').key).toBe('arrowright')
+    expect(parseShortcut('plus').key).toBe('+')
+  })
+
+  it('handles unknown key names as-is', () => {
+    const combo = parseShortcut('ctrl+f12')
+    expect(combo.ctrl).toBe(true)
+    expect(combo.key).toBe('f12')
+  })
+
+  it('trims whitespace around parts', () => {
+    const combo = parseShortcut('  ctrl + shift + a  ')
+    expect(combo.ctrl).toBe(true)
+    expect(combo.shift).toBe(true)
+    expect(combo.key).toBe('a')
+  })
+
+  it('mod resolves to ctrl on non-Mac', () => {
+    // In happy-dom (non-Mac environment), mod should resolve to ctrl
+    const combo = parseShortcut('mod+s')
+    expect(combo.ctrl).toBe(true)
+    expect(combo.meta).toBe(false)
+    expect(combo.key).toBe('s')
+  })
+
+  it('mod resolves to meta on Mac', () => {
+    const originalUA = navigator.userAgent
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+      configurable: true,
+    })
+
+    const combo = parseShortcut('mod+s')
+    expect(combo.meta).toBe(true)
+    expect(combo.ctrl).toBe(false)
+    expect(combo.key).toBe('s')
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: originalUA,
+      configurable: true,
+    })
+  })
 })
 
 describe('matchesCombo', () => {
