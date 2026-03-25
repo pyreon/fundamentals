@@ -316,7 +316,14 @@ function processSlide(pageNode: DocNode, pptx: PptxGen): void {
 
 export const pptxRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
-    const PptxGenJS = await import('pptxgenjs')
+    let PptxGenJS: any
+    try {
+      PptxGenJS = await import('pptxgenjs')
+    } catch {
+      throw new Error(
+        '[@pyreon/document] PPTX renderer requires "pptxgenjs" package. Install it: bun add pptxgenjs',
+      )
+    }
     const PptxGenClass = PptxGenJS.default ?? PptxGenJS
 
     const pptx = new PptxGenClass() as PptxGen

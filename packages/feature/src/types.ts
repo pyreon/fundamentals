@@ -6,13 +6,26 @@ import type { SortingState } from '@pyreon/table'
 import type { FieldInfo } from './schema'
 
 /**
+ * Duck-typed schema inference. Matches Zod (`_output`), Valibot, ArkType
+ * without importing their types. Allows TypeScript to infer TValues from schema.
+ */
+export type InferSchemaValues<TSchema> = TSchema extends {
+  _output: infer T extends Record<string, unknown>
+}
+  ? T // Zod v3/v4: z.ZodType has _output
+  : TSchema extends { infer: infer T extends Record<string, unknown> }
+    ? T // ArkType
+    : Record<string, unknown>
+
+/**
  * Configuration for defining a feature.
  */
 export interface FeatureConfig<TValues extends Record<string, unknown>> {
   /** Unique feature name — used for store ID and query key namespace. */
   name: string
-  /** Validation schema (Zod, Valibot, or ArkType). Duck-typed — must have `safeParseAsync` for auto-validation. */
-  schema: unknown
+  /** Validation schema (Zod, Valibot, or ArkType). Duck-typed — must have `safeParseAsync` for auto-validation.
+   * Zod schemas carry `_output` for automatic TValues inference. */
+  schema: { _output?: TValues } & Record<never, never>
   /** Custom schema-level validation function. If provided, overrides auto-detection from schema. */
   validate?: SchemaValidateFn<TValues>
   /** API base path (e.g., '/api/users'). */

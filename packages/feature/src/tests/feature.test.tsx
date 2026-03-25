@@ -1338,7 +1338,7 @@ describe('edge cases', () => {
   it('defineFeature works without a Zod schema (no validation)', () => {
     const items = defineFeature<{ title: string }>({
       name: 'items-no-zod',
-      schema: { notAZodSchema: true },
+      schema: { notAZodSchema: true } as { _output?: { title: string } },
       api: '/api/items',
     })
 

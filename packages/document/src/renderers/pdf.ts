@@ -340,8 +340,16 @@ function renderHeaderFooter(node: DocNode | undefined): PdfContent | undefined {
 export const pdfRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
     // Lazy-load pdfmake — handle ESM/CJS interop
-    const pdfMakeModule = await import('pdfmake/build/pdfmake')
-    const pdfFontsModule = await import('pdfmake/build/vfs_fonts')
+    let pdfMakeModule: any
+    let pdfFontsModule: any
+    try {
+      pdfMakeModule = await import('pdfmake/build/pdfmake')
+      pdfFontsModule = await import('pdfmake/build/vfs_fonts')
+    } catch {
+      throw new Error(
+        '[@pyreon/document] PDF renderer requires "pdfmake" package. Install it: bun add pdfmake',
+      )
+    }
 
     // Resolve the actual exports (handle .default for ESM wrappers).
     // pdfmake's default export is a singleton instance of browser_extensions_pdfmake.

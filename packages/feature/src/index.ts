@@ -13,5 +13,6 @@ export type {
   FeatureStore,
   FeatureTableOptions,
   FeatureTableResult,
+  InferSchemaValues,
   ListOptions,
 } from './types'
