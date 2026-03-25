@@ -487,6 +487,147 @@ describe('createTabbedEditor', () => {
     expect(te.activeTabId()).toBe('')
     expect(te.editor.value()).toBe('')
   })
+
+  it('switchTab does nothing for nonexistent tab', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: 'aaa' }],
+    })
+
+    te.switchTab('nonexistent')
+    expect(te.activeTabId()).toBe('a.ts')
+    expect(te.editor.value()).toBe('aaa')
+  })
+
+  it('closeTab does nothing for nonexistent tab', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+
+    te.closeTab('nonexistent')
+    expect(te.tabs()).toHaveLength(2)
+  })
+
+  it('closing active tab switches to previous when at end', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+        { name: 'c.ts', value: 'ccc' },
+      ],
+    })
+
+    te.switchTab('c.ts')
+    te.closeTab('c.ts')
+    // Should switch to b.ts (last remaining tab index)
+    expect(te.activeTabId()).not.toBe('c.ts')
+    expect(te.tabs()).toHaveLength(2)
+  })
+
+  it('closing non-active tab does not change active tab', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+        { name: 'c.ts', value: 'ccc' },
+      ],
+    })
+
+    te.switchTab('a.ts')
+    te.closeTab('c.ts')
+    expect(te.activeTabId()).toBe('a.ts')
+    expect(te.tabs()).toHaveLength(2)
+  })
+
+  it('onChange callback triggers modified indicator', () => {
+    let userOnChangeCalled = false
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', language: 'typescript', value: 'original' }],
+      editorConfig: {
+        onChange: () => {
+          userOnChangeCalled = true
+        },
+      },
+    })
+
+    // Simulate what happens when CodeMirror fires onChange internally
+    // The tabbed editor wraps onChange to track modified state
+    te.editor.config.onChange?.('modified content')
+    expect(te.tabs()[0]!.modified).toBe(true)
+    expect(userOnChangeCalled).toBe(true)
+  })
+
+  it('onChange does not mark modified when value matches original', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', language: 'typescript', value: 'original' }],
+    })
+
+    // Calling onChange with same value as original should not mark modified
+    te.editor.config.onChange?.('original')
+    expect(te.tabs()[0]!.modified).toBeUndefined()
+  })
+
+  it('onChange with empty activeTabId is a no-op', () => {
+    const te = createTabbedEditor()
+
+    // No tabs, activeTabId is '' — should not throw
+    expect(() => te.editor.config.onChange?.('something')).not.toThrow()
+  })
+
+  it('closeAll with all closable tabs clears editor', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+
+    te.closeAll()
+    expect(te.tabs()).toHaveLength(0)
+    expect(te.activeTabId()).toBe('')
+    expect(te.editor.value()).toBe('')
+  })
+
+  it('closeAll switches to remaining unclosable tab', () => {
+    const te = createTabbedEditor({
+      tabs: [
+        { name: 'main.ts', value: 'main', closable: false },
+        { name: 'a.ts', value: 'aaa' },
+        { name: 'b.ts', value: 'bbb' },
+      ],
+    })
+
+    te.switchTab('b.ts')
+    te.closeAll()
+    expect(te.tabs()).toHaveLength(1)
+    expect(te.activeTabId()).toBe('main.ts')
+  })
+
+  it('creates with theme option', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: '' }],
+      theme: 'dark',
+    })
+    expect(te.editor.theme()).toBe('dark')
+  })
+
+  it('editorConfig options are passed to editor', () => {
+    const te = createTabbedEditor({
+      tabs: [{ name: 'a.ts', value: 'hello' }],
+      editorConfig: { readOnly: true },
+    })
+    expect(te.editor.readOnly()).toBe(true)
+  })
+
+  it('tabs with explicit id use that id', () => {
+    const te = createTabbedEditor({
+      tabs: [{ id: 'custom-id', name: 'a.ts', value: 'content' }],
+    })
+    expect(te.activeTabId()).toBe('custom-id')
+    expect(te.getTab('custom-id')?.name).toBe('a.ts')
+  })
 })
 
 describe('getAvailableLanguages', () => {
