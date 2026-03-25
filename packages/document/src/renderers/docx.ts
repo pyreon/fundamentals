@@ -383,7 +383,14 @@ function renderButtonOrQuote(ctx: DocxCtx, n: DocNode): void {
 
 export const docxRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
-    const docx = await import('docx')
+    let docx: typeof import('docx')
+    try {
+      docx = await import('docx')
+    } catch {
+      throw new Error(
+        '[@pyreon/document] DOCX renderer requires "docx" package. Install it: bun add docx',
+      )
+    }
     const children: unknown[] = []
     let listCounter = 0
 

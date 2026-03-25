@@ -417,3 +417,295 @@ describe('preview render', () => {
     ).toThrow('[@pyreon/storybook] No component provided')
   })
 })
+
+// ─── Decorator wrapping ─────────────────────────────────────────────────────
+
+describe('decorator wrapping', () => {
+  it('decorator modifies the rendered VNode structure', () => {
+    function Badge(props: { text: string }) {
+      return <span class="badge">{props.text}</span>
+    }
+
+    const withCard: DecoratorFn<{ text: string }> = (storyFn, ctx) => {
+      return (
+        <div class="card">
+          <h3>Decorated</h3>
+          {storyFn(ctx.args, ctx)}
+        </div>
+      )
+    }
+
+    const canvas = createCanvas()
+    const context: StoryContext<{ text: string }> = {
+      args: { text: 'Info' },
+      argTypes: {},
+      globals: {},
+      id: '1',
+      kind: 'Badge',
+      name: 'Default',
+      viewMode: 'story',
+    }
+
+    const decorated = withCard((args) => <Badge {...args} />, context)
+    const unmount = mount(decorated, canvas)
+
+    expect(canvas.querySelector('.card')).toBeTruthy()
+    expect(canvas.querySelector('h3')!.textContent).toBe('Decorated')
+    expect(canvas.querySelector('.badge')!.textContent).toBe('Info')
+    unmount()
+    canvas.remove()
+  })
+})
+
+// ─── Component with no args ─────────────────────────────────────────────────
+
+describe('component with no args', () => {
+  it('renders a component without any props via renderToCanvas', () => {
+    function Logo() {
+      return <img src="/logo.png" alt="Logo" />
+    }
+
+    const canvas = createCanvas()
+    renderToCanvas(
+      makeRenderContext({
+        storyFn: () => <Logo />,
+        args: {},
+      }),
+      canvas,
+    )
+
+    expect(canvas.querySelector('img')).toBeTruthy()
+    expect(canvas.querySelector('img')!.getAttribute('alt')).toBe('Logo')
+    canvas.remove()
+  })
+
+  it('renders a component with no args via defaultRender', () => {
+    function Divider() {
+      return <hr class="divider" />
+    }
+
+    const canvas = createCanvas()
+    const vnode = defaultRender(Divider, {})
+    const unmount = mount(vnode, canvas)
+
+    expect(canvas.querySelector('hr')).toBeTruthy()
+    expect(canvas.querySelector('.divider')).toBeTruthy()
+    unmount()
+    canvas.remove()
+  })
+
+  it('preview render works with empty args', () => {
+    function Spinner() {
+      return <div class="spinner">Loading...</div>
+    }
+
+    const canvas = createCanvas()
+    const vnode = previewRender({}, { component: Spinner })
+    const unmount = mount(vnode, canvas)
+
+    expect(canvas.querySelector('.spinner')!.textContent).toBe('Loading...')
+    unmount()
+    canvas.remove()
+  })
+})
+
+// ─── Error handling ──────────────────────────────────────────────────────────
+
+describe('error handling', () => {
+  it('showError is called when storyFn itself throws', () => {
+    const canvas = createCanvas()
+    let errorShown: { title: string; description: string } | null = null
+
+    renderToCanvas(
+      {
+        storyFn: () => {
+          throw new Error('storyFn exploded')
+        },
+        storyContext: { args: {} },
+        showMain: () => {
+          /* noop */
+        },
+        showError: (err: { title: string; description: string }) => {
+          errorShown = err
+        },
+        forceRemount: false,
+      },
+      canvas,
+    )
+
+    expect(errorShown).not.toBeNull()
+    expect(errorShown!.description).toBe('storyFn exploded')
+    canvas.remove()
+  })
+
+  it('showError receives string-coerced non-Error throws', () => {
+    const canvas = createCanvas()
+    let errorShown: { title: string; description: string } | null = null
+
+    renderToCanvas(
+      {
+        storyFn: () => {
+          throw 'raw string error'
+        },
+        storyContext: { args: {} },
+        showMain: () => {
+          /* noop */
+        },
+        showError: (err: { title: string; description: string }) => {
+          errorShown = err
+        },
+        forceRemount: false,
+      },
+      canvas,
+    )
+
+    expect(errorShown).not.toBeNull()
+    expect(errorShown!.description).toBe('raw string error')
+    canvas.remove()
+  })
+
+  it('component that throws during setup is handled by the framework', () => {
+    const canvas = createCanvas()
+
+    function Broken(): never {
+      throw new Error('Component exploded')
+    }
+
+    // Pyreon's mount catches component setup errors internally,
+    // so renderToCanvas proceeds normally (showMain is called)
+    let mainShown = false
+    renderToCanvas(
+      {
+        storyFn: () => <Broken />,
+        storyContext: { args: {} },
+        showMain: () => {
+          mainShown = true
+        },
+        showError: () => {
+          /* noop */
+        },
+        forceRemount: false,
+      },
+      canvas,
+    )
+
+    // mount() catches the component error internally — renderToCanvas's
+    // try/catch does not see it, so showMain is called
+    expect(mainShown).toBe(true)
+    canvas.remove()
+  })
+})
+
+// ─── Re-render cleanup ──────────────────────────────────────────────────────
+
+describe('re-render cleanup', () => {
+  it('calling renderToCanvas twice cleans up previous mount', () => {
+    const canvas = createCanvas()
+
+    renderToCanvas(
+      makeRenderContext({ storyFn: () => <div class="first">First</div> }),
+      canvas,
+    )
+    expect(canvas.querySelector('.first')).toBeTruthy()
+
+    renderToCanvas(
+      makeRenderContext({ storyFn: () => <div class="second">Second</div> }),
+      canvas,
+    )
+
+    // Previous content should be gone
+    expect(canvas.querySelector('.first')).toBeNull()
+    expect(canvas.querySelector('.second')).toBeTruthy()
+    expect(canvas.textContent).toBe('Second')
+    canvas.remove()
+  })
+
+  it('re-render disposes effects from previous story', () => {
+    const canvas = createCanvas()
+    let effectCount = 0
+
+    const sig = signal(0)
+    function ReactiveStory() {
+      effect(() => {
+        sig()
+        effectCount++
+      })
+      return <div>Reactive</div>
+    }
+
+    renderToCanvas(
+      makeRenderContext({ storyFn: () => <ReactiveStory /> }),
+      canvas,
+    )
+
+    const afterFirst = effectCount
+    sig.set(1)
+    expect(effectCount).toBe(afterFirst + 1)
+
+    // Re-render with a different story
+    renderToCanvas(
+      makeRenderContext({ storyFn: () => <div>Static</div> }),
+      canvas,
+    )
+
+    const afterSecond = effectCount
+    sig.set(2)
+    sig.set(3)
+    // Old effect should be disposed — count should not increase
+    expect(effectCount).toBe(afterSecond)
+    canvas.remove()
+  })
+
+  it('showMain is called on successful render', () => {
+    const canvas = createCanvas()
+    let mainShown = false
+
+    renderToCanvas(
+      {
+        storyFn: () => <div>OK</div>,
+        storyContext: { args: {} },
+        showMain: () => {
+          mainShown = true
+        },
+        showError: () => {
+          /* noop */
+        },
+        forceRemount: false,
+      },
+      canvas,
+    )
+
+    expect(mainShown).toBe(true)
+    canvas.remove()
+  })
+})
+
+// ─── Missing component in context ───────────────────────────────────────────
+
+describe('missing component in context', () => {
+  it('preview render throws when context has no component', () => {
+    expect(() => previewRender({ value: 1 }, {})).toThrow(
+      '[@pyreon/storybook] No component provided',
+    )
+  })
+
+  it('preview render throws when context.component is null', () => {
+    expect(() =>
+      previewRender({ value: 1 }, { component: null } as any),
+    ).toThrow('[@pyreon/storybook] No component provided')
+  })
+
+  it('renderToCanvas works without component in storyContext when storyFn is provided', () => {
+    const canvas = createCanvas()
+
+    renderToCanvas(
+      makeRenderContext({
+        storyFn: () => <div>No component needed</div>,
+      }),
+      canvas,
+    )
+
+    expect(canvas.textContent).toBe('No component needed')
+    canvas.remove()
+  })
+})

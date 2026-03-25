@@ -547,6 +547,128 @@ describe('useSubscription', () => {
     expect(ws.close).toHaveBeenCalled()
   })
 
+  // ─── Error handling & cleanup ──────────────────────────────────────────────
+
+  it('reconnects after connection drop (simulated close)', async () => {
+    const client = makeClient()
+    let sub: UseSubscriptionResult | null = null
+
+    const unmount = withProvider(client, () => {
+      sub = useSubscription({
+        url: 'wss://example.com/ws',
+        onMessage: noop,
+        reconnect: true,
+        reconnectDelay: 20,
+      })
+    })
+
+    // Establish connection then drop it
+    lastMockWS()._simulateOpen()
+    expect(sub!.status()).toBe('connected')
+
+    // Simulate unexpected connection drop
+    lastMockWS()._simulateClose(1006, 'abnormal closure')
+
+    // Wait for reconnect attempt
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(mockInstances).toHaveLength(2)
+    expect(lastMockWS().url).toBe('wss://example.com/ws')
+    expect(sub!.status()).toBe('connecting')
+
+    unmount()
+  })
+
+  it('message handler that throws does not crash the subscription', () => {
+    const client = makeClient()
+    let sub: UseSubscriptionResult | null = null
+
+    const unmount = withProvider(client, () => {
+      sub = useSubscription({
+        url: 'wss://example.com/ws',
+        onMessage: () => {
+          throw new Error('handler boom')
+        },
+      })
+    })
+
+    lastMockWS()._simulateOpen()
+
+    // Should not throw — the error is caught internally
+    expect(() => lastMockWS()._simulateMessage('test')).not.toThrow()
+
+    // Subscription should still be connected
+    expect(sub!.status()).toBe('connected')
+
+    unmount()
+  })
+
+  it('WebSocket is closed on unmount (cleanup)', () => {
+    const client = makeClient()
+
+    const unmount = withProvider(client, () => {
+      useSubscription({
+        url: 'wss://example.com/ws',
+        onMessage: noop,
+      })
+    })
+
+    lastMockWS()._simulateOpen()
+    const ws = lastMockWS()
+
+    expect(ws.readyState).toBe(MockWebSocketClass.OPEN)
+
+    unmount()
+
+    expect(ws.close).toHaveBeenCalled()
+    expect(ws.readyState).toBe(MockWebSocketClass.CLOSED)
+  })
+
+  it('no reconnect attempts after unmount', async () => {
+    const client = makeClient()
+
+    const unmount = withProvider(client, () => {
+      useSubscription({
+        url: 'wss://example.com/ws',
+        onMessage: noop,
+        reconnect: true,
+        reconnectDelay: 20,
+      })
+    })
+
+    lastMockWS()._simulateOpen()
+    unmount()
+
+    // Wait longer than reconnectDelay — should not create new connections
+    await new Promise((r) => setTimeout(r, 80))
+    expect(mockInstances).toHaveLength(1)
+  })
+
+  it('send when disconnected does not crash', () => {
+    const client = makeClient()
+    let sub: UseSubscriptionResult | null = null
+
+    const unmount = withProvider(client, () => {
+      sub = useSubscription({
+        url: 'wss://example.com/ws',
+        onMessage: noop,
+        reconnect: false,
+      })
+    })
+
+    lastMockWS()._simulateOpen()
+    lastMockWS()._simulateClose()
+
+    expect(sub!.status()).toBe('disconnected')
+
+    // Should not throw
+    expect(() => sub!.send('test')).not.toThrow()
+    // The underlying WS send should not have been called (only the one from close)
+    expect(lastMockWS().send).not.toHaveBeenCalled()
+
+    unmount()
+  })
+
   it('resets reconnect count on successful connection', async () => {
     const client = makeClient()
 

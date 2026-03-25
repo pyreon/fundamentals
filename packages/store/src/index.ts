@@ -156,7 +156,7 @@ export function defineStore<T extends Record<string, unknown>>(
     function getState(): Record<string, unknown> {
       const state: Record<string, unknown> = {}
       for (const key of signalKeys) {
-        state[key] = (raw[key] as any).peek()
+        state[key] = (raw[key] as SignalLike).peek()
       }
       return state
     }
@@ -179,7 +179,7 @@ export function defineStore<T extends Record<string, unknown>>(
     // Subscribe to each signal for change detection
     const signalUnsubs: (() => void)[] = []
     for (const key of signalKeys) {
-      const sig = raw[key] as any
+      const sig = raw[key] as SignalLike
       let prev = sig.peek()
       const unsub = sig.subscribe(() => {
         const next = sig.peek()
@@ -216,7 +216,10 @@ export function defineStore<T extends Record<string, unknown>>(
 
           // Handle async actions: if the result is a thenable, wait for
           // resolution before calling after/onError callbacks.
-          if (result != null && typeof (result as any).then === 'function') {
+          if (
+            result != null &&
+            typeof (result as Record<string, unknown>).then === 'function'
+          ) {
             return (result as Promise<unknown>).then(
               (resolved) => {
                 for (const cb of afterCbs) cb(resolved)
@@ -337,7 +340,7 @@ export function defineStore<T extends Record<string, unknown>>(
       reset() {
         batch(() => {
           for (const [key, initial] of initialValues) {
-            ;(raw[key] as any).set(initial)
+            ;(raw[key] as SignalLike).set(initial)
           }
         })
       },

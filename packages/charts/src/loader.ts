@@ -16,6 +16,9 @@ type LooseOption = Record<string, unknown> & {
 
 type ModuleLoader = () => Promise<unknown>
 
+/** The argument type that `echarts/core.use()` accepts. */
+type EChartsUseArg = Parameters<typeof import('echarts/core').use>[0]
+
 // ─── Chart type mapping ─────────────────────────────────────────────────────
 
 const CHARTS: Record<string, ModuleLoader> = {
@@ -124,7 +127,7 @@ async function loadAndRegister(
   if (inflight.has(key)) return inflight.get(key)
 
   const promise = loader().then((mod) => {
-    core.use(mod as any)
+    core.use(mod as EChartsUseArg)
     registered.add(key)
     inflight.delete(key)
   })
@@ -205,7 +208,7 @@ export async function ensureModules(
 export function manualUse(...modules: unknown[]): void {
   const core = getCoreSync()
   if (core) {
-    core.use(modules as any)
+    core.use(modules as EChartsUseArg)
   } else {
     // Core not loaded yet — queue for when it loads
     getCore().then((c) => c.use(modules as any))

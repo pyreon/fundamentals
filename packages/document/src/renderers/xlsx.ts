@@ -296,7 +296,14 @@ function autoFitColumns(ws: {
 
 export const xlsxRenderer: DocumentRenderer = {
   async render(node: DocNode, _options?: RenderOptions): Promise<Uint8Array> {
-    const ExcelJS = await import('exceljs')
+    let ExcelJS: any
+    try {
+      ExcelJS = await import('exceljs')
+    } catch {
+      throw new Error(
+        '[@pyreon/document] XLSX renderer requires "exceljs" package. Install it: bun add exceljs',
+      )
+    }
     const workbook = new ExcelJS.default.Workbook()
 
     workbook.creator = (node.props.author as string) ?? ''

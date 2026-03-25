@@ -1,3 +1,4 @@
+import { signal } from '@pyreon/reactivity'
 import { mount } from '@pyreon/runtime-dom'
 import { Chart } from '../chart-component'
 import {
@@ -360,4 +361,317 @@ describe('supported component keys', () => {
       expect(core).toBeDefined()
     })
   }
+})
+
+// ─── Option validation ──────────────────────────────────────────────────────
+
+describe('option validation', () => {
+  it('handles empty options object', async () => {
+    const core = await ensureModules({})
+    expect(core).toBeDefined()
+  })
+
+  it('throws on null series entries', async () => {
+    await expect(
+      ensureModules({
+        series: [null as any, { type: 'bar', data: [1] }],
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('handles series with no type property', async () => {
+    const core = await ensureModules({
+      series: [{ data: [1, 2, 3] }],
+    })
+    expect(core).toBeDefined()
+  })
+
+  it('handles undefined series value', async () => {
+    const core = await ensureModules({ series: undefined })
+    expect(core).toBeDefined()
+  })
+})
+
+// ─── Multiple chart instances ───────────────────────────────────────────────
+
+describe('multiple chart instances', () => {
+  it('creates independent useChart instances', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart1, unmount: unmount1 } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [1, 2, 3] }],
+      })),
+    )
+
+    const { result: chart2, unmount: unmount2 } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'line', data: [4, 5, 6] }],
+      })),
+    )
+
+    // Each instance has its own signals
+    expect(chart1.instance).not.toBe(chart2.instance)
+    expect(chart1.loading).not.toBe(chart2.loading)
+    expect(chart1.error).not.toBe(chart2.error)
+
+    unmount1()
+    unmount2()
+  })
+
+  it('disposing one chart does not affect another', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { unmount: unmount1 } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [1] }],
+      })),
+    )
+
+    const { result: chart2, unmount: unmount2 } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [2] }],
+      })),
+    )
+
+    // Unmount first chart
+    unmount1()
+
+    // Second chart should still be functional
+    expect(chart2.loading()).toBe(true)
+    expect(chart2.error()).toBeNull()
+
+    unmount2()
+  })
+})
+
+// ─── Resize observer cleanup ────────────────────────────────────────────────
+
+describe('resize observer cleanup', () => {
+  it('chart instance is set to null on unmount', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [1] }],
+      })),
+    )
+
+    // Before unmount — instance is null (no container bound)
+    expect(chart.instance()).toBeNull()
+
+    unmount()
+
+    // After unmount — instance remains null (was never created)
+    expect(chart.instance()).toBeNull()
+  })
+
+  it('onUnmount disposes the chart instance when it exists', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+
+    const mountEl = document.createElement('div')
+    document.body.appendChild(mountEl)
+
+    let chartResult: ReturnType<typeof useChart> | undefined
+    const Child = () => {
+      chartResult = useChart(() => ({
+        series: [{ type: 'bar', data: [1] }],
+      }))
+      chartResult.ref(el)
+      return null
+    }
+    const unmount = mount(<Child />, mountEl)
+
+    // Wait for async module load + chart init
+    await new Promise((r) => setTimeout(r, 300))
+
+    // Whether init succeeded or not (happy-dom has no real dimensions),
+    // unmount should not throw
+    expect(() => unmount()).not.toThrow()
+
+    // After unmount, instance should be null (cleaned up)
+    expect(chartResult!.instance()).toBeNull()
+
+    mountEl.remove()
+    el.remove()
+  })
+})
+
+// ─── Theme switching ────────────────────────────────────────────────────────
+
+describe('theme config', () => {
+  it('passes theme to useChart config', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(
+        () => ({
+          series: [{ type: 'bar', data: [1] }],
+        }),
+        { theme: 'dark' },
+      ),
+    )
+
+    // Chart instance not yet created (no container), but API is valid
+    expect(chart.instance()).toBeNull()
+    expect(chart.error()).toBeNull()
+
+    unmount()
+  })
+
+  it('Chart component accepts theme prop', () => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+
+    const unmount = mount(
+      <Chart
+        options={() => ({
+          series: [{ type: 'bar', data: [1] }],
+        })}
+        theme="dark"
+        style="height: 300px"
+      />,
+      container,
+    )
+
+    const div = container.querySelector('div')
+    expect(div).not.toBeNull()
+
+    unmount()
+    container.remove()
+  })
+})
+
+// ─── Error signal ───────────────────────────────────────────────────────────
+
+describe('error signal', () => {
+  it('error is null initially', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [1] }],
+      })),
+    )
+
+    expect(chart.error()).toBeNull()
+    unmount()
+  })
+
+  it('error is set when optionsFn throws during init', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => {
+        throw new Error('Bad options')
+      }),
+    )
+
+    // Trigger init by setting a container
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    chart.ref(el)
+
+    await new Promise((r) => setTimeout(r, 100))
+
+    expect(chart.error()).not.toBeNull()
+    expect(chart.error()!.message).toBe('Bad options')
+    expect(chart.loading()).toBe(false)
+
+    unmount()
+    el.remove()
+  })
+
+  it('error is set when optionsFn throws non-Error value during init', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => {
+        throw 'string failure'
+      }),
+    )
+
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    chart.ref(el)
+
+    await new Promise((r) => setTimeout(r, 100))
+
+    expect(chart.error()).not.toBeNull()
+    expect(chart.error()!.message).toBe('string failure')
+
+    unmount()
+    el.remove()
+  })
+
+  it('useChart returns error signal in result shape', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: [1] }],
+      })),
+    )
+
+    expect(typeof chart.error).toBe('function')
+    expect(chart.error()).toBeNull()
+
+    unmount()
+  })
+})
+
+// ─── Chart component events ─────────────────────────────────────────────────
+
+describe('Chart component events', () => {
+  it('renders with event handler props without throwing', () => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+
+    const onClick = vi.fn()
+    const onMouseover = vi.fn()
+
+    const unmount = mount(
+      <Chart
+        options={() => ({
+          series: [{ type: 'bar', data: [1] }],
+        })}
+        style="height: 300px"
+        onClick={onClick}
+        onMouseover={onMouseover}
+      />,
+      container,
+    )
+
+    expect(container.querySelector('div')).not.toBeNull()
+
+    unmount()
+    container.remove()
+  })
+})
+
+// ─── Reactive options with signal ───────────────────────────────────────────
+
+describe('reactive options', () => {
+  it('useChart accepts optionsFn that reads signals', async () => {
+    const { useChart } = await import('../use-chart')
+
+    const data = signal([1, 2, 3])
+
+    const { result: chart, unmount } = mountWith(() =>
+      useChart(() => ({
+        series: [{ type: 'bar', data: data() }],
+      })),
+    )
+
+    expect(chart.loading()).toBe(true)
+    expect(chart.error()).toBeNull()
+
+    // Updating the signal should not throw
+    data.set([4, 5, 6])
+
+    unmount()
+  })
 })
