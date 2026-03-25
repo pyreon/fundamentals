@@ -5,6 +5,20 @@ import type { PermissionMap, PermissionValue, Permissions } from './types'
  * Resolve a permission key against the map.
  * Resolution order: exact match → wildcard (e.g., 'posts.*') → global wildcard ('*') → false.
  */
+/**
+ * Safely evaluate a permission value. Predicates that throw are treated as denied.
+ */
+function evaluate(value: PermissionValue, context?: unknown): boolean {
+  if (typeof value === 'function') {
+    try {
+      return value(context)
+    } catch {
+      return false
+    }
+  }
+  return value
+}
+
 function resolve(
   map: Map<string, PermissionValue>,
   key: string,
@@ -13,7 +27,7 @@ function resolve(
   // 1. Exact match
   const exact = map.get(key)
   if (exact !== undefined) {
-    return typeof exact === 'function' ? exact(context) : exact
+    return evaluate(exact, context)
   }
 
   // 2. Wildcard match — 'posts.read' matches 'posts.*'
@@ -22,14 +36,14 @@ function resolve(
     const prefix = key.slice(0, dotIndex)
     const wildcard = map.get(`${prefix}.*`)
     if (wildcard !== undefined) {
-      return typeof wildcard === 'function' ? wildcard(context) : wildcard
+      return evaluate(wildcard, context)
     }
   }
 
   // 3. Global wildcard
   const global = map.get('*')
   if (global !== undefined) {
-    return typeof global === 'function' ? global(context) : global
+    return evaluate(global, context)
   }
 
   // 4. No match → denied

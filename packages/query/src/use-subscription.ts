@@ -136,7 +136,11 @@ export function useSubscription(
     }
 
     ws.onmessage = (event) => {
-      options.onMessage(event, queryClient)
+      try {
+        options.onMessage(event, queryClient)
+      } catch {
+        // Message handler errors should not crash the subscription
+      }
     }
 
     ws.onclose = (event) => {

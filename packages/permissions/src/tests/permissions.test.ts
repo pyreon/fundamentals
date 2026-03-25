@@ -409,6 +409,146 @@ describe('createPermissions', () => {
     })
   })
 
+  // ─── Error handling & edge cases ──────────────────────────────────────
+
+  describe('predicate that throws', () => {
+    it('returns false when predicate throws', () => {
+      const can = createPermissions({
+        'posts.update': () => {
+          throw new Error('predicate boom')
+        },
+      })
+      // Should not crash — returns false
+      expect(can('posts.update')).toBe(false)
+    })
+
+    it('returns false with context when predicate throws', () => {
+      const can = createPermissions({
+        'posts.update': (_post: any) => {
+          throw new Error('predicate boom')
+        },
+      })
+      expect(can('posts.update', { id: 1 })).toBe(false)
+    })
+
+    it('can.not returns true when predicate throws', () => {
+      const can = createPermissions({
+        'posts.update': () => {
+          throw new Error('boom')
+        },
+      })
+      expect(can.not('posts.update')).toBe(true)
+    })
+  })
+
+  describe('can.all/can.any with empty args', () => {
+    it('can.all() with no args returns true (vacuous truth)', () => {
+      const can = createPermissions({ 'posts.read': false })
+      expect(can.all()).toBe(true)
+    })
+
+    it('can.any() with no args returns false', () => {
+      const can = createPermissions({ 'posts.read': true })
+      expect(can.any()).toBe(false)
+    })
+  })
+
+  describe('rapid set/patch cycles', () => {
+    it('final state is correct after rapid set calls', () => {
+      const can = createPermissions({ a: true })
+
+      for (let i = 0; i < 50; i++) {
+        can.set({ a: i % 2 === 0 })
+      }
+
+      // 50 iterations, last i=49, 49 % 2 = 1, so false
+      expect(can('a')).toBe(false)
+    })
+
+    it('final state is correct after rapid patch calls', () => {
+      const can = createPermissions({ a: true, b: false })
+
+      for (let i = 0; i < 50; i++) {
+        can.patch({ a: i % 2 === 0, b: i % 3 === 0 })
+      }
+
+      // last i=49: 49%2=1 → false, 49%3=1 → false
+      expect(can('a')).toBe(false)
+      expect(can('b')).toBe(false)
+    })
+
+    it('reactive effects see correct final state after rapid changes', () => {
+      const can = createPermissions({ a: true })
+      const results: boolean[] = []
+
+      effect(() => {
+        results.push(can('a'))
+      })
+
+      can.set({ a: false })
+      can.set({ a: true })
+      can.set({ a: false })
+
+      // Effect should have tracked all transitions
+      expect(results[0]).toBe(true)
+      expect(results[results.length - 1]).toBe(false)
+    })
+
+    it('interleaved set and patch produce correct state', () => {
+      const can = createPermissions({})
+
+      can.set({ a: true, b: true })
+      can.patch({ c: true })
+      can.set({ a: false }) // replaces everything
+      can.patch({ d: true })
+
+      expect(can('a')).toBe(false)
+      expect(can('b')).toBe(false) // cleared by set
+      expect(can('c')).toBe(false) // cleared by set
+      expect(can('d')).toBe(true) // added by last patch
+    })
+  })
+
+  describe('cleanup / disposal', () => {
+    it('granted computed still works after many set/patch cycles', () => {
+      const can = createPermissions({ a: true })
+
+      for (let i = 0; i < 20; i++) {
+        can.set({ a: true, [`key-${i}`]: true })
+      }
+
+      const granted = can.granted()
+      expect(granted).toContain('a')
+      expect(granted).toContain('key-19')
+      expect(granted).not.toContain('key-0') // cleared by last set
+    })
+
+    it('entries computed reflects current state after many mutations', () => {
+      const can = createPermissions({})
+
+      can.set({ a: true })
+      can.patch({ b: false })
+      can.set({ c: true })
+
+      const entries = can.entries()
+      expect(entries).toEqual([['c', true]])
+    })
+
+    it('effects tracking permissions react correctly to updates', () => {
+      const can = createPermissions({ a: true })
+      let count = 0
+
+      effect(() => {
+        can('a')
+        count++
+      })
+
+      const initial = count
+      can.set({ a: false })
+      expect(count).toBe(initial + 1)
+    })
+  })
+
   // ─── Real-world patterns ───────────────────────────────────────────────
 
   describe('real-world patterns', () => {

@@ -526,6 +526,176 @@ describe('dispose', () => {
   })
 })
 
+// ─── Error handling & cleanup ─────────────────────────────────────────────
+
+describe('dispose — signal cleanup', () => {
+  test('disposed store does not trigger subscribe callbacks', () => {
+    const useStore = defineStore('dispose-signals', () => ({
+      count: signal(0),
+    }))
+    const api = useStore()
+    let callCount = 0
+    api.subscribe(() => {
+      callCount++
+    })
+    api.store.count.set(1)
+    expect(callCount).toBe(1)
+
+    api.dispose()
+
+    // After dispose, mutating the signal should not notify subscribers
+    api.store.count.set(99)
+    expect(callCount).toBe(1)
+  })
+
+  test('disposed store clears action listeners', () => {
+    const useStore = defineStore('dispose-actions', () => ({
+      count: signal(0),
+      increment: () => {
+        /* noop */
+      },
+    }))
+    const api = useStore()
+    let actionCount = 0
+    api.onAction(() => {
+      actionCount++
+    })
+    api.store.increment()
+    expect(actionCount).toBe(1)
+
+    api.dispose()
+
+    // Re-create the store — old action listeners should not fire
+    const api2 = useStore()
+    api2.store.increment()
+    // actionCount should not increase from old listener
+    expect(actionCount).toBe(1)
+  })
+})
+
+describe('subscribe/unsubscribe — no memory leak', () => {
+  test('multiple subscribe and unsubscribe does not leak listeners', () => {
+    const useStore = defineStore('sub-leak', () => ({
+      count: signal(0),
+    }))
+    const api = useStore()
+
+    // Subscribe and unsubscribe many times
+    const unsubs: (() => void)[] = []
+    for (let i = 0; i < 100; i++) {
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op subscriber
+      unsubs.push(api.subscribe(() => {}))
+    }
+
+    // Unsubscribe all
+    for (const unsub of unsubs) {
+      unsub()
+    }
+
+    // Now a real subscriber should work cleanly
+    let callCount = 0
+    api.subscribe(() => {
+      callCount++
+    })
+    api.store.count.set(42)
+    expect(callCount).toBe(1)
+  })
+
+  test('unsubscribing same function twice is safe', () => {
+    const useStore = defineStore('double-unsub', () => ({
+      count: signal(0),
+    }))
+    const api = useStore()
+    // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op subscriber
+    const unsub = api.subscribe(() => {})
+    unsub()
+    // Second unsubscribe should not throw
+    expect(() => unsub()).not.toThrow()
+  })
+})
+
+describe('action that throws', () => {
+  test('store state is not corrupted after sync action throws', () => {
+    const useStore = defineStore('action-throw', () => {
+      const count = signal(0)
+      const failingAction = () => {
+        count.set(42)
+        throw new Error('action failed')
+      }
+      return { count, failingAction }
+    })
+    const api = useStore()
+
+    expect(() => api.store.failingAction()).toThrow('action failed')
+
+    // The signal was set before the throw — state reflects the partial update
+    expect(api.store.count()).toBe(42)
+
+    // Store should still be usable
+    api.store.count.set(10)
+    expect(api.store.count()).toBe(10)
+  })
+
+  test('subscribe still works after action throws', () => {
+    const useStore = defineStore('action-throw-sub', () => {
+      const count = signal(0)
+      const boom = () => {
+        throw new Error('boom')
+      }
+      return { count, boom }
+    })
+    const api = useStore()
+
+    const mutations: MutationInfo[] = []
+    api.subscribe((m) => {
+      mutations.push(m)
+    })
+
+    expect(() => api.store.boom()).toThrow('boom')
+
+    // Subscribers should still fire on subsequent changes
+    api.store.count.set(5)
+    expect(mutations).toHaveLength(1)
+    expect(mutations[0]!.events[0]!.newValue).toBe(5)
+  })
+})
+
+describe('plugin that throws', () => {
+  test('store still works when plugin throws during setup', () => {
+    addStorePlugin(() => {
+      throw new Error('plugin setup failed')
+    })
+
+    const useStore = defineStore('plugin-throw', () => ({
+      count: signal(0),
+    }))
+
+    // Store should still be created despite plugin error
+    const api = useStore()
+    expect(api.store.count()).toBe(0)
+    api.store.count.set(5)
+    expect(api.store.count()).toBe(5)
+  })
+
+  test('other plugins still run when one throws', () => {
+    let secondPluginRan = false
+
+    addStorePlugin(() => {
+      throw new Error('first plugin explodes')
+    })
+    addStorePlugin(() => {
+      secondPluginRan = true
+    })
+
+    const useStore = defineStore('plugin-throw-multi', () => ({
+      val: signal(0),
+    }))
+    useStore()
+
+    expect(secondPluginRan).toBe(true)
+  })
+})
+
 describe('addStorePlugin', () => {
   test('plugin receives StoreApi on creation', () => {
     let receivedId: string | null = null
